@@ -152,6 +152,19 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);user-select:n
 .toast.success{background:var(--green)}
 .toast.error{background:var(--red)}
 
+
+/* ══ ZONE DROPDOWN ══ */
+.zone-select {
+  background: rgba(255,255,255,0.15);
+  color: white; border: 1.5px solid rgba(255,255,255,0.3);
+  border-radius: 10px; padding: 8px 14px;
+  font-family: var(--sans); font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; outline: none; transition: all 0.2s;
+  min-width: 160px;
+}
+.zone-select:hover { background: rgba(255,255,255,0.25); }
+.zone-select option { background: var(--brand-dark); color: white; }
+
 /* ══ ZONE ACCORDION ══ */
 .zone-accordion { margin-bottom: 0.5rem; border-radius: var(--radius-sm); overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 .zone-accordion-header {
@@ -186,6 +199,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);user-select:n
   <div class="dash-header">
     <div><div class="logo">🧹 Biscuit International</div></div>
     <span class="week-badge" id="week-badge">Week —</span>
+    <select class="zone-select" id="zone-select" onchange="filterOpZone(this.value)">
+      <option value="">📍 Alle zones</option>
+    </select>
     <div class="spacer"></div>
     <div class="time-display" id="header-clock">00:00</div>
     <button class="mijn-taken-btn" id="mijn-taken-btn" onclick="toggleMijnTaken()">🏷️ Mijn Taken</button>
@@ -286,7 +302,7 @@ const DEMO_MDW = {
 };
 
 // ── STATE ──
-let state = { taken:[], filterTab:'all', activeMedewerker:null, pendingCheckId:null, currentTaak:null };
+let state = { taken:[], filterTab:'all', activeMedewerker:null, pendingCheckId:null, currentTaak:null, zoneFilter:'' };
 
 // ── KLOK ──
 function getWeekNumber(d) {
@@ -333,7 +349,7 @@ async function laadTaken() {
       uitgevoerdDoor: item.UitgevoerdDoor || '',
     }));
 
-    updateKPIs(); renderTaken();
+    updateKPIs(); vulZoneDropdown(); renderTaken();
   } catch(e) {
     console.error(e);
     document.getElementById('dash-body').innerHTML = `
@@ -403,6 +419,9 @@ function renderTaken() {
   if(state.filterTab==='open') taken=taken.filter(t=>t.status==='Open');
   else if(state.filterTab==='done') taken=taken.filter(t=>['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status));
   else if(state.filterTab==='rejected') taken=taken.filter(t=>t.status==='Afgekeurd');
+
+  // Zone filter
+  if(state.zoneFilter) taken = taken.filter(t => t.zone === state.zoneFilter);
 
   const actief=state.activeMedewerker;
   if(taken.length===0){
@@ -580,6 +599,37 @@ async function doAfvinken(naam){
 
 // ── TOAST ──
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
+// ── ZONE FILTER ──
+function filterOpZone(zone) {
+  state.zoneFilter = zone;
+  renderTaken();
+}
+
+function vulZoneDropdown() {
+  const zones = [...new Set(state.taken.map(t => t.zone).filter(z => z && z !== 'Overig'))].sort();
+  const select = document.getElementById('zone-select');
+  // Bewaar huidige selectie
+  const huidig = select.value;
+  // Verwijder alle opties behalve eerste
+  while(select.options.length > 1) select.remove(1);
+  // Voeg zones toe
+  zones.forEach(zone => {
+    const opt = document.createElement('option');
+    opt.value = zone;
+    opt.textContent = '📍 ' + zone;
+    select.appendChild(opt);
+  });
+  // Voeg Overig toe als laatste
+  if(state.taken.some(t => t.zone === 'Overig')) {
+    const opt = document.createElement('option');
+    opt.value = 'Overig';
+    opt.textContent = '📍 Overig';
+    select.appendChild(opt);
+  }
+  // Herstel selectie
+  if(huidig) select.value = huidig;
+}
 
 // ── INIT ──
 laadTaken();
