@@ -325,7 +325,7 @@ async function laadTaken() {
     state.taken = items.map(item => ({
       id:           item.ID || item.Id || item.id,
       naam:         item.Title || item.Taaknaam || '',
-      zone:         (item.Locatie && item.Locatie.Value) ? item.Locatie.Value : (item.Locatie || item['Locatie/Ruimte']?.Value || item['Locatie/Ruimte'] || item.Locatie_x0020__x002f__x0020_Ruimte || 'Overig'),
+      zone:         (item.field_3 && item.field_3.Value) ? item.field_3.Value : (item.Locatie && item.Locatie.Value) ? item.Locatie.Value : (item['Locatie/Ruimte'] || 'Overig'),
       status:       (item.Status && item.Status.Value) ? item.Status.Value : (item.Status || 'Open'),
       freq:         (item.Frequentie && item.Frequentie.Value) ? item.Frequentie.Value : (item.Frequentie || 'Wekelijks'),
       referentie:   item.Referentie || '',
