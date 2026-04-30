@@ -151,6 +151,31 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);user-select:n
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.success{background:var(--green)}
 .toast.error{background:var(--red)}
+
+/* ══ ZONE ACCORDION ══ */
+.zone-accordion { margin-bottom: 0.5rem; border-radius: var(--radius-sm); overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.zone-accordion-header {
+  background: var(--white); padding: 1rem 1.2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; transition: background 0.15s; gap: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.zone-accordion-header:hover { background: #f8fafc; }
+.zone-acc-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.zone-acc-arrow { font-size: 0.7rem; color: var(--ink4); transition: transform 0.25s; display: inline-block; }
+.zone-acc-arrow.open { transform: rotate(90deg); }
+.zone-acc-name { font-size: 0.92rem; font-weight: 700; color: var(--ink); }
+.mine-zone-tag { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: var(--brand-light); color: var(--brand); border: 1px solid #bfdbfe; white-space: nowrap; }
+.zone-acc-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.zone-stat { font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
+.zone-stat.open-stat { color: var(--brand); }
+.zone-stat.total-stat { color: var(--ink4); }
+.zone-stat.nok { color: var(--red); }
+.zone-mini-bar { width: 60px; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.zone-mini-fill { height: 100%; border-radius: 99px; transition: width 0.5s; }
+.zone-pct { font-family: var(--mono); font-size: 0.72rem; font-weight: 700; min-width: 30px; text-align: right; }
+.zone-accordion-body { display: none; background: var(--bg); padding: 0.8rem 1rem; }
+.zone-accordion-body.open { display: block; }
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 </style>
@@ -391,22 +416,74 @@ function renderTaken() {
     return (ord[a.status]||9)-(ord[b.status]||9);
   });
 
+  // Groepeer per zone
   const zones={};
   taken.forEach(t=>{
-    if(!zones[t.zone]) zones[t.zone]={week:[],overig:[]};
-    if(['Dagelijks','Wekelijks','2-Wekelijks'].includes(t.freq)) zones[t.zone].week.push(t);
-    else zones[t.zone].overig.push(t);
+    if(!zones[t.zone]) zones[t.zone]=[];
+    zones[t.zone].push(t);
   });
 
+  // Bepaal welke zones open moeten zijn
+  const actieveZone = actief ? state.taken.find(t=>t.toegewezen===actief.naam)?.zone : null;
+
   let html='';
-  Object.entries(zones).forEach(([zone,g])=>{
-    const tot=g.week.length+g.overig.length;
-    html+=`<div class="zone-group"><div class="zone-header"><div class="zone-title">📍 ${zone}</div><div class="zone-count">${tot} taken</div><div class="zone-line"></div></div>`;
-    g.week.forEach(t=>{html+=card(t);});
-    if(g.overig.length>0){html+=`<div class="freq-section-label">📅 Periodieke taken</div>`;g.overig.forEach(t=>{html+=card(t);});}
-    html+=`</div>`;
+  Object.entries(zones).forEach(([zone, zoneTaken])=>{
+    const open = zoneTaken.filter(t=>t.status==='Open').length;
+    const nok = zoneTaken.filter(t=>t.status==='Afgekeurd').length;
+    const done = zoneTaken.filter(t=>['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status)).length;
+    const tot = zoneTaken.length;
+    const pct = tot > 0 ? Math.round(done/tot*100) : 0;
+    const isMineZone = actief && zoneTaken.some(t=>t.toegewezen===actief.naam);
+
+    // Standaard dicht — eigen zone en zones met afkeuringen open
+    const isOpen = isMineZone || nok > 0 || !actief;
+
+    // Status kleur voor zone header
+    let zoneKleur = '#64748b';
+    if(nok > 0) zoneKleur = '#dc2626';
+    else if(pct === 100) zoneKleur = '#16a34a';
+    else if(open > 0) zoneKleur = '#0078d4';
+
+    html += `<div class="zone-accordion" id="zone-${zone.replace(/\s+/g,'-')}">
+      <div class="zone-accordion-header" onclick="toggleZone('${zone.replace(/\s+/g,'-')}')" style="border-left: 4px solid ${zoneKleur}">
+        <div class="zone-acc-left">
+          <span class="zone-acc-arrow ${isOpen?'open':''}" id="arrow-${zone.replace(/\s+/g,'-')}">▶</span>
+          <span class="zone-acc-name">📍 ${zone}</span>
+          ${isMineZone ? '<span class="mine-zone-tag">Jouw zone</span>' : ''}
+        </div>
+        <div class="zone-acc-right">
+          ${nok > 0 ? `<span class="zone-stat nok">⚠️ ${nok} afgekeurd</span>` : ''}
+          <span class="zone-stat open-stat">${open} open</span>
+          <span class="zone-stat total-stat">${tot} totaal</span>
+          <div class="zone-mini-bar">
+            <div class="zone-mini-fill" style="width:${pct}%;background:${pct===100?'#16a34a':'#0078d4'}"></div>
+          </div>
+          <span class="zone-pct" style="color:${zoneKleur}">${pct}%</span>
+        </div>
+      </div>
+      <div class="zone-accordion-body ${isOpen?'open':''}" id="body-${zone.replace(/\s+/g,'-')}">`;
+
+    // Splits wekelijks en periodiek
+    const week = zoneTaken.filter(t=>['Dagelijks','Wekelijks','2-Wekelijks'].includes(t.freq));
+    const overig = zoneTaken.filter(t=>!['Dagelijks','Wekelijks','2-Wekelijks'].includes(t.freq));
+
+    week.forEach(t=>{html+=card(t);});
+    if(overig.length>0){
+      html+=`<div class="freq-section-label">📅 Periodieke taken</div>`;
+      overig.forEach(t=>{html+=card(t);});
+    }
+    html += `</div></div>`;
   });
+
   document.getElementById('dash-body').innerHTML=html;
+}
+
+function toggleZone(zoneId) {
+  const body = document.getElementById('body-'+zoneId);
+  const arrow = document.getElementById('arrow-'+zoneId);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
 }
 
 function card(taak) {
