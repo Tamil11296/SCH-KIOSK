@@ -7,258 +7,169 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --brand: #0078d4;
-  --brand-dark: #005a9e;
-  --brand-light: #eff6ff;
-  --green: #16a34a;
-  --green-light: #f0fdf4;
-  --green-mid: #dcfce7;
-  --amber: #d97706;
-  --amber-light: #fffbeb;
-  --red: #dc2626;
-  --red-light: #fef2f2;
-  --purple: #7c3aed;
-  --gray: #64748b;
-  --bg: #f0f4f8;
-  --white: #ffffff;
-  --ink: #0f172a;
-  --ink2: #334155;
-  --ink3: #64748b;
-  --ink4: #94a3b8;
-  --border: #e2e8f0;
-  --border2: #cbd5e1;
-  --radius: 16px;
-  --radius-sm: 10px;
-  --shadow: 0 4px 16px rgba(0,0,0,0.08);
-  --shadow-lg: 0 16px 48px rgba(0,0,0,0.14);
-  --sans: 'DM Sans', sans-serif;
-  --mono: 'DM Mono', monospace;
+  --brand:#0078d4;--brand-dark:#005a9e;--brand-light:#eff6ff;
+  --green:#16a34a;--green-light:#f0fdf4;--green-mid:#dcfce7;
+  --amber:#d97706;--amber-light:#fffbeb;
+  --red:#dc2626;--red-light:#fef2f2;
+  --purple:#7c3aed;--gray:#64748b;
+  --bg:#f0f4f8;--white:#ffffff;
+  --ink:#0f172a;--ink2:#334155;--ink3:#64748b;--ink4:#94a3b8;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --radius:16px;--radius-sm:10px;
+  --shadow:0 4px 16px rgba(0,0,0,0.08);--shadow-lg:0 16px 48px rgba(0,0,0,0.14);
+  --sans:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; overflow: hidden; }
-body { font-family: var(--sans); background: var(--bg); color: var(--ink); user-select: none; }
-
-.screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; overflow-y: auto; }
-.screen.active { opacity: 1; pointer-events: all; }
-
-/* ══ DASHBOARD ══ */
-#screen-dashboard { background: var(--bg); flex-direction: column; align-items: stretch; overflow: hidden; }
-
-.dash-header {
-  background: var(--brand); padding: 0 2rem; height: 64px;
-  display: flex; align-items: center; gap: 1rem; flex-shrink: 0;
-}
-.dash-header .logo { color: white; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; }
-.dash-header .week-badge { background: rgba(255,255,255,0.2); color: white; font-family: var(--mono); font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
-.dash-header .spacer { flex: 1; }
-.dash-header .time-display { color: rgba(255,255,255,0.8); font-family: var(--mono); font-size: 0.85rem; }
-
-.mijn-taken-btn {
-  display: flex; align-items: center; gap: 8px;
-  background: white; color: var(--brand); border: none; border-radius: 10px;
-  padding: 10px 18px; font-family: var(--sans); font-size: 0.88rem; font-weight: 700;
-  cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-.mijn-taken-btn:hover { background: #f0f9ff; }
-.mijn-taken-btn.active { background: var(--green); color: white; }
-
-.dash-kpi {
-  background: var(--white); border-bottom: 1px solid var(--border);
-  padding: 1rem 2rem; display: flex; gap: 0; flex-shrink: 0;
-}
-.kpi-card { flex: 1; text-align: center; padding: 0.5rem 1rem; border-right: 1px solid var(--border); position: relative; }
-.kpi-card:last-child { border-right: none; }
-.kpi-card::before { content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 3px; border-radius: 0 0 3px 3px; }
-.kpi-card.kpi-total::before { background: var(--gray); }
-.kpi-card.kpi-open::before { background: var(--brand); }
-.kpi-card.kpi-done::before { background: var(--green); }
-.kpi-card.kpi-review::before { background: var(--amber); }
-.kpi-card.kpi-nok::before { background: var(--red); }
-.kpi-num { font-family: var(--mono); font-size: 2rem; font-weight: 700; line-height: 1; margin-bottom: 3px; }
-.kpi-card.kpi-total .kpi-num { color: var(--gray); }
-.kpi-card.kpi-open .kpi-num { color: var(--brand); }
-.kpi-card.kpi-done .kpi-num { color: var(--green); }
-.kpi-card.kpi-review .kpi-num { color: var(--amber); }
-.kpi-card.kpi-nok .kpi-num { color: var(--red); }
-.kpi-label { font-size: 0.72rem; color: var(--ink4); text-transform: uppercase; letter-spacing: 0.06em; }
-
-.dash-progress {
-  background: var(--white); border-bottom: 1px solid var(--border);
-  padding: 0.7rem 2rem; display: flex; align-items: center; gap: 1rem; flex-shrink: 0;
-}
-.prog-bar-wrap { flex: 1; }
-.prog-bar-label { font-size: 0.75rem; color: var(--ink3); margin-bottom: 4px; display: flex; justify-content: space-between; }
-.prog-bar { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
-.prog-fill { height: 100%; background: linear-gradient(90deg, var(--green), #22c55e); border-radius: 99px; transition: width 0.5s ease; }
-
-.active-user-bar {
-  background: linear-gradient(90deg, #f0fdf4, #dcfce7);
-  border-bottom: 1px solid #86efac;
-  padding: 0.6rem 2rem; display: none; align-items: center; gap: 10px; flex-shrink: 0;
-}
-.active-user-bar.visible { display: flex; }
-.active-user-bar .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--green); color: white; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-.active-user-bar .info { flex: 1; font-size: 0.82rem; color: #166534; font-weight: 600; }
-.clear-filter-btn { background: none; border: 1px solid #86efac; color: #16a34a; padding: 4px 12px; border-radius: 6px; font-family: var(--sans); font-size: 0.75rem; font-weight: 600; cursor: pointer; }
-
-.dash-filter {
-  background: var(--white); border-bottom: 1px solid var(--border);
-  padding: 0 2rem; display: flex; gap: 0; flex-shrink: 0; overflow-x: auto;
-}
-.filter-tab {
-  padding: 0.8rem 1.4rem; font-size: 0.82rem; font-weight: 600; color: var(--ink3);
-  cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px;
-  white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 6px;
-}
-.filter-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
-.filter-tab .cnt { background: var(--brand); color: white; font-size: 0.62rem; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
-.filter-tab .cnt.green { background: var(--green); }
-.filter-tab .cnt.red { background: var(--red); }
-.filter-tab .cnt.gray { background: var(--gray); }
-
-.dash-body { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; }
-
-.zone-group { margin-bottom: 1.8rem; }
-.zone-header { display: flex; align-items: center; gap: 10px; margin-bottom: 0.8rem; }
-.zone-title { font-size: 0.72rem; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.1em; }
-.zone-line { flex: 1; height: 1px; background: var(--border); }
-.zone-count { font-family: var(--mono); font-size: 0.68rem; color: var(--ink4); }
-.freq-section-label { font-size: 0.68rem; font-weight: 600; color: var(--ink4); text-transform: uppercase; letter-spacing: 0.08em; margin: 0.8rem 0 0.5rem; padding: 3px 8px; background: var(--bg); border-radius: 4px; display: inline-block; }
-
-.task-card {
-  background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-  padding: 1rem 1.2rem; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 1rem;
-  transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer;
-}
-.task-card:hover { border-color: var(--brand); box-shadow: 0 4px 16px rgba(0,120,212,0.1); }
-.task-card.card-done { opacity: 0.65; border-color: var(--green); background: var(--green-light); }
-.task-card.card-review { border-color: var(--amber); background: var(--amber-light); }
-.task-card.card-rejected { border-color: var(--red); background: var(--red-light); }
-.task-card.card-mine { border-color: var(--brand); border-width: 2px; }
-
-.task-icon { font-size: 1.4rem; flex-shrink: 0; width: 36px; text-align: center; }
-.task-info { flex: 1; min-width: 0; }
-.task-name { font-size: 0.95rem; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
-.task-name.striked { text-decoration: line-through; color: var(--ink4); }
-.task-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.task-meta .zone-tag { font-size: 0.72rem; color: var(--ink3); }
-.task-meta .freq-tag { font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: var(--bg); color: var(--ink3); border: 1px solid var(--border); }
-.task-meta .mine-tag { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: var(--brand-light); color: var(--brand); border: 1px solid #bfdbfe; }
-.task-meta .done-by { font-size: 0.72rem; color: var(--green); font-weight: 600; }
-
-.status-chip { padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
-.chip-open { background: #f1f5f9; color: var(--ink3); }
-.chip-done { background: #fef3c7; color: var(--amber); }
-.chip-review { background: #dbeafe; color: var(--brand); }
-.chip-approved { background: var(--green-mid); color: var(--green); }
-.chip-rejected { background: var(--red-light); color: var(--red); }
-.chip-missed { background: #faf5ff; color: var(--purple); }
-
-.task-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
-
-.instr-btn {
-  display: flex; align-items: center; gap: 5px;
-  background: var(--brand-light); color: var(--brand); border: 1.5px solid #bfdbfe;
-  border-radius: 8px; padding: 10px 14px; font-family: var(--sans); font-size: 0.82rem;
-  font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;
-}
-.instr-btn:hover { background: #dbeafe; }
-
-.check-btn {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--green); color: white; border: none; border-radius: 10px;
-  padding: 12px 20px; font-family: var(--sans); font-size: 0.95rem; font-weight: 700;
-  cursor: pointer; white-space: nowrap; box-shadow: 0 4px 12px rgba(22,163,74,0.3);
-  transition: all 0.2s; min-width: 130px; justify-content: center;
-}
-.check-btn:hover { background: #15803d; transform: scale(1.03); }
-.check-btn:active { transform: scale(0.97); }
-.check-btn.btn-done { background: var(--ink4); box-shadow: none; cursor: default; min-width: 0; padding: 12px 16px; }
-.check-btn.btn-done:hover { transform: none; }
-.check-btn.btn-rejected { background: var(--red); box-shadow: 0 4px 12px rgba(220,38,38,0.3); }
-
-.empty-state { text-align: center; padding: 4rem 2rem; color: var(--ink4); }
-.empty-state .icon { font-size: 3.5rem; margin-bottom: 1rem; display: block; }
-.empty-state h3 { font-size: 1.1rem; font-weight: 600; color: var(--ink3); margin-bottom: 0.4rem; }
-.empty-state p { font-size: 0.88rem; }
-
-.loading-spinner { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem; gap: 1rem; color: var(--ink4); }
-.spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ══ INSTRUCTIE ══ */
-#screen-instructie { background: var(--bg); flex-direction: column; align-items: stretch; }
-.instr-header { background: var(--white); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; align-items: center; gap: 1rem; flex-shrink: 0; }
-.back-btn { display: flex; align-items: center; gap: 6px; background: none; border: 1.5px solid var(--border2); color: var(--ink2); padding: 10px 16px; border-radius: 10px; font-family: var(--sans); font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.back-btn:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-light); }
-.instr-header-title { font-size: 1.1rem; font-weight: 700; flex: 1; }
-.instr-body { flex: 1; overflow-y: auto; padding: 2rem; }
-.instr-card { background: var(--white); border-radius: var(--radius); padding: 2rem; max-width: 800px; margin: 0 auto; box-shadow: var(--shadow); }
-.instr-meta-row { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
-.instr-meta-item .label { font-size: 0.68rem; color: var(--ink4); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
-.instr-meta-item .value { font-size: 0.9rem; font-weight: 600; color: var(--ink); }
-.ref-box { background: var(--brand-light); border: 1px solid #bfdbfe; border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 12px; }
-.ref-box h4 { font-size: 0.88rem; font-weight: 700; color: var(--brand); margin-bottom: 2px; }
-.ref-box p { font-size: 0.8rem; color: var(--ink3); }
-.no-instr-box { background: #f8fafc; border: 1px dashed var(--border2); border-radius: 10px; padding: 1.2rem; text-align: center; margin-bottom: 1.5rem; }
-.no-instr-box p { font-size: 0.85rem; color: var(--ink4); }
-.check-from-instr { display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--green); color: white; border: none; border-radius: 12px; padding: 16px 28px; font-family: var(--sans); font-size: 1.05rem; font-weight: 700; cursor: pointer; width: 100%; box-shadow: 0 4px 16px rgba(22,163,74,0.35); transition: all 0.2s; margin-top: 1.5rem; }
-.check-from-instr:hover { background: #15803d; }
-.check-from-instr.done { background: var(--ink4); box-shadow: none; cursor: default; }
-
-/* ══ POPUPS ══ */
-.popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
-.popup-overlay.active { opacity: 1; pointer-events: all; }
-.popup-card { background: var(--white); border-radius: 20px; padding: 2.5rem; width: 460px; max-width: 92vw; box-shadow: var(--shadow-lg); transform: scale(0.92); transition: transform 0.25s; }
-.popup-overlay.active .popup-card { transform: scale(1); }
-.popup-icon { font-size: 2.5rem; text-align: center; display: block; margin-bottom: 1rem; }
-.popup-title { font-size: 1.25rem; font-weight: 700; text-align: center; margin-bottom: 0.4rem; }
-.popup-sub { font-size: 0.88rem; color: var(--ink3); text-align: center; margin-bottom: 1.5rem; }
-.popup-taak-preview { background: var(--bg); border-radius: 10px; padding: 0.8rem 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; }
-.popup-taak-preview strong { display: block; font-weight: 700; margin-bottom: 2px; }
-.popup-taak-preview span { color: var(--ink3); font-size: 0.8rem; }
-.popup-badge-label { font-size: 0.8rem; font-weight: 600; color: var(--ink2); margin-bottom: 6px; display: block; }
-.popup-badge-input { width: 100%; padding: 1rem; font-size: 1.5rem; text-align: center; font-family: var(--mono); font-weight: 600; letter-spacing: 0.25em; border: 2px solid var(--border2); border-radius: 10px; outline: none; background: var(--bg); transition: all 0.2s; margin-bottom: 0.5rem; }
-.popup-badge-input:focus { border-color: var(--brand); background: white; box-shadow: 0 0 0 4px rgba(0,120,212,0.1); }
-.popup-badge-status { font-size: 0.8rem; min-height: 22px; margin-bottom: 1rem; font-weight: 600; text-align: center; }
-.popup-badge-status.found { color: var(--green); }
-.popup-badge-status.notfound { color: var(--red); }
-.popup-btns { display: flex; gap: 0.8rem; }
-.popup-btn-cancel { flex: 1; padding: 0.9rem; background: var(--bg); border: 1.5px solid var(--border2); border-radius: 10px; font-family: var(--sans); font-size: 0.95rem; font-weight: 600; cursor: pointer; color: var(--ink2); transition: all 0.2s; }
-.popup-btn-cancel:hover { border-color: var(--red); color: var(--red); }
-.popup-btn-confirm { flex: 1; padding: 0.9rem; background: var(--green); border: none; border-radius: 10px; font-family: var(--sans); font-size: 0.95rem; font-weight: 700; cursor: pointer; color: white; box-shadow: 0 4px 14px rgba(22,163,74,0.3); transition: all 0.2s; }
-.popup-btn-confirm:hover { background: #15803d; }
-.popup-btn-confirm:disabled { background: var(--border2); box-shadow: none; cursor: not-allowed; }
-
-.toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--ink); color: white; padding: 0.9rem 1.8rem; border-radius: 50px; font-size: 0.88rem; font-weight: 600; box-shadow: var(--shadow-lg); transition: transform 0.35s ease; z-index: 2000; white-space: nowrap; }
-.toast.show { transform: translateX(-50%) translateY(0); }
-.toast.success { background: var(--green); }
-.toast.error { background: var(--red); }
-
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);user-select:none}
+.screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s ease;overflow-y:auto}
+.screen.active{opacity:1;pointer-events:all}
+#screen-dashboard{background:var(--bg);flex-direction:column;align-items:stretch;overflow:hidden}
+.dash-header{background:var(--brand);padding:0 2rem;height:64px;display:flex;align-items:center;gap:1rem;flex-shrink:0}
+.dash-header .logo{color:white;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase}
+.dash-header .week-badge{background:rgba(255,255,255,0.2);color:white;font-family:var(--mono);font-size:0.75rem;font-weight:600;padding:4px 12px;border-radius:20px}
+.dash-header .spacer{flex:1}
+.dash-header .time-display{color:rgba(255,255,255,0.8);font-family:var(--mono);font-size:0.85rem}
+.mijn-taken-btn{display:flex;align-items:center;gap:8px;background:white;color:var(--brand);border:none;border-radius:10px;padding:10px 18px;font-family:var(--sans);font-size:0.88rem;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
+.mijn-taken-btn:hover{background:#f0f9ff}
+.mijn-taken-btn.active{background:var(--green);color:white}
+.dash-kpi{background:var(--white);border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;gap:0;flex-shrink:0}
+.kpi-card{flex:1;text-align:center;padding:0.5rem 1rem;border-right:1px solid var(--border);position:relative}
+.kpi-card:last-child{border-right:none}
+.kpi-card::before{content:'';position:absolute;top:0;left:20%;right:20%;height:3px;border-radius:0 0 3px 3px}
+.kpi-card.kpi-total::before{background:var(--gray)}
+.kpi-card.kpi-open::before{background:var(--brand)}
+.kpi-card.kpi-done::before{background:var(--green)}
+.kpi-card.kpi-review::before{background:var(--amber)}
+.kpi-card.kpi-nok::before{background:var(--red)}
+.kpi-num{font-family:var(--mono);font-size:2rem;font-weight:700;line-height:1;margin-bottom:3px}
+.kpi-card.kpi-total .kpi-num{color:var(--gray)}
+.kpi-card.kpi-open .kpi-num{color:var(--brand)}
+.kpi-card.kpi-done .kpi-num{color:var(--green)}
+.kpi-card.kpi-review .kpi-num{color:var(--amber)}
+.kpi-card.kpi-nok .kpi-num{color:var(--red)}
+.kpi-label{font-size:0.72rem;color:var(--ink4);text-transform:uppercase;letter-spacing:0.06em}
+.dash-progress{background:var(--white);border-bottom:1px solid var(--border);padding:0.7rem 2rem;display:flex;align-items:center;gap:1rem;flex-shrink:0}
+.prog-bar-wrap{flex:1}
+.prog-bar-label{font-size:0.75rem;color:var(--ink3);margin-bottom:4px;display:flex;justify-content:space-between}
+.prog-bar{height:8px;background:var(--border);border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--green),#22c55e);border-radius:99px;transition:width 0.5s ease}
+.active-user-bar{background:linear-gradient(90deg,#f0fdf4,#dcfce7);border-bottom:1px solid #86efac;padding:0.6rem 2rem;display:none;align-items:center;gap:10px;flex-shrink:0}
+.active-user-bar.visible{display:flex}
+.active-user-bar .avatar{width:28px;height:28px;border-radius:50%;background:var(--green);color:white;font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.active-user-bar .info{flex:1;font-size:0.82rem;color:#166534;font-weight:600}
+.clear-filter-btn{background:none;border:1px solid #86efac;color:#16a34a;padding:4px 12px;border-radius:6px;font-family:var(--sans);font-size:0.75rem;font-weight:600;cursor:pointer}
+.dash-filter{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;gap:0;flex-shrink:0;overflow-x:auto}
+.filter-tab{padding:0.8rem 1.4rem;font-size:0.82rem;font-weight:600;color:var(--ink3);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all 0.2s;display:flex;align-items:center;gap:6px}
+.filter-tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+.filter-tab .cnt{background:var(--brand);color:white;font-size:0.62rem;font-weight:700;padding:1px 6px;border-radius:10px}
+.filter-tab .cnt.green{background:var(--green)}
+.filter-tab .cnt.red{background:var(--red)}
+.filter-tab .cnt.gray{background:var(--gray)}
+.dash-body{flex:1;overflow-y:auto;padding:1.5rem 2rem}
+.zone-group{margin-bottom:1.8rem}
+.zone-header{display:flex;align-items:center;gap:10px;margin-bottom:0.8rem}
+.zone-title{font-size:0.72rem;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.1em}
+.zone-line{flex:1;height:1px;background:var(--border)}
+.zone-count{font-family:var(--mono);font-size:0.68rem;color:var(--ink4)}
+.freq-section-label{font-size:0.68rem;font-weight:600;color:var(--ink4);text-transform:uppercase;letter-spacing:0.08em;margin:0.8rem 0 0.5rem;padding:3px 8px;background:var(--bg);border-radius:4px;display:inline-block}
+.task-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.2rem;margin-bottom:0.6rem;display:flex;align-items:center;gap:1rem;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.05);cursor:pointer}
+.task-card:hover{border-color:var(--brand);box-shadow:0 4px 16px rgba(0,120,212,0.1)}
+.task-card.card-done{opacity:0.65;border-color:var(--green);background:var(--green-light)}
+.task-card.card-review{border-color:var(--amber);background:var(--amber-light)}
+.task-card.card-rejected{border-color:var(--red);background:var(--red-light)}
+.task-card.card-mine{border-color:var(--brand);border-width:2px}
+.task-icon{font-size:1.4rem;flex-shrink:0;width:36px;text-align:center}
+.task-info{flex:1;min-width:0}
+.task-name{font-size:0.95rem;font-weight:600;color:var(--ink);margin-bottom:4px}
+.task-name.striked{text-decoration:line-through;color:var(--ink4)}
+.task-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.task-meta .zone-tag{font-size:0.72rem;color:var(--ink3)}
+.task-meta .freq-tag{font-size:0.68rem;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--bg);color:var(--ink3);border:1px solid var(--border)}
+.task-meta .mine-tag{font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--brand-light);color:var(--brand);border:1px solid #bfdbfe}
+.task-meta .done-by{font-size:0.72rem;color:var(--green);font-weight:600}
+.status-chip{padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;white-space:nowrap;flex-shrink:0}
+.chip-open{background:#f1f5f9;color:var(--ink3)}
+.chip-done{background:#fef3c7;color:var(--amber)}
+.chip-review{background:#dbeafe;color:var(--brand)}
+.chip-approved{background:var(--green-mid);color:var(--green)}
+.chip-rejected{background:var(--red-light);color:var(--red)}
+.chip-missed{background:#faf5ff;color:var(--purple)}
+.task-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.instr-btn{display:flex;align-items:center;gap:5px;background:var(--brand-light);color:var(--brand);border:1.5px solid #bfdbfe;border-radius:8px;padding:10px 14px;font-family:var(--sans);font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.check-btn{display:flex;align-items:center;gap:8px;background:var(--green);color:white;border:none;border-radius:10px;padding:12px 20px;font-family:var(--sans);font-size:0.95rem;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 4px 12px rgba(22,163,74,0.3);transition:all 0.2s;min-width:130px;justify-content:center}
+.check-btn:hover{background:#15803d;transform:scale(1.03)}
+.check-btn:active{transform:scale(0.97)}
+.check-btn.btn-done{background:var(--ink4);box-shadow:none;cursor:default;min-width:0;padding:12px 16px}
+.check-btn.btn-done:hover{transform:none}
+.check-btn.btn-rejected{background:var(--red);box-shadow:0 4px 12px rgba(220,38,38,0.3)}
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--ink4)}
+.empty-state .icon{font-size:3.5rem;margin-bottom:1rem;display:block}
+.empty-state h3{font-size:1.1rem;font-weight:600;color:var(--ink3);margin-bottom:0.4rem}
+.loading-spinner{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem;gap:1rem;color:var(--ink4)}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#screen-instructie{background:var(--bg);flex-direction:column;align-items:stretch}
+.instr-header{background:var(--white);border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;align-items:center;gap:1rem;flex-shrink:0}
+.back-btn{display:flex;align-items:center;gap:6px;background:none;border:1.5px solid var(--border2);color:var(--ink2);padding:10px 16px;border-radius:10px;font-family:var(--sans);font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s}
+.back-btn:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-light)}
+.instr-header-title{font-size:1.1rem;font-weight:700;flex:1}
+.instr-body{flex:1;overflow-y:auto;padding:2rem}
+.instr-card{background:var(--white);border-radius:var(--radius);padding:2rem;max-width:800px;margin:0 auto;box-shadow:var(--shadow)}
+.instr-meta-row{display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+.instr-meta-item .label{font-size:0.68rem;color:var(--ink4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px}
+.instr-meta-item .value{font-size:0.9rem;font-weight:600;color:var(--ink)}
+.ref-box{background:var(--brand-light);border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:12px}
+.ref-box h4{font-size:0.88rem;font-weight:700;color:var(--brand);margin-bottom:2px}
+.ref-box p{font-size:0.8rem;color:var(--ink3)}
+.no-instr-box{background:#f8fafc;border:1px dashed var(--border2);border-radius:10px;padding:1.2rem;text-align:center;margin-bottom:1.5rem}
+.check-from-instr{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--green);color:white;border:none;border-radius:12px;padding:16px 28px;font-family:var(--sans);font-size:1.05rem;font-weight:700;cursor:pointer;width:100%;box-shadow:0 4px 16px rgba(22,163,74,0.35);transition:all 0.2s;margin-top:1.5rem}
+.check-from-instr:hover{background:#15803d}
+.check-from-instr.done{background:var(--ink4);box-shadow:none;cursor:default}
+.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity 0.25s}
+.popup-overlay.active{opacity:1;pointer-events:all}
+.popup-card{background:var(--white);border-radius:20px;padding:2.5rem;width:460px;max-width:92vw;box-shadow:var(--shadow-lg);transform:scale(0.92);transition:transform 0.25s}
+.popup-overlay.active .popup-card{transform:scale(1)}
+.popup-icon{font-size:2.5rem;text-align:center;display:block;margin-bottom:1rem}
+.popup-title{font-size:1.25rem;font-weight:700;text-align:center;margin-bottom:0.4rem}
+.popup-sub{font-size:0.88rem;color:var(--ink3);text-align:center;margin-bottom:1.5rem}
+.popup-taak-preview{background:var(--bg);border-radius:10px;padding:0.8rem 1rem;margin-bottom:1.5rem;font-size:0.85rem}
+.popup-taak-preview strong{display:block;font-weight:700;margin-bottom:2px}
+.popup-badge-label{font-size:0.8rem;font-weight:600;color:var(--ink2);margin-bottom:6px;display:block}
+.popup-badge-input{width:100%;padding:1rem;font-size:1.5rem;text-align:center;font-family:var(--mono);font-weight:600;letter-spacing:0.25em;border:2px solid var(--border2);border-radius:10px;outline:none;background:var(--bg);transition:all 0.2s;margin-bottom:0.5rem}
+.popup-badge-input:focus{border-color:var(--brand);background:white;box-shadow:0 0 0 4px rgba(0,120,212,0.1)}
+.popup-badge-status{font-size:0.8rem;min-height:22px;margin-bottom:1rem;font-weight:600;text-align:center}
+.popup-badge-status.found{color:var(--green)}
+.popup-badge-status.notfound{color:var(--red)}
+.popup-btns{display:flex;gap:0.8rem}
+.popup-btn-cancel{flex:1;padding:0.9rem;background:var(--bg);border:1.5px solid var(--border2);border-radius:10px;font-family:var(--sans);font-size:0.95rem;font-weight:600;cursor:pointer;color:var(--ink2);transition:all 0.2s}
+.popup-btn-cancel:hover{border-color:var(--red);color:var(--red)}
+.popup-btn-confirm{flex:1;padding:0.9rem;background:var(--green);border:none;border-radius:10px;font-family:var(--sans);font-size:0.95rem;font-weight:700;cursor:pointer;color:white;box-shadow:0 4px 14px rgba(22,163,74,0.3);transition:all 0.2s}
+.popup-btn-confirm:hover{background:#15803d}
+.popup-btn-confirm:disabled{background:var(--border2);box-shadow:none;cursor:not-allowed}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:white;padding:0.9rem 1.8rem;border-radius:50px;font-size:0.88rem;font-weight:600;box-shadow:var(--shadow-lg);transition:transform 0.35s ease;z-index:2000;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{background:var(--green)}
+.toast.error{background:var(--red)}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 </style>
 </head>
 <body>
 
-<!-- DASHBOARD -->
 <div class="screen active" id="screen-dashboard">
   <div class="dash-header">
-    <div>
-      <div class="logo">🧹 Biscuit International</div>
-    </div>
+    <div><div class="logo">🧹 Biscuit International</div></div>
     <span class="week-badge" id="week-badge">Week —</span>
     <div class="spacer"></div>
     <div class="time-display" id="header-clock">00:00</div>
     <button class="mijn-taken-btn" id="mijn-taken-btn" onclick="toggleMijnTaken()">🏷️ Mijn Taken</button>
   </div>
-
   <div class="active-user-bar" id="active-user-bar">
     <div class="avatar" id="active-avatar">?</div>
     <div class="info">Gefilterd op: <span id="active-name">—</span> &nbsp;· Jouw taken zijn gemarkeerd</div>
     <button class="clear-filter-btn" onclick="clearMijnTaken()">✕ Filter wissen</button>
   </div>
-
   <div class="dash-kpi">
     <div class="kpi-card kpi-total"><div class="kpi-num" id="kpi-total">0</div><div class="kpi-label">Totaal week</div></div>
     <div class="kpi-card kpi-open"><div class="kpi-num" id="kpi-open">0</div><div class="kpi-label">Open</div></div>
@@ -266,30 +177,23 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); user-
     <div class="kpi-card kpi-review"><div class="kpi-num" id="kpi-review">0</div><div class="kpi-label">In review</div></div>
     <div class="kpi-card kpi-nok"><div class="kpi-num" id="kpi-nok">0</div><div class="kpi-label">Afgekeurd</div></div>
   </div>
-
   <div class="dash-progress">
     <div class="prog-bar-wrap">
-      <div class="prog-bar-label">
-        <span id="prog-label">Week voortgang</span>
-        <span id="prog-pct" style="font-weight:700;">0%</span>
-      </div>
+      <div class="prog-bar-label"><span id="prog-label">Week voortgang</span><span id="prog-pct" style="font-weight:700">0%</span></div>
       <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
     </div>
   </div>
-
   <div class="dash-filter">
-    <div class="filter-tab active" onclick="switchFilter('all', this)">Alle taken <span class="cnt gray" id="cnt-all">0</span></div>
-    <div class="filter-tab" onclick="switchFilter('open', this)">Open <span class="cnt" id="cnt-open">0</span></div>
-    <div class="filter-tab" onclick="switchFilter('done', this)">Afgerond <span class="cnt green" id="cnt-done">0</span></div>
-    <div class="filter-tab" onclick="switchFilter('rejected', this)">Afgekeurd <span class="cnt red" id="cnt-rejected">0</span></div>
+    <div class="filter-tab active" onclick="switchFilter('all',this)">Alle taken <span class="cnt gray" id="cnt-all">0</span></div>
+    <div class="filter-tab" onclick="switchFilter('open',this)">Open <span class="cnt" id="cnt-open">0</span></div>
+    <div class="filter-tab" onclick="switchFilter('done',this)">Afgerond <span class="cnt green" id="cnt-done">0</span></div>
+    <div class="filter-tab" onclick="switchFilter('rejected',this)">Afgekeurd <span class="cnt red" id="cnt-rejected">0</span></div>
   </div>
-
   <div class="dash-body" id="dash-body">
     <div class="loading-spinner"><div class="spinner"></div><span>Taken worden geladen...</span></div>
   </div>
 </div>
 
-<!-- INSTRUCTIE -->
 <div class="screen" id="screen-instructie">
   <div class="instr-header">
     <button class="back-btn" onclick="showScreen('screen-dashboard')">← Terug</button>
@@ -299,13 +203,12 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); user-
     <div class="instr-card">
       <div class="instr-meta-row" id="instr-meta"></div>
       <div id="instr-ref-section"></div>
-      <p style="font-size:0.9rem;color:var(--ink2);line-height:1.8;" id="instr-desc">Voer de taak uit volgens de werkinstructie. Controleer alle onderdelen voor je afvikt.</p>
+      <p style="font-size:0.9rem;color:var(--ink2);line-height:1.8" id="instr-desc">Voer de taak uit volgens de werkinstructie.</p>
       <button class="check-from-instr" id="check-from-instr-btn" onclick="checkFromInstr()">✓ &nbsp; Taak afvinken als voltooid</button>
     </div>
   </div>
 </div>
 
-<!-- POPUP AFVINKEN MET BADGE -->
 <div class="popup-overlay" id="popup-afvinken">
   <div class="popup-card">
     <span class="popup-icon">🏷️</span>
@@ -325,15 +228,14 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); user-
   </div>
 </div>
 
-<!-- POPUP MIJN TAKEN FILTER -->
 <div class="popup-overlay" id="popup-filter">
   <div class="popup-card">
     <span class="popup-icon">🏷️</span>
     <div class="popup-title">Scan je badge</div>
     <div class="popup-sub">Scan je badge om jouw taken te filteren</div>
-    <input type="password" class="popup-badge-input" id="filter-badge-input" placeholder="● ● ● ● ●" maxlength="20" autocomplete="off" onkeydown="if(event.key==='Enter') filterOpBadge()" style="margin-bottom:0.8rem;">
+    <input type="password" class="popup-badge-input" id="filter-badge-input" placeholder="● ● ● ● ●" maxlength="20" autocomplete="off" onkeydown="if(event.key==='Enter') filterOpBadge()" style="margin-bottom:0.8rem">
     <div class="popup-badge-status" id="filter-badge-status"></div>
-    <div class="popup-btns" style="margin-top:0.5rem;">
+    <div class="popup-btns" style="margin-top:0.5rem">
       <button class="popup-btn-cancel" onclick="closeFilterPopup()">Annuleren</button>
       <button class="popup-btn-confirm" onclick="filterOpBadge()">🔍 Filter tonen</button>
     </div>
@@ -343,545 +245,268 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); user-
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════
-// SHAREPOINT CONFIGURATIE
-// ══════════════════════════════════════
-const SP = {
-  SITE: '/sites/QABoL',
-  LIJST_TAKEN: 'SCH-F-03 BL Controle schoonmaak',
-  LIJST_MDW:   'SCH - Medewerkers',
+// ── CONFIGURATIE ──
+const FLOWS = {
+  TAKEN_OPHALEN: 'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/38947ebb16084abab2d4a902c4956c74/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=xKjf_7GnD3wM8X6aQZCzy3NxXuH9X8DFrGTHGRpdVL0',
+  TAAK_AFVINKEN: 'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/fa20299ae9974339b3260dd4ec51e614/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zf_HRQtv46kpYhalZsB5CrfsSmDV81wlSFt04YF7AYc',
+  BADGE_LOOKUP: 'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/0960a0a199f24d1799dbc81ab236f555/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Hmt2PPtfCgm27R33OIYUmbl-aw3naJ2QOk4KghTbLVI',
 };
 
-// ══════════════════════════════════════
-// STATE
-// ══════════════════════════════════════
-let state = {
-  taken: [],
-  filterTab: 'all',
-  activeMedewerker: null,
-  pendingCheckId: null,
-  currentTaak: null,
-  requestDigest: null,
-  digestExpiry: null,
+// Tijdelijke demo medewerkers voor badge test
+const DEMO_MDW = {
+  '100001': { naam:'Robeson Constantine', zone:'Productie', initials:'RC' },
+  '222222': { naam:'Jorn',               zone:'Productie', initials:'JO' },
+  '123456': { naam:'Maria van den Berg', zone:'Packaging',  initials:'MV' },
+  '789012': { naam:'Piet Klaassen',      zone:'Processing', initials:'PK' },
 };
 
-// ══════════════════════════════════════
-// KLOK & WEEKNUMMER
-// ══════════════════════════════════════
+// ── STATE ──
+let state = { taken:[], filterTab:'all', activeMedewerker:null, pendingCheckId:null, currentTaak:null };
+
+// ── KLOK ──
+function getWeekNumber(d) {
+  const date = new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  date.setUTCDate(date.getUTCDate()+4-(date.getUTCDay()||7));
+  const y = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+  return Math.ceil((((date-y)/86400000)+1)/7);
+}
 function updateClock() {
   const now = new Date();
-  document.getElementById('header-clock').textContent =
-    now.toLocaleTimeString('nl-NL', { hour:'2-digit', minute:'2-digit' });
+  document.getElementById('header-clock').textContent = now.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
   document.getElementById('week-badge').textContent = `Week ${getWeekNumber(now)}`;
 }
-function getWeekNumber(d) {
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
-}
-function getMaandag() {
-  const now = new Date();
-  const day = now.getDay();
-  const diff = (day === 0) ? -6 : 1 - day;
-  const maandag = new Date(now);
-  maandag.setDate(now.getDate() + diff);
-  maandag.setHours(0,0,0,0);
-  return maandag;
-}
-function getZondag() {
-  const maandag = getMaandag();
-  const zondag = new Date(maandag);
-  zondag.setDate(maandag.getDate() + 6);
-  zondag.setHours(23,59,59,999);
-  return zondag;
-}
-setInterval(updateClock, 1000);
-updateClock();
+setInterval(updateClock,1000); updateClock();
 
-// ══════════════════════════════════════
-// SHAREPOINT REST API HELPERS
-// ══════════════════════════════════════
-function spFetch(url, options = {}) {
-  const defaultHeaders = {
-    'Accept': 'application/json;odata=verbose',
-    'Content-Type': 'application/json;odata=verbose',
-  };
-  return fetch(`${SP.SITE}/_api${url}`, {
-    credentials: 'same-origin',
-    headers: { ...defaultHeaders, ...options.headers },
-    ...options,
-  });
-}
-
-async function getRequestDigest() {
-  if (state.requestDigest && state.digestExpiry && new Date() < state.digestExpiry) {
-    return state.requestDigest;
-  }
-  const res = await spFetch('/contextinfo', { method: 'POST' });
-  const data = await res.json();
-  state.requestDigest = data.d.GetContextWebInformation.FormDigestValue;
-  state.digestExpiry = new Date(Date.now() + 25 * 60 * 1000); // 25 min
-  return state.requestDigest;
-}
-
-// ══════════════════════════════════════
-// SCREEN NAVIGATION
-// ══════════════════════════════════════
+// ── SCREEN ──
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-// ══════════════════════════════════════
-// TAKEN LADEN VIA SHAREPOINT REST API
-// ══════════════════════════════════════
+// ── TAKEN LADEN ──
 async function laadTaken() {
-  document.getElementById('dash-body').innerHTML =
-    `<div class="loading-spinner"><div class="spinner"></div><span>Taken worden geladen...</span></div>`;
-
+  document.getElementById('dash-body').innerHTML = '<div class="loading-spinner"><div class="spinner"></div><span>Taken worden geladen...</span></div>';
   try {
-    const maandag = getMaandag();
-    const zondag = getZondag();
-    const maandagStr = maandag.toISOString();
-    const zondagStr  = zondag.toISOString();
-
-    const filter = `field_6 ge datetime'${maandagStr}' and field_6 le datetime'${zondagStr}'`;
-    const select = `Id,Title,Referentie,Locatie_x0020__x002f__x0020_Ruimte,Frequentie,Status,field_6,UitgevoerdDoor,Verantwoordelijke,QA_Opmerking`;
-
-    const url = `/web/lists/getbytitle('${encodeURIComponent(SP.LIJST_TAKEN)}')/items?$filter=${encodeURIComponent(filter)}&$select=${encodeURIComponent(select)}&$top=500&$orderby=Locatie_x0020__x002f__x0020_Ruimte`;
-
-    const res = await spFetch(url);
-
+    const week = getWeekNumber(new Date()).toString();
+    const res = await fetch(FLOWS.TAKEN_OPHALEN, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ week })
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
     const data = await res.json();
-    const items = data.d.results;
+    const items = data.taken || data.value || [];
 
     state.taken = items.map(item => ({
-      id:           item.Id,
-      naam:         item.Title || '',
-      zone:         item.Locatie_x0020__x002f__x0020_Ruimte || 'Overig',
+      id:           item.ID || item.Id || item.id,
+      naam:         item.Title || item.Taaknaam || '',
+      zone:         item['Locatie/Ruimte'] || item.Locatie_x0020__x002f__x0020_Ruimte || item.LocatieRuimte || 'Overig',
       status:       item.Status || 'Open',
       freq:         item.Frequentie || 'Wekelijks',
       referentie:   item.Referentie || '',
       toegewezen:   item.Verantwoordelijke || '',
       uitgevoerdDoor: item.UitgevoerdDoor || '',
-      pdf:          null,
     }));
 
-    updateKPIs();
-    renderTaken();
-
+    updateKPIs(); renderTaken();
   } catch(e) {
-    console.error('Fout bij laden taken:', e);
+    console.error(e);
     document.getElementById('dash-body').innerHTML = `
       <div class="empty-state">
         <span class="icon">⚠️</span>
         <h3>Kon taken niet laden</h3>
-        <p>Controleer of het bestand is geopend via de SharePoint URL (niet lokaal).<br>Fout: ${e.message}</p>
+        <p>Fout: ${e.message}</p>
       </div>`;
   }
 }
 
-// ══════════════════════════════════════
-// BADGE LOOKUP VIA SHAREPOINT REST API
-// ══════════════════════════════════════
+// ── BADGE LOOKUP ──
 async function lookupBadge(badge) {
+  
+  if (!FLOWS.BADGE_LOOKUP) {
+    await new Promise(r=>setTimeout(r,600));
+    return DEMO_MDW[badge] || null;
+  }
   try {
-    const filter = `Badgenummer eq '${badge}'`;
-    const url = `/web/lists/getbytitle('${encodeURIComponent(SP.LIJST_MDW)}')/items?$filter=${encodeURIComponent(filter)}&$select=Title,Badgenummer,PrimaireZone&$top=1`;
-
-    const res = await spFetch(url);
+    const res = await fetch(FLOWS.BADGE_LOOKUP, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ badge })
+    });
     if (!res.ok) return null;
-
     const data = await res.json();
-    const items = data.d.results;
-
-    if (items.length === 0) return null;
-
-    const m = items[0];
-    return {
-      naam:     m.Title || 'Onbekend',
-      zone:     m.PrimaireZone || '',
-      initials: (m.Title || 'XX').split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase(),
-    };
-  } catch(e) {
-    console.error('Badge lookup fout:', e);
-    return null;
-  }
+    if (!data.naam) return null;
+    return { naam:data.naam, zone:data.zone, initials:data.naam.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase() };
+  } catch(e) { return null; }
 }
 
-// ══════════════════════════════════════
-// TAAK AFVINKEN VIA SHAREPOINT REST API
-// ══════════════════════════════════════
-async function afvinkenInSharePoint(taakId, medewerkerNaam) {
+// ── AFVINKEN ──
+async function afvinkenInFlow(taakId, medewerkerNaam) {
   try {
-    const digest = await getRequestDigest();
-    const now = new Date().toISOString();
-
-    const body = JSON.stringify({
-      __metadata: { type: 'SP.Data.SCH_x002d_F_x002d_03_x0020_BL_x0020_Controle_x0020_schoonmaakListItem' },
-      Status: 'Uitgevoerd',
-      UitgevoerdDoor: medewerkerNaam,
-      Uitgevoerd_x0020_op: now,
+    const res = await fetch(FLOWS.TAAK_AFVINKEN, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ taak_id: String(taakId), medewerker: medewerkerNaam, status:'Uitgevoerd' })
     });
-
-    const url = `/web/lists/getbytitle('${encodeURIComponent(SP.LIJST_TAKEN)}')/items(${taakId})`;
-
-    const res = await spFetch(url, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json;odata=verbose',
-        'Content-Type': 'application/json;odata=verbose',
-        'X-RequestDigest': digest,
-        'X-HTTP-Method': 'MERGE',
-        'IF-MATCH': '*',
-      },
-      body,
-    });
-
     return res.ok || res.status === 204;
-  } catch(e) {
-    console.error('Afvinken fout:', e);
-    return false;
-  }
+  } catch(e) { return false; }
 }
 
-// ══════════════════════════════════════
-// KPI BIJWERKEN
-// ══════════════════════════════════════
+// ── KPIs ──
 function updateKPIs() {
-  const taken = state.taken;
-  const total  = taken.length;
-  const open   = taken.filter(t => t.status === 'Open').length;
-  const done   = taken.filter(t => ['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
-  const review = taken.filter(t => t.status === 'In Review').length;
-  const nok    = taken.filter(t => t.status === 'Afgekeurd').length;
-  const pct    = total > 0 ? Math.round(done / total * 100) : 0;
-
-  document.getElementById('kpi-total').textContent = total;
-  document.getElementById('kpi-open').textContent  = open;
-  document.getElementById('kpi-done').textContent  = done;
-  document.getElementById('kpi-review').textContent = review;
-  document.getElementById('kpi-nok').textContent   = nok;
-  document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-pct').textContent  = pct + '%';
-  document.getElementById('prog-label').textContent = `${done} van ${total} taken afgerond`;
-  document.getElementById('cnt-all').textContent      = total;
-  document.getElementById('cnt-open').textContent     = open;
-  document.getElementById('cnt-done').textContent     = done;
-  document.getElementById('cnt-rejected').textContent = nok;
+  const t=state.taken, total=t.length,
+    open=t.filter(x=>x.status==='Open').length,
+    done=t.filter(x=>['Uitgevoerd','Goedgekeurd'].includes(x.status)).length,
+    review=t.filter(x=>x.status==='In Review').length,
+    nok=t.filter(x=>x.status==='Afgekeurd').length,
+    pct=total>0?Math.round(done/total*100):0;
+  document.getElementById('kpi-total').textContent=total;
+  document.getElementById('kpi-open').textContent=open;
+  document.getElementById('kpi-done').textContent=done;
+  document.getElementById('kpi-review').textContent=review;
+  document.getElementById('kpi-nok').textContent=nok;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('prog-label').textContent=`${done} van ${total} taken afgerond`;
+  document.getElementById('cnt-all').textContent=total;
+  document.getElementById('cnt-open').textContent=open;
+  document.getElementById('cnt-done').textContent=done;
+  document.getElementById('cnt-rejected').textContent=nok;
 }
 
-// ══════════════════════════════════════
-// TAKEN RENDEREN
-// ══════════════════════════════════════
+// ── RENDER ──
 function renderTaken() {
-  let taken = state.taken;
-  const tab = state.filterTab;
+  let taken=state.taken;
+  if(state.filterTab==='open') taken=taken.filter(t=>t.status==='Open');
+  else if(state.filterTab==='done') taken=taken.filter(t=>['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status));
+  else if(state.filterTab==='rejected') taken=taken.filter(t=>t.status==='Afgekeurd');
 
-  if (tab === 'open')     taken = taken.filter(t => t.status === 'Open');
-  else if (tab === 'done') taken = taken.filter(t => ['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status));
-  else if (tab === 'rejected') taken = taken.filter(t => t.status === 'Afgekeurd');
-
-  const actief = state.activeMedewerker;
-
-  if (taken.length === 0) {
-    document.getElementById('dash-body').innerHTML = `
-      <div class="empty-state">
-        <span class="icon">${tab === 'open' ? '🎉' : '📋'}</span>
-        <h3>${tab === 'open' ? 'Alle taken afgerond!' : 'Geen taken gevonden'}</h3>
-        <p>${tab === 'open' ? 'Geweldig werk! Alle taken van deze week zijn voltooid.' : 'Er zijn geen taken in deze categorie.'}</p>
-      </div>`;
+  const actief=state.activeMedewerker;
+  if(taken.length===0){
+    document.getElementById('dash-body').innerHTML=`<div class="empty-state"><span class="icon">${state.filterTab==='open'?'🎉':'📋'}</span><h3>${state.filterTab==='open'?'Alle taken afgerond!':'Geen taken gevonden'}</h3></div>`;
     return;
   }
 
-  const statusOrder = { 'Afgekeurd':0, 'Open':1, 'In Review':2, 'Uitgevoerd':3, 'Goedgekeurd':4, 'Gemist':5 };
-  taken.sort((a, b) => {
-    if (actief) {
-      const am = a.toegewezen === actief.naam ? 0 : 1;
-      const bm = b.toegewezen === actief.naam ? 0 : 1;
-      if (am !== bm) return am - bm;
-    }
-    return (statusOrder[a.status] || 9) - (statusOrder[b.status] || 9);
+  const ord={'Afgekeurd':0,'Open':1,'In Review':2,'Uitgevoerd':3,'Goedgekeurd':4,'Gemist':5};
+  taken.sort((a,b)=>{
+    if(actief){const am=a.toegewezen===actief.naam?0:1,bm=b.toegewezen===actief.naam?0:1;if(am!==bm)return am-bm;}
+    return (ord[a.status]||9)-(ord[b.status]||9);
   });
 
-  const zones = {};
-  taken.forEach(t => {
-    if (!zones[t.zone]) zones[t.zone] = { week: [], overig: [] };
-    if (['Dagelijks','Wekelijks','2-Wekelijks'].includes(t.freq)) zones[t.zone].week.push(t);
+  const zones={};
+  taken.forEach(t=>{
+    if(!zones[t.zone]) zones[t.zone]={week:[],overig:[]};
+    if(['Dagelijks','Wekelijks','2-Wekelijks'].includes(t.freq)) zones[t.zone].week.push(t);
     else zones[t.zone].overig.push(t);
   });
 
-  let html = '';
-  Object.entries(zones).forEach(([zone, groepen]) => {
-    const totaal = groepen.week.length + groepen.overig.length;
-    html += `<div class="zone-group">
-      <div class="zone-header">
-        <div class="zone-title">📍 ${zone}</div>
-        <div class="zone-count">${totaal} taken</div>
-        <div class="zone-line"></div>
-      </div>`;
-    groepen.week.forEach(t => { html += renderTaakCard(t); });
-    if (groepen.overig.length > 0) {
-      html += `<div class="freq-section-label">📅 Periodieke taken</div>`;
-      groepen.overig.forEach(t => { html += renderTaakCard(t); });
-    }
-    html += `</div>`;
+  let html='';
+  Object.entries(zones).forEach(([zone,g])=>{
+    const tot=g.week.length+g.overig.length;
+    html+=`<div class="zone-group"><div class="zone-header"><div class="zone-title">📍 ${zone}</div><div class="zone-count">${tot} taken</div><div class="zone-line"></div></div>`;
+    g.week.forEach(t=>{html+=card(t);});
+    if(g.overig.length>0){html+=`<div class="freq-section-label">📅 Periodieke taken</div>`;g.overig.forEach(t=>{html+=card(t);});}
+    html+=`</div>`;
   });
-
-  document.getElementById('dash-body').innerHTML = html;
+  document.getElementById('dash-body').innerHTML=html;
 }
 
-function renderTaakCard(taak) {
-  const actief = state.activeMedewerker;
-  const isMine = actief && taak.toegewezen === actief.naam;
-  const isOpen = taak.status === 'Open';
-  const isRejected = taak.status === 'Afgekeurd';
-  const isDone = ['Uitgevoerd','Goedgekeurd','In Review'].includes(taak.status);
-  const hasRef = taak.referentie && taak.referentie.trim() !== '';
-
-  const statusMap = {
-    'Open':        { icon:'○',  cls:'',            chip:'chip-open',     label:'Open' },
-    'Uitgevoerd':  { icon:'⏳', cls:'card-review',  chip:'chip-done',     label:'Uitgevoerd' },
-    'In Review':   { icon:'🔍', cls:'card-review',  chip:'chip-review',   label:'In review' },
-    'Goedgekeurd': { icon:'✅', cls:'card-done',    chip:'chip-approved', label:'Goedgekeurd' },
-    'Afgekeurd':   { icon:'❌', cls:'card-rejected',chip:'chip-rejected', label:'Afgekeurd' },
-    'Gemist':      { icon:'⚠️', cls:'',             chip:'chip-missed',   label:'Gemist' },
-  };
-  const s = statusMap[taak.status] || statusMap['Open'];
-
-  const instrBtn = hasRef
-    ? `<button class="instr-btn" onclick="event.stopPropagation(); openInstructie(${taak.id})">📄 Instructie</button>`
-    : '';
-
-  let checkBtn = '';
-  if (isOpen)     checkBtn = `<button class="check-btn" onclick="event.stopPropagation(); vraagBadgeAfvinken(${taak.id})">✓ Afvinken</button>`;
-  else if (isRejected) checkBtn = `<button class="check-btn btn-rejected" onclick="event.stopPropagation(); vraagBadgeAfvinken(${taak.id})">↩ Opnieuw</button>`;
-  else            checkBtn = `<button class="check-btn btn-done" disabled>✓ Klaar</button>`;
-
-  const toegewezenInfo = taak.toegewezen
-    ? `<span class="zone-tag">→ ${taak.toegewezen}</span>`
-    : `<span class="zone-tag" style="color:var(--amber);">→ Vrij op te pakken</span>`;
-
-  const mineTag = isMine ? `<span class="mine-tag">Jouw taak</span>` : '';
-  const doneBy = isDone && taak.uitgevoerdDoor ? `<span class="done-by">✓ ${taak.uitgevoerdDoor}</span>` : '';
-
-  return `
-    <div class="task-card ${s.cls} ${isMine ? 'card-mine' : ''}" onclick="openInstructie(${taak.id})">
-      <div class="task-icon">${s.icon}</div>
-      <div class="task-info">
-        <div class="task-name ${isDone ? 'striked' : ''}">${taak.naam}</div>
-        <div class="task-meta">
-          ${toegewezenInfo}
-          <span class="freq-tag">${taak.freq}</span>
-          <span class="status-chip ${s.chip}">${s.label}</span>
-          ${mineTag}${doneBy}
-        </div>
-      </div>
-      <div class="task-actions">${instrBtn}${checkBtn}</div>
-    </div>`;
+function card(taak) {
+  const actief=state.activeMedewerker, isMine=actief&&taak.toegewezen===actief.naam;
+  const isOpen=taak.status==='Open', isRej=taak.status==='Afgekeurd';
+  const isDone=['Uitgevoerd','Goedgekeurd','In Review'].includes(taak.status);
+  const hasRef=taak.referentie&&taak.referentie.trim()!=='';
+  const sm={'Open':{icon:'○',cls:'',chip:'chip-open',label:'Open'},'Uitgevoerd':{icon:'⏳',cls:'card-review',chip:'chip-done',label:'Uitgevoerd'},'In Review':{icon:'🔍',cls:'card-review',chip:'chip-review',label:'In review'},'Goedgekeurd':{icon:'✅',cls:'card-done',chip:'chip-approved',label:'Goedgekeurd'},'Afgekeurd':{icon:'❌',cls:'card-rejected',chip:'chip-rejected',label:'Afgekeurd'},'Gemist':{icon:'⚠️',cls:'',chip:'chip-missed',label:'Gemist'}};
+  const s=sm[taak.status]||sm['Open'];
+  const instrBtn=hasRef?`<button class="instr-btn" onclick="event.stopPropagation();openInstructie(${taak.id})">📄 Instructie</button>`:'';
+  const checkBtn=isOpen?`<button class="check-btn" onclick="event.stopPropagation();vraagBadgeAfvinken(${taak.id})">✓ Afvinken</button>`:isRej?`<button class="check-btn btn-rejected" onclick="event.stopPropagation();vraagBadgeAfvinken(${taak.id})">↩ Opnieuw</button>`:`<button class="check-btn btn-done" disabled>✓ Klaar</button>`;
+  const toe=taak.toegewezen?`<span class="zone-tag">→ ${taak.toegewezen}</span>`:`<span class="zone-tag" style="color:var(--amber)">→ Vrij op te pakken</span>`;
+  const mineTag=isMine?`<span class="mine-tag">Jouw taak</span>`:'';
+  const doneBy=isDone&&taak.uitgevoerdDoor?`<span class="done-by">✓ ${taak.uitgevoerdDoor}</span>`:'';
+  return `<div class="task-card ${s.cls} ${isMine?'card-mine':''}" onclick="openInstructie(${taak.id})"><div class="task-icon">${s.icon}</div><div class="task-info"><div class="task-name ${isDone?'striked':''}">${taak.naam}</div><div class="task-meta">${toe}<span class="freq-tag">${taak.freq}</span><span class="status-chip ${s.chip}">${s.label}</span>${mineTag}${doneBy}</div></div><div class="task-actions">${instrBtn}${checkBtn}</div></div>`;
 }
 
-// ══════════════════════════════════════
-// FILTER TABS
-// ══════════════════════════════════════
-function switchFilter(tab, el) {
-  state.filterTab = tab;
-  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  renderTaken();
-}
+// ── TABS ──
+function switchFilter(tab,el){state.filterTab=tab;document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderTaken();}
 
-// ══════════════════════════════════════
-// MIJN TAKEN BADGE POPUP
-// ══════════════════════════════════════
-function toggleMijnTaken() {
-  if (state.activeMedewerker) clearMijnTaken();
-  else openFilterPopup();
-}
-function openFilterPopup() {
-  document.getElementById('filter-badge-input').value = '';
-  document.getElementById('filter-badge-status').textContent = '';
-  document.getElementById('filter-badge-status').className = 'popup-badge-status';
-  document.getElementById('popup-filter').classList.add('active');
-  setTimeout(() => document.getElementById('filter-badge-input').focus(), 100);
-}
-function closeFilterPopup() {
-  document.getElementById('popup-filter').classList.remove('active');
-}
-async function filterOpBadge() {
-  const badge = document.getElementById('filter-badge-input').value.trim();
-  const statusEl = document.getElementById('filter-badge-status');
-  if (!badge) return;
-  statusEl.textContent = 'Badge opzoeken...';
-  statusEl.className = 'popup-badge-status';
-  const m = await lookupBadge(badge);
-  if (m) {
-    statusEl.textContent = `✓ Gevonden: ${m.naam}`;
-    statusEl.className = 'popup-badge-status found';
-    setTimeout(() => {
-      state.activeMedewerker = m;
-      closeFilterPopup();
+// ── MIJN TAKEN ──
+function toggleMijnTaken(){if(state.activeMedewerker)clearMijnTaken();else openFilterPopup();}
+function openFilterPopup(){document.getElementById('filter-badge-input').value='';document.getElementById('filter-badge-status').textContent='';document.getElementById('filter-badge-status').className='popup-badge-status';document.getElementById('popup-filter').classList.add('active');setTimeout(()=>document.getElementById('filter-badge-input').focus(),100);}
+function closeFilterPopup(){document.getElementById('popup-filter').classList.remove('active');}
+async function filterOpBadge(){
+  const badge=document.getElementById('filter-badge-input').value.trim();
+  const statusEl=document.getElementById('filter-badge-status');
+  if(!badge)return;
+  statusEl.textContent='Badge opzoeken...';statusEl.className='popup-badge-status';
+  const m=await lookupBadge(badge);
+  if(m){
+    statusEl.textContent=`✓ Gevonden: ${m.naam}`;statusEl.className='popup-badge-status found';
+    setTimeout(()=>{
+      state.activeMedewerker=m;closeFilterPopup();
       document.getElementById('mijn-taken-btn').classList.add('active');
-      document.getElementById('mijn-taken-btn').textContent = `✓ ${m.naam}`;
+      document.getElementById('mijn-taken-btn').textContent=`✓ ${m.naam}`;
       document.getElementById('active-user-bar').classList.add('visible');
-      document.getElementById('active-avatar').textContent = m.initials;
-      document.getElementById('active-name').textContent = m.naam;
-      renderTaken();
-      showToast(`✓ Gefilterd op ${m.naam}`, 'success');
-    }, 700);
-  } else {
-    statusEl.textContent = '✗ Badge niet herkend';
-    statusEl.className = 'popup-badge-status notfound';
-    document.getElementById('filter-badge-input').value = '';
-    document.getElementById('filter-badge-input').focus();
-  }
+      document.getElementById('active-avatar').textContent=m.initials;
+      document.getElementById('active-name').textContent=m.naam;
+      renderTaken();showToast(`✓ Gefilterd op ${m.naam}`,'success');
+    },700);
+  }else{statusEl.textContent='✗ Badge niet herkend';statusEl.className='popup-badge-status notfound';document.getElementById('filter-badge-input').value='';document.getElementById('filter-badge-input').focus();}
 }
-function clearMijnTaken() {
-  state.activeMedewerker = null;
-  document.getElementById('mijn-taken-btn').classList.remove('active');
-  document.getElementById('mijn-taken-btn').innerHTML = '🏷️ Mijn Taken';
-  document.getElementById('active-user-bar').classList.remove('visible');
-  renderTaken();
-  showToast('Filter gewist — alle taken zichtbaar');
-}
+function clearMijnTaken(){state.activeMedewerker=null;document.getElementById('mijn-taken-btn').classList.remove('active');document.getElementById('mijn-taken-btn').innerHTML='🏷️ Mijn Taken';document.getElementById('active-user-bar').classList.remove('visible');renderTaken();showToast('Filter gewist');}
 
-// ══════════════════════════════════════
-// INSTRUCTIE SCHERM
-// ══════════════════════════════════════
-function openInstructie(id) {
-  const taak = state.taken.find(t => t.id === id);
-  if (!taak) return;
-  state.currentTaak = taak;
-  document.getElementById('instr-title').textContent = taak.naam;
-
-  const statusLabels = { 'Open':'Open','Uitgevoerd':'Uitgevoerd','In Review':'In Review','Goedgekeurd':'✅ Goedgekeurd','Afgekeurd':'❌ Afgekeurd' };
-  document.getElementById('instr-meta').innerHTML = `
-    <div class="instr-meta-item"><div class="label">Zone</div><div class="value">${taak.zone}</div></div>
-    <div class="instr-meta-item"><div class="label">Frequentie</div><div class="value">${taak.freq}</div></div>
-    <div class="instr-meta-item"><div class="label">Status</div><div class="value">${statusLabels[taak.status] || taak.status}</div></div>
-    <div class="instr-meta-item"><div class="label">Toegewezen aan</div><div class="value">${taak.toegewezen || 'Vrij op te pakken'}</div></div>`;
-
-  const hasRef = taak.referentie && taak.referentie.trim() !== '';
-  document.getElementById('instr-ref-section').innerHTML = hasRef
-    ? `<div class="ref-box">
-        <div style="font-size:1.6rem;">📄</div>
-        <div><h4>Werkinstructie beschikbaar</h4><p>${taak.referentie}</p></div>
-       </div>`
-    : `<div class="no-instr-box"><p>📋 &nbsp; Geen specifieke werkinstructie beschikbaar. Volg de algemene richtlijnen.</p></div>`;
-
-  const isDone = ['Uitgevoerd','Goedgekeurd','In Review'].includes(taak.status);
-  const btn = document.getElementById('check-from-instr-btn');
-  if (isDone) {
-    btn.innerHTML = '✓ Taak al afgetekend';
-    btn.className = 'check-from-instr done';
-    btn.disabled = true;
-  } else {
-    btn.innerHTML = taak.status === 'Afgekeurd' ? '↩ &nbsp; Taak opnieuw afvinken' : '✓ &nbsp; Taak afvinken als voltooid';
-    btn.className = 'check-from-instr';
-    btn.disabled = false;
-  }
+// ── INSTRUCTIE ──
+function openInstructie(id){
+  const taak=state.taken.find(t=>t.id==id);if(!taak)return;state.currentTaak=taak;
+  document.getElementById('instr-title').textContent=taak.naam;
+  const sl={'Open':'Open','Uitgevoerd':'Uitgevoerd','In Review':'In Review','Goedgekeurd':'✅ Goedgekeurd','Afgekeurd':'❌ Afgekeurd'};
+  document.getElementById('instr-meta').innerHTML=`<div class="instr-meta-item"><div class="label">Zone</div><div class="value">${taak.zone}</div></div><div class="instr-meta-item"><div class="label">Frequentie</div><div class="value">${taak.freq}</div></div><div class="instr-meta-item"><div class="label">Status</div><div class="value">${sl[taak.status]||taak.status}</div></div><div class="instr-meta-item"><div class="label">Toegewezen aan</div><div class="value">${taak.toegewezen||'Vrij op te pakken'}</div></div>`;
+  const hasRef=taak.referentie&&taak.referentie.trim()!=='';
+  document.getElementById('instr-ref-section').innerHTML=hasRef?`<div class="ref-box"><div style="font-size:1.6rem">📄</div><div><h4>Werkinstructie beschikbaar</h4><p>${taak.referentie}</p></div></div>`:`<div class="no-instr-box"><p>📋 &nbsp; Geen specifieke werkinstructie beschikbaar.</p></div>`;
+  const isDone=['Uitgevoerd','Goedgekeurd','In Review'].includes(taak.status);
+  const btn=document.getElementById('check-from-instr-btn');
+  if(isDone){btn.innerHTML='✓ Taak al afgetekend';btn.className='check-from-instr done';btn.disabled=true;}
+  else{btn.innerHTML=taak.status==='Afgekeurd'?'↩ &nbsp; Taak opnieuw afvinken':'✓ &nbsp; Taak afvinken als voltooid';btn.className='check-from-instr';btn.disabled=false;}
   showScreen('screen-instructie');
 }
-function checkFromInstr() {
-  if (state.currentTaak) vraagBadgeAfvinken(state.currentTaak.id);
-}
+function checkFromInstr(){if(state.currentTaak)vraagBadgeAfvinken(state.currentTaak.id);}
 
-// ══════════════════════════════════════
-// AFVINKEN MET BADGE
-// ══════════════════════════════════════
-function vraagBadgeAfvinken(id) {
-  const taak = state.taken.find(t => t.id === id);
-  if (!taak) return;
-  state.pendingCheckId = id;
-  document.getElementById('popup-taak-naam').textContent = taak.naam;
-  document.getElementById('popup-taak-zone').textContent = `${taak.zone} · ${taak.freq}`;
-  document.getElementById('popup-badge-input').value = '';
-  document.getElementById('popup-badge-status').textContent = '';
-  document.getElementById('popup-badge-status').className = 'popup-badge-status';
-  document.getElementById('popup-confirm-btn').disabled = false;
+// ── AFVINKEN POPUP ──
+function vraagBadgeAfvinken(id){
+  const taak=state.taken.find(t=>t.id==id);if(!taak)return;state.pendingCheckId=id;
+  document.getElementById('popup-taak-naam').textContent=taak.naam;
+  document.getElementById('popup-taak-zone').textContent=`${taak.zone} · ${taak.freq}`;
+  document.getElementById('popup-badge-input').value='';
+  document.getElementById('popup-badge-status').textContent='';
+  document.getElementById('popup-badge-status').className='popup-badge-status';
+  document.getElementById('popup-confirm-btn').disabled=false;
   document.getElementById('popup-afvinken').classList.add('active');
-  setTimeout(() => document.getElementById('popup-badge-input').focus(), 100);
+  setTimeout(()=>document.getElementById('popup-badge-input').focus(),100);
 }
-function closeAfvinkenPopup() {
-  document.getElementById('popup-afvinken').classList.remove('active');
-  state.pendingCheckId = null;
+function closeAfvinkenPopup(){document.getElementById('popup-afvinken').classList.remove('active');state.pendingCheckId=null;}
+async function verifyBadgeAndCheck(){
+  const badge=document.getElementById('popup-badge-input').value.trim();
+  const statusEl=document.getElementById('popup-badge-status');
+  if(!badge){statusEl.textContent='⚠️ Voer een badgenummer in';statusEl.className='popup-badge-status notfound';return;}
+  statusEl.textContent='Badge opzoeken...';statusEl.className='popup-badge-status';
+  document.getElementById('popup-confirm-btn').disabled=true;
+  const m=await lookupBadge(badge);
+  if(m){statusEl.textContent=`✓ ${m.naam}`;statusEl.className='popup-badge-status found';setTimeout(async()=>{await doAfvinken(m.naam);},500);}
+  else{statusEl.textContent='✗ Badge niet herkend. Probeer opnieuw.';statusEl.className='popup-badge-status notfound';document.getElementById('popup-badge-input').value='';document.getElementById('popup-badge-input').focus();document.getElementById('popup-confirm-btn').disabled=false;}
 }
-async function verifyBadgeAndCheck() {
-  const badge = document.getElementById('popup-badge-input').value.trim();
-  const statusEl = document.getElementById('popup-badge-status');
-  if (!badge) {
-    statusEl.textContent = '⚠️ Voer een badgenummer in';
-    statusEl.className = 'popup-badge-status notfound';
-    return;
-  }
-  statusEl.textContent = 'Badge opzoeken...';
-  statusEl.className = 'popup-badge-status';
-  document.getElementById('popup-confirm-btn').disabled = true;
-
-  const m = await lookupBadge(badge);
-  if (m) {
-    statusEl.textContent = `✓ ${m.naam}`;
-    statusEl.className = 'popup-badge-status found';
-    setTimeout(async () => { await doAfvinken(m.naam); }, 500);
-  } else {
-    statusEl.textContent = '✗ Badge niet herkend. Probeer opnieuw.';
-    statusEl.className = 'popup-badge-status notfound';
-    document.getElementById('popup-badge-input').value = '';
-    document.getElementById('popup-badge-input').focus();
-    document.getElementById('popup-confirm-btn').disabled = false;
-  }
-}
-async function doAfvinken(medewerkerNaam) {
-  const id = state.pendingCheckId;
-  closeAfvinkenPopup();
-  if (!id) return;
-
-  const taak = state.taken.find(t => t.id === id);
-  if (!taak) return;
-
-  // Optimistisch bijwerken
-  taak.status = 'Uitgevoerd';
-  taak.uitgevoerdDoor = medewerkerNaam;
-  updateKPIs();
-  renderTaken();
-
-  if (document.getElementById('screen-instructie').classList.contains('active')) {
-    showScreen('screen-dashboard');
-  }
-
-  showToast(`✓ Afgetekend door ${medewerkerNaam}`, 'success');
-
-  // Schrijf naar SharePoint
-  const ok = await afvinkenInSharePoint(id, medewerkerNaam);
-  if (!ok) {
-    showToast('⚠️ Synchronisatie mislukt — probeer opnieuw', 'error');
-    taak.status = 'Open';
-    taak.uitgevoerdDoor = '';
-    updateKPIs();
-    renderTaken();
-  }
+async function doAfvinken(naam){
+  const id=state.pendingCheckId;closeAfvinkenPopup();if(!id)return;
+  const taak=state.taken.find(t=>t.id==id);if(!taak)return;
+  taak.status='Uitgevoerd';taak.uitgevoerdDoor=naam;updateKPIs();renderTaken();
+  if(document.getElementById('screen-instructie').classList.contains('active'))showScreen('screen-dashboard');
+  showToast(`✓ Afgetekend door ${naam}`,'success');
+  const ok=await afvinkenInFlow(id,naam);
+  if(!ok){showToast('⚠️ Synchronisatie mislukt','error');taak.status='Open';taak.uitgevoerdDoor='';updateKPIs();renderTaken();}
 }
 
-// ══════════════════════════════════════
-// TOAST
-// ══════════════════════════════════════
-function showToast(msg, type = '') {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.className = 'toast ' + type;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3000);
-}
+// ── TOAST ──
+function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 
-// ══════════════════════════════════════
-// INIT
-// ══════════════════════════════════════
+// ── INIT ──
 laadTaken();
-// Ververs elke 5 minuten automatisch
-setInterval(laadTaken, 5 * 60 * 1000);
+setInterval(laadTaken, 5*60*1000);
 </script>
 </body>
 </html>
