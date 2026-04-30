@@ -297,16 +297,16 @@ async function laadTaken() {
     const data = await res.json();
     const items = data.taken || data.value || [];
 
-    state.taken = items.map(item => ({
-      id:           item.ID || item.Id || item.id,
-      naam:         item.Title || item.Taaknaam || '',
-      zone:         item['Locatie/Ruimte'] || item.Locatie_x0020__x002f__x0020_Ruimte || item.LocatieRuimte || 'Overig',
-      status:       item.Status || 'Open',
-      freq:         item.Frequentie || 'Wekelijks',
-      referentie:   item.Referentie || '',
-      toegewezen:   item.Verantwoordelijke || '',
-      uitgevoerdDoor: item.UitgevoerdDoor || '',
-    }));
+state.taken = items.map(item => ({
+  id:           item.ID || item.Id || item.id,
+  naam:         item.Title || item.Taaknaam || '',
+  zone:         item['Locatie/Ruimte']?.Value || item['Locatie/Ruimte'] || item.Locatie_x0020__x002f__x0020_Ruimte || 'Overig',
+  status:       item.Status?.Value || item.Status || 'Open',
+  freq:         item.Frequentie?.Value || item.Frequentie || 'Wekelijks',
+  referentie:   item.Referentie || '',
+  toegewezen:   item.Verantwoordelijke?.Value || item.Verantwoordelijke || '',
+  uitgevoerdDoor: item.UitgevoerdDoor || '',
+}));
 
     updateKPIs(); renderTaken();
   } catch(e) {
