@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+
+// <!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
@@ -507,164 +508,242 @@ function gefilterdeTaken() {
   return t;
 }
 
-// ── RENDER ──
+// ── FREQUENTIE CONFIGURATIE ──
+// Definieert hoe elke frequentiewaarde wordt weergegeven
+const FREQ_CONFIG = {
+  'Dagelijks':    { icon:'📅', label:'Dagelijkse taken',    type:'daily',   order:1 },
+  '2x per dag':   { icon:'📅', label:'2x Dagelijkse taken', type:'daily',   order:2 },
+  'Wekelijks':    { icon:'📋', label:'Wekelijkse taken',     type:'weekly',  order:3 },
+  '2-Wekelijks':  { icon:'📋', label:'2-Wekelijkse taken',  type:'weekly',  order:4 },
+  'Maandelijks':  { icon:'📆', label:'Maandelijkse taken',   type:'monthly', order:5 },
+  '2-Maandelijks':{ icon:'📆', label:'2-Maandelijkse taken', type:'monthly', order:6 },
+  'Kwartaal':     { icon:'🗓️', label:'Kwartaaltaken',       type:'periodic',order:7 },
+  '4-Wekelijks':  { icon:'🗓️', label:'4-Wekelijkse taken',  type:'periodic',order:8 },
+  '8-Wekelijks':  { icon:'🗓️', label:'8-Wekelijkse taken',  type:'periodic',order:9 },
+  'Halfjaarlijks':{ icon:'📅', label:'Halfjaarlijkse taken', type:'periodic',order:10 },
+  'Jaarlijks':    { icon:'📅', label:'Jaarlijkse taken',     type:'periodic',order:11 },
+};
+
+function getFreqConfig(freq) {
+  return FREQ_CONFIG[freq] || { icon:'📋', label: freq + ' taken', type:'periodic', order:99 };
+}
+
+// ── RENDER DAGELIJKS (7-kolommen grid) ──
+function renderDailySection(taken, freq) {
+  const cfg = getFreqConfig(freq);
+  const dagIndex = (new Date().getDay() + 6) % 7;
+  const circumference = 2 * Math.PI * 11;
+
+  let html = `<div><div class="sec-title">${cfg.icon} ${cfg.label}</div><div class="daily-grid">`;
+
+  DAGEN.forEach((dag, i) => {
+    const isToday = i === dagIndex;
+    const done = taken.filter(t => ['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
+    const total = taken.length;
+    const pct = total > 0 ? Math.round(done/total*100) : 0;
+    const color = pct===100 ? '#16a34a' : pct>50 ? '#d97706' : '#2563eb';
+    const dash = (pct/100) * circumference;
+
+    html += `<div class="day-card day-${DAG_CLS[i]} ${isToday?'today':''}">
+      <div class="day-header">${dag.slice(0,2)}${isToday?' ●':''}</div>
+      <div class="day-tasks">`;
+
+    taken.forEach(t => {
+      const isDone = ['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status);
+      const isRej = t.status === 'Afgekeurd';
+      const isMine = state.medewerker && t.toegewezen === state.medewerker.naam;
+      const checkCls = isDone ? 'done' : isRej ? 'rejected' : '';
+      const checkIcon = isDone ? '✓' : isRej ? '✗' : '';
+      html += `<div class="day-task ${isDone?'done':''} ${isRej?'rejected':''}" onclick="vraagAfvinken(${t.id})">
+        <div class="task-check ${checkCls}" onclick="event.stopPropagation();vraagAfvinken(${t.id})">${checkIcon}</div>
+        <span class="task-text">${t.naam}</span>
+        ${isMine ? '<div class="task-mine"></div>' : ''}
+      </div>`;
+    });
+
+    html += `</div>
+      <div class="day-footer">
+        <div class="ring-wrap">
+          <div class="ring">
+            <svg width="32" height="32" viewBox="0 0 32 32">
+              <circle cx="16" cy="16" r="11" fill="none" stroke="#e8e4de" stroke-width="4"/>
+              <circle cx="16" cy="16" r="11" fill="none" stroke="${color}" stroke-width="4"
+                stroke-dasharray="${dash} ${circumference}" stroke-linecap="round"/>
+            </svg>
+            <div class="pct-text">${pct}%</div>
+          </div>
+        </div>
+        <div class="day-count">${done}/${total}</div>
+      </div>
+    </div>`;
+  });
+
+  html += `</div></div>`;
+  return html;
+}
+
+// ── RENDER WEKELIJKS (tabel met dag kolommen) ──
+function renderWeeklySection(taken, freq) {
+  const cfg = getFreqConfig(freq);
+  const dagIndex = (new Date().getDay() + 6) % 7;
+
+  let html = `<div><div class="sec-title">${cfg.icon} ${cfg.label}`;
+
+  // KPI samenvatting
+  const open = taken.filter(t=>t.status==='Open').length;
+  const done = taken.filter(t=>['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
+  const nok  = taken.filter(t=>t.status==='Afgekeurd').length;
+  html += ` <span style="font-size:0.65rem;font-weight:400;color:var(--ink4);margin-left:8px;text-transform:none;letter-spacing:0">${open} open · ${done} klaar${nok>0?' · <span style=color:var(--red)>'+nok+' afgekeurd</span>':''}</span>`;
+  html += `</div>`;
+
+  html += `<div class="task-table-wrap"><table class="task-table">
+    <thead><tr>
+      <th class="task-col">Taaknaam</th>
+      <th>Zone</th>
+      ${DAGEN.map((d,i)=>`<th style="background:var(--${DAG_CLS[i]});color:var(--${DAG_CLS[i]}-dk)">${d.slice(0,2)}</th>`).join('')}
+      <th>Status</th>
+    </tr></thead>
+    <tbody>`;
+
+  taken.forEach(t => {
+    const isDone = ['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status);
+    const isRej  = t.status === 'Afgekeurd';
+    const isMine = state.medewerker && t.toegewezen === state.medewerker.naam;
+    const statusChip = isDone
+      ? `<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:600">✓ Klaar</span>`
+      : isRej
+      ? `<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:600">✗ Afgekeurd</span>`
+      : `<span style="background:#dbeafe;color:#2563eb;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:600">Open</span>`;
+
+    html += `<tr style="${isRej?'background:#fff8f8':isDone?'background:#f9fdf9':''}">
+      <td><div class="task-name-cell ${isDone?'done-name':''}">
+        ${isMine?'<div class="mine-dot"></div>':''}${t.naam}
+      </div></td>
+      <td style="font-size:0.72rem;color:var(--ink3);white-space:nowrap">${t.zone}</td>
+      ${DAGEN.map((d,i) => {
+        if(isDone) return `<td class="check-cell"><span class="check-x done">✓</span></td>`;
+        if(isRej)  return `<td class="check-cell"><span class="check-x rejected">✗</span></td>`;
+        if(i===dagIndex) return `<td class="check-cell"><span class="check-x empty" onclick="vraagAfvinken(${t.id})">✓</span></td>`;
+        return `<td class="check-cell"><span class="check-x inactive">·</span></td>`;
+      }).join('')}
+      <td>${statusChip}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table></div></div>`;
+  return html;
+}
+
+// ── RENDER PERIODIEK (maandelijks/kwartaal/etc met maand kolommen) ──
+function renderPeriodicSection(taken, freq) {
+  const cfg = getFreqConfig(freq);
+  const now = new Date();
+  const huidigMaand = now.getMonth(); // 0-11
+
+  let html = `<div><div class="sec-title">${cfg.icon} ${cfg.label}`;
+  const open = taken.filter(t=>t.status==='Open').length;
+  const done = taken.filter(t=>['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
+  html += ` <span style="font-size:0.65rem;font-weight:400;color:var(--ink4);margin-left:8px;text-transform:none;letter-spacing:0">${open} open · ${done} klaar</span>`;
+  html += `</div>`;
+
+  html += `<div class="task-table-wrap"><table class="task-table">
+    <thead><tr>
+      <th class="task-col">Taaknaam</th>
+      <th>Zone</th>
+      ${MAANDEN.map((m,i)=>`<th style="${i===huidigMaand?'background:#dbeafe;color:#2563eb':''}">${m}</th>`).join('')}
+      <th>Status</th>
+    </tr></thead>
+    <tbody>`;
+
+  taken.forEach(t => {
+    const isDone = ['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status);
+    const isRej  = t.status === 'Afgekeurd';
+    const isMine = state.medewerker && t.toegewezen === state.medewerker.naam;
+
+    html += `<tr style="${isRej?'background:#fff8f8':isDone?'background:#f9fdf9':''}">
+      <td><div class="task-name-cell ${isDone?'done-name':''}">
+        ${isMine?'<div class="mine-dot"></div>':''}${t.naam}
+      </div></td>
+      <td style="font-size:0.72rem;color:var(--ink3)">${t.zone}</td>
+      ${MAANDEN.map((m,i) => {
+        if(isDone) return `<td class="check-cell"><span class="check-x done">✓</span></td>`;
+        if(isRej)  return `<td class="check-cell"><span class="check-x rejected">✗</span></td>`;
+        if(i===huidigMaand) return `<td class="check-cell"><span class="check-x empty" onclick="vraagAfvinken(${t.id})">✓</span></td>`;
+        return `<td class="check-cell"><span class="check-x inactive">·</span></td>`;
+      }).join('')}
+      <td>${isDone?'<span style="color:var(--green);font-size:0.7rem;font-weight:600">✓ Klaar</span>':isRej?'<span style="color:var(--red);font-size:0.7rem;font-weight:600">✗ Afgekeurd</span>':'<span style="color:var(--brand);font-size:0.7rem;font-weight:600">Open</span>'}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table></div></div>`;
+  return html;
+}
+
+// ── RENDER VOORTGANG PER ZONE ──
+function renderProgressSection() {
+  const taken = gefilterdeTaken();
+  const zones = [...new Set(taken.map(t=>t.zone))].sort();
+  if(zones.length === 0) return '';
+
+  let html = `<div><div class="sec-title">📊 Voortgang per zone</div><div class="progress-section">`;
+  zones.forEach(zone => {
+    const zt = taken.filter(t=>t.zone===zone);
+    const done = zt.filter(t=>['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
+    const tot  = zt.length;
+    const pct  = tot > 0 ? Math.round(done/tot*100) : 0;
+    const color = pct===100 ? '#16a34a' : pct>60 ? '#d97706' : '#2563eb';
+    html += `<div class="prog-row">
+      <div class="prog-label" title="${zone}">${zone}</div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="prog-pct">${pct}%</div>
+    </div>`;
+  });
+  html += `</div></div>`;
+  return html;
+}
+
+// ── HOOFD RENDER FUNCTIE ──
 function render() {
   const taken = gefilterdeTaken();
-  const now = new Date();
-  const dagIndex = (now.getDay() + 6) % 7; // 0=maandag
 
-  // Splits op frequentie
-  const dagelijks = taken.filter(t => t.freq === 'Dagelijks');
-  const wekelijks = taken.filter(t => ['Wekelijks','2-Wekelijks'].includes(t.freq));
-  const periodiek = taken.filter(t => !['Dagelijks','Wekelijks','2-Wekelijks'].includes(t.freq));
+  if(taken.length === 0) {
+    document.getElementById('content').innerHTML = `<div class="loading-state">📋 Geen taken gevonden voor de huidige selectie.</div>`;
+    return;
+  }
+
+  // Groepeer taken per frequentie
+  const freqGroepen = {};
+  taken.forEach(t => {
+    if(!freqGroepen[t.freq]) freqGroepen[t.freq] = [];
+    freqGroepen[t.freq].push(t);
+  });
+
+  // Sorteer frequenties op volgorde
+  const gesorteerdeFreqs = Object.keys(freqGroepen).sort((a,b) => {
+    const oa = getFreqConfig(a).order;
+    const ob = getFreqConfig(b).order;
+    return oa - ob;
+  });
 
   let html = '';
 
-  // ── DAGELIJKSE TAKEN ──
-  if(dagelijks.length > 0) {
-    html += `<div><div class="sec-title">📅 Dagelijkse taken</div>`;
-    html += `<div class="daily-grid">`;
-    DAGEN.forEach((dag, i) => {
-      const isToday = i === dagIndex;
-      const done = dagelijks.filter(t => ['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
-      const total = dagelijks.length;
-      const pct = total > 0 ? Math.round(done/total*100) : 0;
-      const color = pct===100 ? '#16a34a' : pct>50 ? '#d97706' : '#2563eb';
-      const circumference = 2 * Math.PI * 11;
-      const dash = (pct/100) * circumference;
+  // Render elke frequentiegroep
+  gesorteerdeFreqs.forEach(freq => {
+    const groepTaken = freqGroepen[freq];
+    const cfg = getFreqConfig(freq);
 
-      html += `<div class="day-card day-${DAG_CLS[i]} ${isToday?'today':''}">
-        <div class="day-header">${dag.slice(0,2)}${isToday?' ●':''}</div>
-        <div class="day-tasks">`;
+    if(cfg.type === 'daily') {
+      html += renderDailySection(groepTaken, freq);
+    } else if(cfg.type === 'weekly') {
+      html += renderWeeklySection(groepTaken, freq);
+    } else {
+      // monthly en periodic
+      html += renderPeriodicSection(groepTaken, freq);
+    }
+  });
 
-      dagelijks.forEach(t => {
-        const isDone = ['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status);
-        const isRej = t.status === 'Afgekeurd';
-        const isMine = state.medewerker && t.toegewezen === state.medewerker.naam;
-        const checkCls = isDone ? 'done' : isRej ? 'rejected' : '';
-        const checkIcon = isDone ? '✓' : isRej ? '✗' : '';
-        html += `<div class="day-task ${isDone?'done':''} ${isRej?'rejected':''}" onclick="vraagAfvinken(${t.id})">
-          <div class="task-check ${checkCls}" onclick="event.stopPropagation();vraagAfvinken(${t.id})">${checkIcon}</div>
-          <span class="task-text">${t.naam}</span>
-          ${isMine ? '<div class="task-mine"></div>' : ''}
-        </div>`;
-      });
-
-      html += `</div>
-        <div class="day-footer">
-          <div class="ring-wrap">
-            <div class="ring">
-              <svg width="32" height="32" viewBox="0 0 32 32">
-                <circle cx="16" cy="16" r="11" fill="none" stroke="#e8e4de" stroke-width="4"/>
-                <circle cx="16" cy="16" r="11" fill="none" stroke="${color}" stroke-width="4"
-                  stroke-dasharray="${dash} ${circumference}" stroke-linecap="round"/>
-              </svg>
-              <div class="pct-text">${pct}%</div>
-            </div>
-          </div>
-          <div class="day-count">${done}/${total}</div>
-        </div>
-      </div>`;
-    });
-    html += `</div></div>`;
-  }
-
-  // ── WEKELIJKSE TAKEN ──
-  if(wekelijks.length > 0) {
-    html += `<div><div class="sec-title">📋 Wekelijkse taken</div>`;
-    html += `<div class="task-table-wrap"><table class="task-table">
-      <thead><tr>
-        <th class="task-col">Taaknaam</th>
-        <th>Zone</th>
-        ${DAGEN.map((d,i)=>`<th style="background:var(--${DAG_CLS[i]});color:var(--${DAG_CLS[i]}-dk)">${d.slice(0,2)}</th>`).join('')}
-        <th>Status</th>
-      </tr></thead>
-      <tbody>`;
-
-    wekelijks.forEach(t => {
-      const isDone = ['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status);
-      const isRej = t.status === 'Afgekeurd';
-      const isMine = state.medewerker && t.toegewezen === state.medewerker.naam;
-      const statusChip = isDone
-        ? `<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:8px;font-size:0.7rem;font-weight:600">✓ Klaar</span>`
-        : isRej
-        ? `<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:8px;font-size:0.7rem;font-weight:600">✗ Afgekeurd</span>`
-        : `<span style="background:#dbeafe;color:#2563eb;padding:2px 8px;border-radius:8px;font-size:0.7rem;font-weight:600">Open</span>`;
-
-      html += `<tr>
-        <td><div class="task-name-cell ${isDone?'done-name':''}">
-          ${isMine ? '<div class="mine-dot"></div>' : ''}
-          ${t.naam}
-        </div></td>
-        <td style="font-size:0.75rem;color:var(--ink3)">${t.zone}</td>
-        ${DAGEN.map((d,i) => {
-          if(isDone) return `<td class="check-cell"><span class="check-x done" onclick="event.stopPropagation()">✓</span></td>`;
-          if(isRej) return `<td class="check-cell"><span class="check-x rejected" onclick="event.stopPropagation()">✗</span></td>`;
-          if(i === dagIndex) return `<td class="check-cell"><span class="check-x empty" onclick="vraagAfvinken(${t.id})">✓</span></td>`;
-          return `<td class="check-cell"><span class="check-x inactive">·</span></td>`;
-        }).join('')}
-        <td>${statusChip}</td>
-      </tr>`;
-    });
-
-    html += `</tbody></table></div></div>`;
-  }
-
-  // ── PERIODIEKE TAKEN ──
-  if(periodiek.length > 0) {
-    html += `<div class="two-col">`;
-
-    // Tabel
-    html += `<div><div class="sec-title">🗓️ Periodieke taken</div>
-      <div class="task-table-wrap"><table class="task-table">
-        <thead><tr>
-          <th class="task-col">Taaknaam</th>
-          <th>Frequentie</th>
-          <th>Zone</th>
-          <th>Status</th>
-          <th>Actie</th>
-        </tr></thead>
-        <tbody>`;
-
-    periodiek.forEach(t => {
-      const isDone = ['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status);
-      const isRej = t.status === 'Afgekeurd';
-      const isMine = state.medewerker && t.toegewezen === state.medewerker.naam;
-      html += `<tr>
-        <td><div class="task-name-cell ${isDone?'done-name':''}">
-          ${isMine?'<div class="mine-dot"></div>':''}${t.naam}
-        </div></td>
-        <td style="font-size:0.72rem;color:var(--ink3)">${t.freq}</td>
-        <td style="font-size:0.72rem;color:var(--ink3)">${t.zone}</td>
-        <td>${isDone?'<span style="color:var(--green);font-size:0.72rem;font-weight:600">✓ Klaar</span>':isRej?'<span style="color:var(--red);font-size:0.72rem;font-weight:600">✗ Afgekeurd</span>':'<span style="color:var(--brand);font-size:0.72rem;font-weight:600">Open</span>'}</td>
-        <td>${!isDone?`<span class="check-x empty" onclick="vraagAfvinken(${t.id})" style="width:auto;padding:4px 10px;border-radius:6px;font-size:0.75rem;gap:4px;display:inline-flex">✓ Afvinken</span>`:'—'}</td>
-      </tr>`;
-    });
-
-    html += `</tbody></table></div></div>`;
-
-    // Progress per zone
-    html += `<div><div class="sec-title">📊 Voortgang per zone</div>
-      <div class="progress-section">`;
-
-    const zones = [...new Set(gefilterdeTaken().map(t=>t.zone))].sort();
-    zones.forEach(zone => {
-      const zt = gefilterdeTaken().filter(t=>t.zone===zone);
-      const done = zt.filter(t=>['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
-      const tot = zt.length;
-      const pct = tot > 0 ? Math.round(done/tot*100) : 0;
-      const color = pct===100 ? '#16a34a' : pct>60 ? '#d97706' : '#2563eb';
-      html += `<div class="prog-row">
-        <div class="prog-label" title="${zone}">${zone}</div>
-        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${color}"></div></div>
-        <div class="prog-pct">${pct}%</div>
-      </div>`;
-    });
-
-    html += `</div></div></div>`;
-  }
-
-  if(!html) html = `<div class="loading-state">📋 Geen taken gevonden voor de huidige selectie.</div>`;
+  // Voortgang per zone altijd onderaan
+  html += renderProgressSection();
 
   document.getElementById('content').innerHTML = html;
 }
@@ -793,4 +872,4 @@ laadTaken();
 setInterval(laadTaken, 5*60*1000);
 </script>
 </body>
-</html>
+</html> 
