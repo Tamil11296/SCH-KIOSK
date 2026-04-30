@@ -249,7 +249,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);user-select:n
 const FLOWS = {
   TAKEN_OPHALEN: 'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/38947ebb16084abab2d4a902c4956c74/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=xKjf_7GnD3wM8X6aQZCzy3NxXuH9X8DFrGTHGRpdVL0',
   TAAK_AFVINKEN: 'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/fa20299ae9974339b3260dd4ec51e614/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zf_HRQtv46kpYhalZsB5CrfsSmDV81wlSFt04YF7AYc',
-  BADGE_LOOKUP:  null, // wordt later toegevoegd
+  BADGE_LOOKUP: 'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/0960a0a199f24d1799dbc81ab236f555/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Hmt2PPtfCgm27R33OIYUmbl-aw3naJ2QOk4KghTbLVI',
 };
 
 // Tijdelijke demo medewerkers voor badge test
@@ -322,7 +322,7 @@ async function laadTaken() {
 
 // ── BADGE LOOKUP ──
 async function lookupBadge(badge) {
-  // Demo modus — later vervangen door echte flow
+  
   if (!FLOWS.BADGE_LOOKUP) {
     await new Promise(r=>setTimeout(r,600));
     return DEMO_MDW[badge] || null;
