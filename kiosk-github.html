@@ -7,99 +7,125 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #f7f5f0;
-  --white: #ffffff;
-  --card: #fffffe;
-  --ink: #1a1814;
-  --ink2: #3d3830;
-  --ink3: #7a7268;
-  --ink4: #b0a89e;
-  --border: #e8e4de;
-  --brand: #2563eb;
-  --green: #16a34a;
-  --amber: #d97706;
-  --red: #dc2626;
-  --teal: #0d9488;
-  --rose: #e11d48;
+  /* ── Biscuit International Brand ── */
+  --bi-navy:       #16213a;
+  --bi-navy-mid:   #1e2d50;
+  --bi-navy-light: #263660;
+  --bi-gold:       #c9a227;
+  --bi-gold-lt:    #ddb83a;
+  --bi-gold-dim:   rgba(201,162,39,0.18);
+  --bi-cream:      #f5f0e6;
+  --bi-cream-dim:  rgba(245,240,230,0.07);
+
+  /* ── Page & Cards ── */
+  --bg:     #f4f1eb;
+  --white:  #ffffff;
+  --card:   #fffffe;
+  --ink:    #1a1814;
+  --ink2:   #3d3830;
+  --ink3:   #7a7268;
+  --ink4:   #b0a89e;
+  --border: #e6e2da;
+
+  /* ── Status ── */
+  --green:  #16a34a;
+  --amber:  #d97706;
+  --red:    #dc2626;
+  --brand:  #2563eb;
+  --teal:   #0d9488;
   --violet: #7c3aed;
 
-  /* Day colors — soft pastels */
-  --mon: #dbeafe;
-  --mon-dk: #2563eb;
-  --tue: #dcfce7;
-  --tue-dk: #16a34a;
-  --wed: #fef3c7;
-  --wed-dk: #d97706;
-  --thu: #fce7f3;
-  --thu-dk: #db2777;
-  --fri: #ede9fe;
-  --fri-dk: #7c3aed;
-  --sat: #ffedd5;
-  --sat-dk: #ea580c;
-  --sun: #f0fdf4;
-  --sun-dk: #15803d;
+  /* ── Dag pastelkleuren ── */
+  --mon: #dbeafe; --mon-dk: #2563eb;
+  --tue: #dcfce7; --tue-dk: #16a34a;
+  --wed: #fef3c7; --wed-dk: #d97706;
+  --thu: #fce7f3; --thu-dk: #db2777;
+  --fri: #ede9fe; --fri-dk: #7c3aed;
+  --sat: #ffedd5; --sat-dk: #ea580c;
+  --sun: #f0fdf4; --sun-dk: #15803d;
 
-  --sans: 'Outfit', sans-serif;
-  --mono: 'JetBrains Mono', monospace;
+  --sans:   'Outfit', sans-serif;
+  --mono:   'JetBrains Mono', monospace;
   --radius: 14px;
   --shadow: 0 2px 12px rgba(26,24,20,0.08);
-  --shadow-lg: 0 8px 32px rgba(26,24,20,0.12);
+  --shadow-lg: 0 8px 32px rgba(26,24,20,0.14);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
 body { font-family: var(--sans); background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.5; }
 
-/* ── TOPBAR ── */
+/* ══ TOPBAR ══ */
 .topbar {
-  background: var(--ink);
-  height: 56px;
+  background: var(--bi-navy);
+  height: 60px;
   display: flex; align-items: center; gap: 12px;
   padding: 0 20px;
   flex-shrink: 0;
+  border-bottom: 1px solid rgba(201,162,39,0.25);
+  position: relative;
 }
-.topbar .logo { font-size: 0.82rem; font-weight: 700; color: white; letter-spacing: 0.1em; text-transform: uppercase; }
-.topbar .week-pill {
-  background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.9);
+/* gouden streep onderkant */
+.topbar::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--bi-gold) 20%, var(--bi-gold) 80%, transparent);
+  opacity: 0.6;
+}
+
+/* Logo */
+.topbar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+.bi-wheat { flex-shrink: 0; }
+.brand-text { display: flex; flex-direction: column; line-height: 1; }
+.brand-name { font-size: 0.88rem; font-weight: 800; color: var(--bi-cream); letter-spacing: 0.12em; text-transform: uppercase; }
+.brand-sub  { font-size: 0.56rem; font-weight: 400; color: var(--bi-gold); letter-spacing: 0.28em; text-transform: uppercase; margin-top: 2px; }
+.brand-divider { width: 1px; height: 28px; background: rgba(201,162,39,0.25); margin: 0 4px; flex-shrink: 0; }
+.dash-label { font-size: 0.7rem; font-weight: 600; color: rgba(245,240,230,0.55); letter-spacing: 0.08em; text-transform: uppercase; }
+
+.week-pill {
+  background: var(--bi-gold-dim);
+  color: var(--bi-gold);
   font-family: var(--mono); font-size: 0.72rem; font-weight: 600;
-  padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+  padding: 4px 12px; border-radius: 20px;
+  border: 1px solid rgba(201,162,39,0.3);
 }
-.topbar .spacer { flex: 1; }
-.topbar .clock { font-family: var(--mono); font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+.spacer { flex: 1; }
+.clock { font-family: var(--mono); font-size: 0.85rem; color: rgba(245,240,230,0.45); }
 
-/* Dropdowns in topbar */
+/* Dropdowns */
 .top-select {
-  background: rgba(255,255,255,0.1); color: white;
-  border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
+  background: rgba(255,255,255,0.07); color: var(--bi-cream);
+  border: 1px solid rgba(201,162,39,0.2); border-radius: 8px;
   padding: 6px 12px; font-family: var(--sans); font-size: 0.8rem; font-weight: 500;
-  cursor: pointer; outline: none; transition: all 0.2s; min-width: 140px;
+  cursor: pointer; outline: none; transition: all 0.2s; min-width: 150px;
 }
-.top-select:hover { background: rgba(255,255,255,0.18); }
-.top-select option { background: var(--ink2); color: white; }
+.top-select:hover { background: rgba(201,162,39,0.12); border-color: rgba(201,162,39,0.4); }
+.top-select option { background: var(--bi-navy-mid); color: var(--bi-cream); }
 
-/* Badge filter knop */
+/* Badge knop */
 .badge-btn {
   display: flex; align-items: center; gap: 6px;
-  background: white; color: var(--ink); border: none; border-radius: 8px;
-  padding: 7px 14px; font-family: var(--sans); font-size: 0.8rem; font-weight: 600;
-  cursor: pointer; transition: all 0.2s;
+  background: var(--bi-gold); color: var(--bi-navy); border: none; border-radius: 8px;
+  padding: 7px 14px; font-family: var(--sans); font-size: 0.8rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
 }
-.badge-btn:hover { background: #f0f9ff; color: var(--brand); }
+.badge-btn:hover { background: var(--bi-gold-lt); }
 .badge-btn.active { background: var(--green); color: white; }
 
-/* ── MAIN LAYOUT ── */
+/* ══ MAIN LAYOUT ══ */
 .app { display: flex; flex-direction: column; height: 100vh; }
 .content { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
 
-/* ── SECTION TITLE ── */
+/* ══ SECTION TITLE ══ */
 .sec-title {
-  font-size: 0.7rem; font-weight: 700; color: var(--ink3);
-  text-transform: uppercase; letter-spacing: 0.1em;
+  font-size: 0.7rem; font-weight: 700; color: var(--bi-gold);
+  text-transform: uppercase; letter-spacing: 0.12em;
   display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
 }
-.sec-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.sec-title::after { content: ''; flex: 1; height: 1px; background: rgba(201,162,39,0.2); }
 
-/* ── DAILY TASKS GRID ── */
+/* ══ DAILY TASKS GRID ══ */
 .daily-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -124,7 +150,8 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); font-
 .day-card.day-fri .day-header { background: var(--fri); color: var(--fri-dk); }
 .day-card.day-sat .day-header { background: var(--sat); color: var(--sat-dk); }
 .day-card.day-sun .day-header { background: var(--sun); color: var(--sun-dk); }
-.day-card.today .day-header { outline: 2px solid currentColor; outline-offset: -2px; }
+.day-card.today { outline: 2px solid var(--bi-gold); outline-offset: -1px; }
+.day-card.today .day-header { letter-spacing: 0.06em; }
 
 .day-tasks { flex: 1; padding: 6px; }
 .day-task {
@@ -144,26 +171,29 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); font-
   display: flex; align-items: center; justify-content: center;
   font-size: 0.6rem; cursor: pointer; transition: all 0.15s;
 }
-.task-check.done { background: var(--green); border-color: var(--green); color: white; }
-.task-check.review { background: var(--amber); border-color: var(--amber); color: white; }
-.task-check.rejected { background: var(--red); border-color: var(--red); color: white; }
+.task-check.done     { background: var(--green); border-color: var(--green); color: white; }
+.task-check.review   { background: var(--amber); border-color: var(--amber); color: white; }
+.task-check.rejected { background: var(--red);   border-color: var(--red);   color: white; }
 .task-text { flex: 1; line-height: 1.3; }
-.task-mine { width: 4px; height: 4px; border-radius: 50%; background: var(--brand); flex-shrink: 0; }
+.task-mine { width: 4px; height: 4px; border-radius: 50%; background: var(--bi-gold); flex-shrink: 0; }
 
 .day-footer {
   padding: 6px 10px;
   border-top: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
+  background: rgba(201,162,39,0.03);
 }
-
-/* Progress ring */
 .ring-wrap { display: flex; align-items: center; gap: 6px; }
 .ring { position: relative; width: 32px; height: 32px; flex-shrink: 0; }
 .ring svg { transform: rotate(-90deg); }
-.ring .pct-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-family: var(--mono); font-size: 0.55rem; font-weight: 700; color: var(--ink); line-height: 1; text-align: center; }
+.ring .pct-text {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  font-family: var(--mono); font-size: 0.55rem; font-weight: 700;
+  color: var(--ink); line-height: 1; text-align: center;
+}
 .day-count { font-size: 0.68rem; color: var(--ink4); font-family: var(--mono); }
 
-/* ── WEEKLY / MONTHLY TABLE ── */
+/* ══ TABLE ══ */
 .task-table-wrap {
   background: var(--card); border-radius: var(--radius);
   border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow);
@@ -178,10 +208,10 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); font-
 .task-table th.task-col { text-align: left; min-width: 160px; }
 .task-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .task-table tr:last-child td { border-bottom: none; }
-.task-table tr:hover td { background: #fafaf8; }
+.task-table tr:hover td { background: #faf9f5; }
 .task-name-cell { font-size: 0.8rem; font-weight: 500; color: var(--ink); display: flex; align-items: center; gap: 6px; }
 .task-name-cell.done-name { text-decoration: line-through; color: var(--ink4); }
-.mine-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--brand); flex-shrink: 0; }
+.mine-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--bi-gold); flex-shrink: 0; }
 
 .check-cell { text-align: center; }
 .check-x {
@@ -189,17 +219,17 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); font-
   width: 24px; height: 24px; border-radius: 6px; cursor: pointer;
   font-size: 0.8rem; transition: all 0.15s; border: 1.5px solid transparent;
 }
-.check-x.empty { border-color: var(--border); color: transparent; }
+.check-x.empty    { border-color: var(--border); color: transparent; }
 .check-x.empty:hover { border-color: var(--green); color: var(--green); background: var(--bg); }
-.check-x.done { background: var(--green); color: white; border-color: var(--green); }
-.check-x.review { background: var(--amber); color: white; border-color: var(--amber); }
-.check-x.rejected { background: var(--red); color: white; border-color: var(--red); }
+.check-x.done     { background: var(--green); color: white; border-color: var(--green); }
+.check-x.review   { background: var(--amber); color: white; border-color: var(--amber); }
+.check-x.rejected { background: var(--red);   color: white; border-color: var(--red); }
 .check-x.inactive { color: var(--border); background: var(--bg); cursor: default; }
 
-/* ── TWO COL LAYOUT ── */
+/* ══ TWO COL ══ */
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-/* ── PROGRESS BARS SECTION ── */
+/* ══ PROGRESS ══ */
 .progress-section {
   background: var(--card); border-radius: var(--radius);
   border: 1px solid var(--border); padding: 14px; box-shadow: var(--shadow);
@@ -211,193 +241,227 @@ body { font-family: var(--sans); background: var(--bg); color: var(--ink); font-
 .prog-fill { height: 100%; border-radius: 99px; transition: width 0.5s; }
 .prog-pct { font-family: var(--mono); font-size: 0.68rem; color: var(--ink3); width: 30px; text-align: right; flex-shrink: 0; }
 
-/* ── POPUP ── */
-.popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+/* ══ POPUP ══ */
+.popup-overlay {
+  position: fixed; inset: 0; background: rgba(22,33,58,0.65);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
 .popup-overlay.active { opacity: 1; pointer-events: all; }
-.popup-card { background: var(--card); border-radius: 18px; padding: 2rem; width: 400px; max-width: 92vw; box-shadow: var(--shadow-lg); transform: scale(0.94); transition: transform 0.2s; }
+.popup-card {
+  background: var(--card); border-radius: 18px; padding: 2rem;
+  width: 400px; max-width: 92vw; box-shadow: var(--shadow-lg);
+  transform: scale(0.94); transition: transform 0.2s;
+  border: 1px solid rgba(201,162,39,0.2);
+}
 .popup-overlay.active .popup-card { transform: scale(1); }
 .popup-icon { font-size: 2rem; text-align: center; display: block; margin-bottom: 0.8rem; }
-.popup-title { font-size: 1.1rem; font-weight: 700; text-align: center; margin-bottom: 0.3rem; }
+.popup-title { font-size: 1.1rem; font-weight: 700; text-align: center; margin-bottom: 0.3rem; color: var(--bi-navy); }
 .popup-sub { font-size: 0.82rem; color: var(--ink3); text-align: center; margin-bottom: 1.2rem; }
-.popup-task-name { background: var(--bg); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; font-weight: 600; margin-bottom: 1.2rem; text-align: center; }
-.popup-badge-input { width: 100%; padding: 0.9rem; font-size: 1.4rem; text-align: center; font-family: var(--mono); font-weight: 600; letter-spacing: 0.2em; border: 2px solid var(--border); border-radius: 10px; outline: none; background: var(--bg); transition: all 0.2s; margin-bottom: 0.5rem; }
-.popup-badge-input:focus { border-color: var(--brand); background: white; }
+.popup-task-name {
+  background: var(--bg); border-radius: 8px; padding: 8px 12px;
+  font-size: 0.85rem; font-weight: 600; margin-bottom: 1.2rem; text-align: center;
+  border-left: 3px solid var(--bi-gold);
+}
+.popup-badge-input {
+  width: 100%; padding: 0.9rem; font-size: 1.4rem; text-align: center;
+  font-family: var(--mono); font-weight: 600; letter-spacing: 0.2em;
+  border: 2px solid var(--border); border-radius: 10px; outline: none;
+  background: var(--bg); transition: all 0.2s; margin-bottom: 0.5rem;
+}
+.popup-badge-input:focus { border-color: var(--bi-gold); background: white; }
 .popup-status { font-size: 0.78rem; min-height: 20px; text-align: center; font-weight: 600; margin-bottom: 1rem; }
-.popup-status.found { color: var(--green); }
+.popup-status.found    { color: var(--green); }
 .popup-status.notfound { color: var(--red); }
 .popup-btns { display: flex; gap: 8px; }
-.popup-btn-cancel { flex: 1; padding: 0.8rem; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px; font-family: var(--sans); font-size: 0.88rem; font-weight: 600; cursor: pointer; color: var(--ink2); transition: all 0.2s; }
-.popup-btn-confirm { flex: 1; padding: 0.8rem; background: var(--green); border: none; border-radius: 8px; font-family: var(--sans); font-size: 0.88rem; font-weight: 700; cursor: pointer; color: white; transition: all 0.2s; }
-.popup-btn-confirm:hover { background: #15803d; }
-.popup-btn-confirm:disabled { background: var(--ink4); cursor: not-allowed; }
+.popup-btn-cancel {
+  flex: 1; padding: 0.8rem; background: var(--bg);
+  border: 1.5px solid var(--border); border-radius: 8px;
+  font-family: var(--sans); font-size: 0.88rem; font-weight: 600;
+  cursor: pointer; color: var(--ink2); transition: all 0.2s;
+}
+.popup-btn-confirm {
+  flex: 1; padding: 0.8rem; background: var(--bi-gold);
+  border: none; border-radius: 8px;
+  font-family: var(--sans); font-size: 0.88rem; font-weight: 700;
+  cursor: pointer; color: var(--bi-navy); transition: all 0.2s;
+}
+.popup-btn-confirm:hover { background: var(--bi-gold-lt); }
+.popup-btn-confirm:disabled { background: var(--ink4); color: white; cursor: not-allowed; }
 
-/* BADGE FILTER popup */
-.filter-popup-card { background: var(--card); border-radius: 18px; padding: 2rem; width: 360px; max-width: 92vw; box-shadow: var(--shadow-lg); transform: scale(0.94); transition: transform 0.2s; text-align: center; }
+/* Badge filter popup */
+.filter-popup-card {
+  background: var(--card); border-radius: 18px; padding: 2rem;
+  width: 360px; max-width: 92vw; box-shadow: var(--shadow-lg);
+  transform: scale(0.94); transition: transform 0.2s; text-align: center;
+  border: 1px solid rgba(201,162,39,0.2);
+}
 .popup-overlay.active .filter-popup-card { transform: scale(1); }
 
-/* TOAST */
-.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--ink); color: white; padding: 0.7rem 1.5rem; border-radius: 30px; font-size: 0.82rem; font-weight: 600; box-shadow: var(--shadow-lg); transition: transform 0.3s; z-index: 2000; }
-.toast.show { transform: translateX(-50%) translateY(0); }
-.toast.success { background: var(--green); }
-.toast.error { background: var(--red); }
+/* ══ TOAST ══ */
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: var(--bi-navy); color: var(--bi-cream);
+  padding: 0.7rem 1.5rem; border-radius: 30px;
+  font-size: 0.82rem; font-weight: 600; box-shadow: var(--shadow-lg);
+  transition: transform 0.3s; z-index: 2000;
+  border: 1px solid rgba(201,162,39,0.3);
+}
+.toast.show    { transform: translateX(-50%) translateY(0); }
+.toast.success { background: var(--green); border-color: transparent; }
+.toast.error   { background: var(--red);   border-color: transparent; }
 
-/* LOADING */
+/* ══ LOADING ══ */
 .loading-state { text-align: center; padding: 3rem; color: var(--ink4); }
-.spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 1rem; }
+.spinner {
+  width: 28px; height: 28px;
+  border: 3px solid var(--bi-gold-dim);
+  border-top-color: var(--bi-gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto 1rem;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* Scrollbar */
 ::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
+::-webkit-scrollbar-thumb { background: rgba(201,162,39,0.2); border-radius: 3px; }
 
 /* ══ RESPONSIVE ══ */
-
-/* TABLET (max 1024px) */
 @media (max-width: 1024px) {
   .daily-grid { grid-template-columns: repeat(4, 1fr); }
-  .two-col { grid-template-columns: 1fr; }
-  .topbar { flex-wrap: wrap; height: auto; padding: 10px 16px; gap: 8px; }
+  .two-col    { grid-template-columns: 1fr; }
+  .topbar     { flex-wrap: wrap; height: auto; padding: 10px 16px; gap: 8px; }
   .top-select { min-width: 120px; font-size: 0.75rem; }
   .task-table th, .task-table td { padding: 6px 8px; }
 }
-
-/* MOBIEL (max 640px) */
 @media (max-width: 640px) {
   body { overflow: auto; }
   html, body { height: auto; }
-  .app { height: auto; min-height: 100vh; }
+  .app  { height: auto; min-height: 100vh; }
   .content { overflow-y: visible; padding: 12px; gap: 12px; }
-
-  /* Topbar mobiel */
-  .topbar {
-    flex-wrap: wrap; height: auto;
-    padding: 10px 12px; gap: 6px;
-    position: sticky; top: 0; z-index: 100;
-  }
-  .topbar .logo { font-size: 0.75rem; flex: 1; }
-  .topbar .week-pill { font-size: 0.68rem; padding: 3px 10px; }
-  .topbar .clock { display: none; }
-  .top-select {
-    flex: 1; min-width: 0; font-size: 0.75rem;
-    padding: 5px 8px;
-  }
-  .badge-btn { font-size: 0.75rem; padding: 6px 10px; }
-
-  /* Dagelijkse taken — scroll horizontaal op mobiel */
-  .daily-grid {
-    grid-template-columns: repeat(7, minmax(120px, 1fr));
-    overflow-x: auto;
-    padding-bottom: 8px;
-    gap: 6px;
-    display: flex;
-  }
-  .day-card { min-width: 120px; flex-shrink: 0; }
-  .day-header { font-size: 0.7rem; padding: 6px 8px; }
-  .day-task { padding: 4px 5px; font-size: 0.72rem; }
-
-  /* Wekelijkse tabel — scrollbaar */
+  .topbar { flex-wrap: wrap; height: auto; padding: 10px 12px; gap: 6px; position: sticky; top: 0; z-index: 100; }
+  .brand-name  { font-size: 0.78rem; }
+  .brand-sub   { display: none; }
+  .brand-divider { display: none; }
+  .week-pill   { font-size: 0.68rem; padding: 3px 10px; }
+  .clock       { display: none; }
+  .top-select  { flex: 1; min-width: 0; font-size: 0.75rem; padding: 5px 8px; }
+  .badge-btn   { font-size: 0.75rem; padding: 6px 10px; }
+  .daily-grid  { grid-template-columns: repeat(7, minmax(120px, 1fr)); overflow-x: auto; padding-bottom: 8px; gap: 6px; display: flex; }
+  .day-card    { min-width: 120px; flex-shrink: 0; }
+  .day-header  { font-size: 0.7rem; padding: 6px 8px; }
+  .day-task    { padding: 4px 5px; font-size: 0.72rem; }
   .task-table-wrap { overflow-x: auto; }
-  .task-table { min-width: 600px; }
-  .task-table th { font-size: 0.62rem; padding: 6px 6px; }
-  .task-table td { font-size: 0.72rem; padding: 6px 6px; }
-
-  /* Two col */
-  .two-col { grid-template-columns: 1fr; }
-
-  /* Progress sectie */
+  .task-table  { min-width: 600px; }
+  .task-table th { font-size: 0.62rem; padding: 6px; }
+  .task-table td { font-size: 0.72rem; padding: 6px; }
+  .two-col     { grid-template-columns: 1fr; }
   .progress-section { padding: 10px; }
-  .prog-label { width: 80px; font-size: 0.7rem; }
-
-  /* Section title */
-  .sec-title { font-size: 0.65rem; }
-
-  /* Popup */
-  .popup-card, .filter-popup-card {
-    padding: 1.5rem; border-radius: 14px;
-    width: 95vw;
-  }
+  .prog-label  { width: 80px; font-size: 0.7rem; }
+  .sec-title   { font-size: 0.65rem; }
+  .popup-card, .filter-popup-card { padding: 1.5rem; border-radius: 14px; width: 95vw; }
   .popup-badge-input { font-size: 1.2rem; padding: 0.8rem; }
   .popup-title { font-size: 1rem; }
-
-  /* Afvink knop groter op mobiel */
-  .check-x { width: 28px; height: 28px; font-size: 0.9rem; }
-  .task-check { width: 18px; height: 18px; }
+  .check-x     { width: 28px; height: 28px; font-size: 0.9rem; }
+  .task-check  { width: 18px; height: 18px; }
 }
-
-/* MOBIEL LANDSCAPE */
 @media (max-width: 900px) and (orientation: landscape) {
-  .daily-grid {
-    grid-template-columns: repeat(7, 1fr);
-    display: grid;
-  }
-  .day-card { min-width: 0; }
-  .day-task { font-size: 0.68rem; padding: 3px 4px; }
+  .daily-grid { grid-template-columns: repeat(7, 1fr); display: grid; }
+  .day-card   { min-width: 0; }
+  .day-task   { font-size: 0.68rem; padding: 3px 4px; }
 }
-
-/* NUC KIOSK TOUCHSCREEN (min 1280px) */
 @media (min-width: 1280px) {
-  .check-x { width: 28px; height: 28px; font-size: 0.88rem; }
+  .check-x    { width: 28px; height: 28px; font-size: 0.88rem; }
   .task-check { width: 20px; height: 20px; }
-  .day-task { padding: 6px 8px; font-size: 0.78rem; }
-  .check-btn-large {
-    padding: 14px 24px; font-size: 1rem;
-  }
+  .day-task   { padding: 6px 8px; font-size: 0.78rem; }
 }
-
 </style>
 </head>
 <body>
 
 <div class="app">
-  <!-- TOPBAR -->
+
+  <!-- ══ TOPBAR ══ -->
   <div class="topbar">
-    <div class="logo">🧹 BL Schoonmaak</div>
+
+    <!-- BI Logo + naam -->
+    <div class="topbar-brand">
+      <!-- Tarwe SVG icon -->
+      <svg class="bi-wheat" width="28" height="28" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="30" y1="54" x2="30" y2="10" stroke="#C9A227" stroke-width="2"/>
+        <line x1="30" y1="54" x2="17" y2="36" stroke="#C9A227" stroke-width="1.6"/>
+        <line x1="30" y1="54" x2="43" y2="36" stroke="#C9A227" stroke-width="1.6"/>
+        <ellipse cx="30" cy="9"  rx="4.5" ry="7"   fill="none" stroke="#C9A227" stroke-width="1.6"/>
+        <ellipse cx="30" cy="17" rx="4"   ry="6"   fill="none" stroke="#C9A227" stroke-width="1.4"/>
+        <ellipse cx="22" cy="26" rx="4"   ry="6.5" fill="none" stroke="#C9A227" stroke-width="1.4" transform="rotate(-28 22 26)"/>
+        <ellipse cx="38" cy="26" rx="4"   ry="6.5" fill="none" stroke="#C9A227" stroke-width="1.4" transform="rotate(28 38 26)"/>
+        <ellipse cx="17" cy="36" rx="3.5" ry="6"   fill="none" stroke="#C9A227" stroke-width="1.2" transform="rotate(-38 17 36)"/>
+        <ellipse cx="43" cy="36" rx="3.5" ry="6"   fill="none" stroke="#C9A227" stroke-width="1.2" transform="rotate(38 43 36)"/>
+        <line x1="22" y1="53" x2="38" y2="53" stroke="#C9A227" stroke-width="2"/>
+        <line x1="24" y1="56" x2="36" y2="56" stroke="#C9A227" stroke-width="1.2"/>
+      </svg>
+      <div class="brand-text">
+        <span class="brand-name">BISCUIT</span>
+        <span class="brand-sub">International</span>
+      </div>
+    </div>
+
+    <div class="brand-divider"></div>
+    <span class="dash-label">Schoonmaak</span>
     <div class="week-pill" id="week-pill">Week —</div>
+
     <select class="top-select" id="afdeling-select" onchange="filterOpAfdeling(this.value)">
-      <option value="">🏭 Alle afdelingen</option>
+      <option value="">Alle afdelingen</option>
     </select>
     <select class="top-select" id="zone-select" onchange="filterOpZone(this.value)">
-      <option value="">📍 Alle zones</option>
+      <option value="">Alle zones</option>
     </select>
+
     <div class="spacer"></div>
     <div class="clock" id="clock">00:00</div>
-    <button class="badge-btn" id="badge-btn" onclick="openBadgeFilter()">🏷️ Mijn taken</button>
+    <button class="badge-btn" id="badge-btn" onclick="openBadgeFilter()">&#127991; Mijn taken</button>
   </div>
 
-  <!-- CONTENT -->
+  <!-- ══ CONTENT ══ -->
   <div class="content" id="content">
-    <div class="loading-state"><div class="spinner"></div><span>Taken worden geladen...</span></div>
-  </div>
-</div>
-
-<!-- POPUP AFVINKEN -->
-<div class="popup-overlay" id="popup-afvinken">
-  <div class="popup-card">
-    <span class="popup-icon">🏷️</span>
-    <div class="popup-title">Bevestig met badge</div>
-    <div class="popup-sub">Scan je badge om te bevestigen</div>
-    <div class="popup-task-name" id="popup-task-name">—</div>
-    <input type="password" class="popup-badge-input" id="popup-badge-input" placeholder="● ● ● ● ●" maxlength="20" autocomplete="off" onkeydown="if(event.key==='Enter') verifyCheck()">
-    <div class="popup-status" id="popup-status"></div>
-    <div class="popup-btns">
-      <button class="popup-btn-cancel" onclick="closeCheckPopup()">Annuleren</button>
-      <button class="popup-btn-confirm" id="popup-confirm" onclick="verifyCheck()">✓ Bevestigen</button>
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <span>Taken worden geladen&hellip;</span>
     </div>
   </div>
 </div>
 
-<!-- POPUP BADGE FILTER -->
+<!-- ══ POPUP AFVINKEN ══ -->
+<div class="popup-overlay" id="popup-afvinken">
+  <div class="popup-card">
+    <span class="popup-icon">&#127991;</span>
+    <div class="popup-title">Bevestig met badge</div>
+    <div class="popup-sub">Scan je badge om de taak af te tekenen</div>
+    <div class="popup-task-name" id="popup-task-name">—</div>
+    <input type="password" class="popup-badge-input" id="popup-badge-input"
+           placeholder="&#9679; &#9679; &#9679; &#9679; &#9679;" maxlength="20" autocomplete="off"
+           onkeydown="if(event.key==='Enter') verifyCheck()">
+    <div class="popup-status" id="popup-status"></div>
+    <div class="popup-btns">
+      <button class="popup-btn-cancel" onclick="closeCheckPopup()">Annuleren</button>
+      <button class="popup-btn-confirm" id="popup-confirm" onclick="verifyCheck()">&#10003; Bevestigen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ POPUP BADGE FILTER ══ -->
 <div class="popup-overlay" id="popup-filter">
   <div class="filter-popup-card">
-    <span class="popup-icon">🏷️</span>
+    <span class="popup-icon">&#127991;</span>
     <div class="popup-title">Scan je badge</div>
     <div class="popup-sub">Filter de lijst op jouw taken</div>
-    <input type="password" class="popup-badge-input" id="filter-badge-input" placeholder="● ● ● ● ●" maxlength="20" autocomplete="off" onkeydown="if(event.key==='Enter') doFilterBadge()" style="margin-bottom:0.5rem">
+    <input type="password" class="popup-badge-input" id="filter-badge-input"
+           placeholder="&#9679; &#9679; &#9679; &#9679; &#9679;" maxlength="20" autocomplete="off"
+           onkeydown="if(event.key==='Enter') doFilterBadge()" style="margin-bottom:0.5rem">
     <div class="popup-status" id="filter-status"></div>
     <div class="popup-btns" style="margin-top:0.5rem">
       <button class="popup-btn-cancel" onclick="closeFilterPopup()">Annuleren</button>
-      <button class="popup-btn-confirm" onclick="doFilterBadge()">🔍 Filteren</button>
+      <button class="popup-btn-confirm" onclick="doFilterBadge()">&#128269; Filteren</button>
     </div>
   </div>
 </div>
@@ -412,7 +476,7 @@ const FLOWS = {
   BADGE_LOOKUP:  'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/0960a0a199f24d1799dbc81ab236f555/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Hmt2PPtfCgm27R33OIYUmbl-aw3naJ2QOk4KghTbLVI',
 };
 
-const DAGEN = ['Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag','Zaterdag','Zondag'];
+const DAGEN   = ['Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag','Zaterdag','Zondag'];
 const DAG_CLS = ['mon','tue','wed','thu','fri','sat','sun'];
 const MAANDEN = ['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
 
@@ -427,354 +491,317 @@ let state = {
 
 // ── KLOK ──
 function weekNr(d) {
-  const dt = new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
-  dt.setUTCDate(dt.getUTCDate()+4-(dt.getUTCDay()||7));
-  const y = new Date(Date.UTC(dt.getUTCFullYear(),0,1));
-  return Math.ceil((((dt-y)/86400000)+1)/7);
+  const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  dt.setUTCDate(dt.getUTCDate() + 4 - (dt.getUTCDay() || 7));
+  const y = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1));
+  return Math.ceil((((dt - y) / 86400000) + 1) / 7);
 }
 function updateClock() {
   const now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-  document.getElementById('week-pill').textContent = `Week ${weekNr(now)}`;
+  document.getElementById('clock').textContent = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('week-pill').textContent = 'Week ' + weekNr(now);
 }
-setInterval(updateClock,1000); updateClock();
+setInterval(updateClock, 1000); updateClock();
 
 // ── LADEN ──
 async function laadTaken() {
   try {
     const res = await fetch(FLOWS.TAKEN_OPHALEN, {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ week: String(weekNr(new Date())) })
     });
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data  = await res.json();
     const items = data.taken || data.value || [];
 
     state.taken = items.map(item => ({
-      id:         item.ID || item.Id,
-      naam:       item.Title || '',
-      zone:       (item.field_3 && item.field_3.Value) ? item.field_3.Value : (item['Locatie/Ruimte'] || 'Overig'),
-      afdeling:   (item.Afdeling && item.Afdeling.Value) ? item.Afdeling.Value : (item.Afdeling || ''),
-      status:     (item.Status && item.Status.Value) ? item.Status.Value : (item.Status || 'Open'),
-      freq:       (item.Frequentie && item.Frequentie.Value) ? item.Frequentie.Value : (item.Frequentie || 'Wekelijks'),
-      referentie: item.Referentie || '',
-      toegewezen: (item.Verantwoordelijke && item.Verantwoordelijke.Value) ? item.Verantwoordelijke.Value : (item.Verantwoordelijke || ''),
+      id:           item.ID || item.Id,
+      naam:         item.Title || '',
+      zone:         (item.field_3 && item.field_3.Value) ? item.field_3.Value : (item['Locatie/Ruimte'] || 'Overig'),
+      afdeling:     (item.Afdeling && item.Afdeling.Value) ? item.Afdeling.Value : (item.Afdeling || ''),
+      status:       (item.Status && item.Status.Value) ? item.Status.Value : (item.Status || 'Open'),
+      freq:         (item.Frequentie && item.Frequentie.Value) ? item.Frequentie.Value : (item.Frequentie || 'Wekelijks'),
+      referentie:   item.Referentie || '',
+      toegewezen:   (item.Verantwoordelijke && item.Verantwoordelijke.Value) ? item.Verantwoordelijke.Value : (item.Verantwoordelijke || ''),
       uitgevoerdDoor: item.UitgevoerdDoor || '',
     }));
 
     vulDropdowns();
     render();
   } catch(e) {
-    document.getElementById('content').innerHTML = `<div class="loading-state">⚠️ Fout: ${e.message}</div>`;
+    document.getElementById('content').innerHTML =
+      '<div class="loading-state">\u26a0\ufe0f Fout bij laden: ' + e.message + '</div>';
   }
 }
 
 // ── DROPDOWNS ──
 function vulDropdowns() {
-  const afds = [...new Set(state.taken.map(t=>t.afdeling).filter(a=>a))].sort();
+  const afds   = [...new Set(state.taken.map(t => t.afdeling).filter(a => a))].sort();
   const afdSel = document.getElementById('afdeling-select');
   const huidAfd = afdSel.value;
-  while(afdSel.options.length>1) afdSel.remove(1);
-  afds.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent='🏭 '+a;afdSel.appendChild(o);});
-  if(huidAfd) afdSel.value=huidAfd;
+  while (afdSel.options.length > 1) afdSel.remove(1);
+  afds.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; afdSel.appendChild(o); });
+  if (huidAfd) afdSel.value = huidAfd;
 
-  const bronTaken = state.afdelingFilter ? state.taken.filter(t=>t.afdeling===state.afdelingFilter) : state.taken;
-  const zones = [...new Set(bronTaken.map(t=>t.zone).filter(z=>z))].sort();
+  const bronTaken = state.afdelingFilter ? state.taken.filter(t => t.afdeling === state.afdelingFilter) : state.taken;
+  const zones   = [...new Set(bronTaken.map(t => t.zone).filter(z => z))].sort();
   const zoneSel = document.getElementById('zone-select');
   const huidZone = zoneSel.value;
-  while(zoneSel.options.length>1) zoneSel.remove(1);
-  zones.forEach(z=>{const o=document.createElement('option');o.value=z;o.textContent='📍 '+z;zoneSel.appendChild(o);});
-  if(huidZone && zones.includes(huidZone)) zoneSel.value=huidZone;
+  while (zoneSel.options.length > 1) zoneSel.remove(1);
+  zones.forEach(z => { const o = document.createElement('option'); o.value = z; o.textContent = z; zoneSel.appendChild(o); });
+  if (huidZone && zones.includes(huidZone)) zoneSel.value = huidZone;
 }
-
 function filterOpAfdeling(afd) {
-  state.afdelingFilter = afd;
-  state.zoneFilter = '';
+  state.afdelingFilter = afd; state.zoneFilter = '';
   document.getElementById('zone-select').value = '';
-  vulDropdowns();
-  render();
+  vulDropdowns(); render();
 }
-function filterOpZone(zone) {
-  state.zoneFilter = zone;
-  render();
-}
+function filterOpZone(zone) { state.zoneFilter = zone; render(); }
 
-// ── FILTER TAKEN ──
+// ── FILTER ──
 function gefilterdeTaken() {
   let t = state.taken;
-  if(state.afdelingFilter) t = t.filter(x=>x.afdeling===state.afdelingFilter);
-  if(state.zoneFilter) t = t.filter(x=>x.zone===state.zoneFilter);
+  if (state.afdelingFilter) t = t.filter(x => x.afdeling === state.afdelingFilter);
+  if (state.zoneFilter)     t = t.filter(x => x.zone     === state.zoneFilter);
   return t;
 }
 
-// ── FREQUENTIE CONFIGURATIE ──
-// Definieert hoe elke frequentiewaarde wordt weergegeven
+// ── FREQUENTIE CONFIG ──
 const FREQ_CONFIG = {
-  'Dagelijks':    { icon:'📅', label:'Dagelijkse taken',    type:'daily',   order:1 },
-  '2x per dag':   { icon:'📅', label:'2x Dagelijkse taken', type:'daily',   order:2 },
-  'Wekelijks':    { icon:'📋', label:'Wekelijkse taken',     type:'weekly',  order:3 },
-  '2-Wekelijks':  { icon:'📋', label:'2-Wekelijkse taken',  type:'weekly',  order:4 },
-  'Maandelijks':  { icon:'📆', label:'Maandelijkse taken',   type:'monthly', order:5 },
-  '2-Maandelijks':{ icon:'📆', label:'2-Maandelijkse taken', type:'monthly', order:6 },
-  'Kwartaal':     { icon:'🗓️', label:'Kwartaaltaken',       type:'periodic',order:7 },
-  '4-Wekelijks':  { icon:'🗓️', label:'4-Wekelijkse taken',  type:'periodic',order:8 },
-  '8-Wekelijks':  { icon:'🗓️', label:'8-Wekelijkse taken',  type:'periodic',order:9 },
-  'Halfjaarlijks':{ icon:'📅', label:'Halfjaarlijkse taken', type:'periodic',order:10 },
-  'Jaarlijks':    { icon:'📅', label:'Jaarlijkse taken',     type:'periodic',order:11 },
+  'Dagelijks':     { icon: '&#128197;', label: 'Dagelijkse taken',     type: 'daily',    order: 1 },
+  '2x per dag':    { icon: '&#128197;', label: '2x Dagelijkse taken',  type: 'daily',    order: 2 },
+  'Wekelijks':     { icon: '&#128203;', label: 'Wekelijkse taken',     type: 'weekly',   order: 3 },
+  '2-Wekelijks':   { icon: '&#128203;', label: '2-Wekelijkse taken',   type: 'weekly',   order: 4 },
+  'Maandelijks':   { icon: '&#128198;', label: 'Maandelijkse taken',   type: 'monthly',  order: 5 },
+  '2-Maandelijks': { icon: '&#128198;', label: '2-Maandelijkse taken', type: 'monthly',  order: 6 },
+  'Kwartaal':      { icon: '&#128467;', label: 'Kwartaaltaken',        type: 'periodic', order: 7 },
+  '4-Wekelijks':   { icon: '&#128467;', label: '4-Wekelijkse taken',   type: 'periodic', order: 8 },
+  '8-Wekelijks':   { icon: '&#128467;', label: '8-Wekelijkse taken',   type: 'periodic', order: 9 },
+  'Halfjaarlijks': { icon: '&#128197;', label: 'Halfjaarlijkse taken', type: 'periodic', order: 10 },
+  'Jaarlijks':     { icon: '&#128197;', label: 'Jaarlijkse taken',     type: 'periodic', order: 11 },
 };
-
 function getFreqConfig(freq) {
-  return FREQ_CONFIG[freq] || { icon:'📋', label: freq + ' taken', type:'periodic', order:99 };
+  return FREQ_CONFIG[freq] || { icon: '&#128203;', label: freq + ' taken', type: 'periodic', order: 99 };
 }
 
-// ── RENDER DAGELIJKS (7-kolommen grid) ──
+// ── RENDER DAGELIJKS ──
 function renderDailySection(taken, freq) {
   const cfg = getFreqConfig(freq);
   const dagIndex = (new Date().getDay() + 6) % 7;
-  const circumference = 2 * Math.PI * 11;
+  const C = 2 * Math.PI * 11;
 
-  let html = `<div><div class="sec-title">${cfg.icon} ${cfg.label}</div><div class="daily-grid">`;
+  let html = '<div><div class="sec-title">' + cfg.icon + ' ' + cfg.label + '</div><div class="daily-grid">';
 
   DAGEN.forEach((dag, i) => {
     const isToday = i === dagIndex;
-    const done = taken.filter(t => ['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
+    const done  = taken.filter(t => ['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
     const total = taken.length;
-    const pct = total > 0 ? Math.round(done/total*100) : 0;
-    const color = pct===100 ? '#16a34a' : pct>50 ? '#d97706' : '#2563eb';
-    const dash = (pct/100) * circumference;
+    const pct   = total > 0 ? Math.round(done / total * 100) : 0;
+    const color = pct === 100 ? '#16a34a' : pct > 50 ? '#d97706' : '#c9a227';
+    const dash  = (pct / 100) * C;
 
-    html += `<div class="day-card day-${DAG_CLS[i]} ${isToday?'today':''}">
-      <div class="day-header">${dag.slice(0,2)}${isToday?' ●':''}</div>
-      <div class="day-tasks">`;
+    html += '<div class="day-card day-' + DAG_CLS[i] + (isToday ? ' today' : '') + '">';
+    html += '<div class="day-header">' + dag.slice(0, 2) + (isToday ? ' \u25cf' : '') + '</div>';
+    html += '<div class="day-tasks">';
 
     taken.forEach(t => {
-      const isDone = ['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status);
-      const isRej = t.status === 'Afgekeurd';
-      const isMine = state.medewerker && t.toegewezen === state.medewerker.naam;
-      const checkCls = isDone ? 'done' : isRej ? 'rejected' : '';
-      const checkIcon = isDone ? '✓' : isRej ? '✗' : '';
-      html += `<div class="day-task ${isDone?'done':''} ${isRej?'rejected':''}" onclick="vraagAfvinken(${t.id})">
-        <div class="task-check ${checkCls}" onclick="event.stopPropagation();vraagAfvinken(${t.id})">${checkIcon}</div>
-        <span class="task-text">${t.naam}</span>
-        ${isMine ? '<div class="task-mine"></div>' : ''}
-      </div>`;
+      const isDone  = ['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status);
+      const isRej   = t.status === 'Afgekeurd';
+      const isMine  = state.medewerker && t.toegewezen === state.medewerker.naam;
+      const chkCls  = isDone ? 'done' : isRej ? 'rejected' : '';
+      const chkIcon = isDone ? '\u2713' : isRej ? '\u2717' : '';
+      html += '<div class="day-task ' + (isDone ? 'done' : '') + (isRej ? ' rejected' : '') + '" onclick="vraagAfvinken(' + t.id + ')">';
+      html += '<div class="task-check ' + chkCls + '" onclick="event.stopPropagation();vraagAfvinken(' + t.id + ')">' + chkIcon + '</div>';
+      html += '<span class="task-text">' + t.naam + '</span>';
+      if (isMine) html += '<div class="task-mine"></div>';
+      html += '</div>';
     });
 
-    html += `</div>
-      <div class="day-footer">
-        <div class="ring-wrap">
-          <div class="ring">
-            <svg width="32" height="32" viewBox="0 0 32 32">
-              <circle cx="16" cy="16" r="11" fill="none" stroke="#e8e4de" stroke-width="4"/>
-              <circle cx="16" cy="16" r="11" fill="none" stroke="${color}" stroke-width="4"
-                stroke-dasharray="${dash} ${circumference}" stroke-linecap="round"/>
-            </svg>
-            <div class="pct-text">${pct}%</div>
-          </div>
-        </div>
-        <div class="day-count">${done}/${total}</div>
-      </div>
-    </div>`;
+    html += '</div>';
+    html += '<div class="day-footer">';
+    html += '<div class="ring-wrap"><div class="ring">';
+    html += '<svg width="32" height="32" viewBox="0 0 32 32">';
+    html += '<circle cx="16" cy="16" r="11" fill="none" stroke="#e6e2da" stroke-width="4"/>';
+    html += '<circle cx="16" cy="16" r="11" fill="none" stroke="' + color + '" stroke-width="4" stroke-dasharray="' + dash.toFixed(1) + ' ' + C.toFixed(1) + '" stroke-linecap="round"/>';
+    html += '</svg>';
+    html += '<div class="pct-text">' + pct + '%</div></div></div>';
+    html += '<div class="day-count">' + done + '/' + total + '</div>';
+    html += '</div></div>';
   });
 
-  html += `</div></div>`;
+  html += '</div></div>';
   return html;
 }
 
-// ── RENDER WEKELIJKS (tabel met dag kolommen) ──
+// ── RENDER WEKELIJKS ──
 function renderWeeklySection(taken, freq) {
-  const cfg = getFreqConfig(freq);
+  const cfg      = getFreqConfig(freq);
   const dagIndex = (new Date().getDay() + 6) % 7;
+  const open = taken.filter(t => t.status === 'Open').length;
+  const done = taken.filter(t => ['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
+  const nok  = taken.filter(t => t.status === 'Afgekeurd').length;
 
-  let html = `<div><div class="sec-title">${cfg.icon} ${cfg.label}`;
-
-  // KPI samenvatting
-  const open = taken.filter(t=>t.status==='Open').length;
-  const done = taken.filter(t=>['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
-  const nok  = taken.filter(t=>t.status==='Afgekeurd').length;
-  html += ` <span style="font-size:0.65rem;font-weight:400;color:var(--ink4);margin-left:8px;text-transform:none;letter-spacing:0">${open} open · ${done} klaar${nok>0?' · <span style=color:var(--red)>'+nok+' afgekeurd</span>':''}</span>`;
-  html += `</div>`;
-
-  html += `<div class="task-table-wrap"><table class="task-table">
-    <thead><tr>
-      <th class="task-col">Taaknaam</th>
-      <th>Zone</th>
-      ${DAGEN.map((d,i)=>`<th style="background:var(--${DAG_CLS[i]});color:var(--${DAG_CLS[i]}-dk)">${d.slice(0,2)}</th>`).join('')}
-      <th>Status</th>
-    </tr></thead>
-    <tbody>`;
+  let html = '<div><div class="sec-title">' + cfg.icon + ' ' + cfg.label;
+  html += ' <span style="font-size:0.65rem;font-weight:400;color:var(--ink4);margin-left:8px;text-transform:none;letter-spacing:0">' +
+          open + ' open &middot; ' + done + ' klaar' +
+          (nok > 0 ? ' &middot; <span style="color:var(--red)">' + nok + ' afgekeurd</span>' : '') +
+          '</span></div>';
+  html += '<div class="task-table-wrap"><table class="task-table"><thead><tr>';
+  html += '<th class="task-col">Taaknaam</th><th>Zone</th>';
+  DAGEN.forEach((d, i) => {
+    html += '<th style="background:var(--' + DAG_CLS[i] + ');color:var(--' + DAG_CLS[i] + '-dk)">' + d.slice(0, 2) + '</th>';
+  });
+  html += '<th>Status</th></tr></thead><tbody>';
 
   taken.forEach(t => {
-    const isDone = ['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status);
-    const isRej  = t.status === 'Afgekeurd';
-    const isMine = state.medewerker && t.toegewezen === state.medewerker.naam;
-    const statusChip = isDone
-      ? `<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:600">✓ Klaar</span>`
+    const isDone  = ['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status);
+    const isRej   = t.status === 'Afgekeurd';
+    const isMine  = state.medewerker && t.toegewezen === state.medewerker.naam;
+    const chip    = isDone
+      ? '<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:600">\u2713 Klaar</span>'
       : isRej
-      ? `<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:600">✗ Afgekeurd</span>`
-      : `<span style="background:#dbeafe;color:#2563eb;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:600">Open</span>`;
+      ? '<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:600">\u2717 Afgekeurd</span>'
+      : '<span style="background:#dbeafe;color:#2563eb;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:600">Open</span>';
 
-    html += `<tr style="${isRej?'background:#fff8f8':isDone?'background:#f9fdf9':''}">
-      <td><div class="task-name-cell ${isDone?'done-name':''}">
-        ${isMine?'<div class="mine-dot"></div>':''}${t.naam}
-      </div></td>
-      <td style="font-size:0.72rem;color:var(--ink3);white-space:nowrap">${t.zone}</td>
-      ${DAGEN.map((d,i) => {
-        if(isDone) return `<td class="check-cell"><span class="check-x done">✓</span></td>`;
-        if(isRej)  return `<td class="check-cell"><span class="check-x rejected">✗</span></td>`;
-        if(i===dagIndex) return `<td class="check-cell"><span class="check-x empty" onclick="vraagAfvinken(${t.id})">✓</span></td>`;
-        return `<td class="check-cell"><span class="check-x inactive">·</span></td>`;
-      }).join('')}
-      <td>${statusChip}</td>
-    </tr>`;
+    html += '<tr style="' + (isRej ? 'background:#fff8f8' : isDone ? 'background:#f9fdf9' : '') + '">';
+    html += '<td><div class="task-name-cell ' + (isDone ? 'done-name' : '') + '">' +
+            (isMine ? '<div class="mine-dot"></div>' : '') + t.naam + '</div></td>';
+    html += '<td style="font-size:0.72rem;color:var(--ink3);white-space:nowrap">' + t.zone + '</td>';
+    DAGEN.forEach((d, i) => {
+      if (isDone)        html += '<td class="check-cell"><span class="check-x done">\u2713</span></td>';
+      else if (isRej)    html += '<td class="check-cell"><span class="check-x rejected">\u2717</span></td>';
+      else if (i === dagIndex) html += '<td class="check-cell"><span class="check-x empty" onclick="vraagAfvinken(' + t.id + ')">\u2713</span></td>';
+      else               html += '<td class="check-cell"><span class="check-x inactive">&middot;</span></td>';
+    });
+    html += '<td>' + chip + '</td></tr>';
   });
 
-  html += `</tbody></table></div></div>`;
+  html += '</tbody></table></div></div>';
   return html;
 }
 
-// ── RENDER PERIODIEK (maandelijks/kwartaal/etc met maand kolommen) ──
+// ── RENDER PERIODIEK ──
 function renderPeriodicSection(taken, freq) {
-  const cfg = getFreqConfig(freq);
-  const now = new Date();
-  const huidigMaand = now.getMonth(); // 0-11
+  const cfg       = getFreqConfig(freq);
+  const huidigMnd = new Date().getMonth();
+  const open = taken.filter(t => t.status === 'Open').length;
+  const done = taken.filter(t => ['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
 
-  let html = `<div><div class="sec-title">${cfg.icon} ${cfg.label}`;
-  const open = taken.filter(t=>t.status==='Open').length;
-  const done = taken.filter(t=>['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
-  html += ` <span style="font-size:0.65rem;font-weight:400;color:var(--ink4);margin-left:8px;text-transform:none;letter-spacing:0">${open} open · ${done} klaar</span>`;
-  html += `</div>`;
-
-  html += `<div class="task-table-wrap"><table class="task-table">
-    <thead><tr>
-      <th class="task-col">Taaknaam</th>
-      <th>Zone</th>
-      ${MAANDEN.map((m,i)=>`<th style="${i===huidigMaand?'background:#dbeafe;color:#2563eb':''}">${m}</th>`).join('')}
-      <th>Status</th>
-    </tr></thead>
-    <tbody>`;
+  let html = '<div><div class="sec-title">' + cfg.icon + ' ' + cfg.label;
+  html += ' <span style="font-size:0.65rem;font-weight:400;color:var(--ink4);margin-left:8px;text-transform:none;letter-spacing:0">' +
+          open + ' open &middot; ' + done + ' klaar</span></div>';
+  html += '<div class="task-table-wrap"><table class="task-table"><thead><tr>';
+  html += '<th class="task-col">Taaknaam</th><th>Zone</th>';
+  MAANDEN.forEach((m, i) => {
+    html += '<th style="' + (i === huidigMnd ? 'background:#fef3c7;color:#d97706' : '') + '">' + m + '</th>';
+  });
+  html += '<th>Status</th></tr></thead><tbody>';
 
   taken.forEach(t => {
     const isDone = ['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status);
     const isRej  = t.status === 'Afgekeurd';
     const isMine = state.medewerker && t.toegewezen === state.medewerker.naam;
 
-    html += `<tr style="${isRej?'background:#fff8f8':isDone?'background:#f9fdf9':''}">
-      <td><div class="task-name-cell ${isDone?'done-name':''}">
-        ${isMine?'<div class="mine-dot"></div>':''}${t.naam}
-      </div></td>
-      <td style="font-size:0.72rem;color:var(--ink3)">${t.zone}</td>
-      ${MAANDEN.map((m,i) => {
-        if(isDone) return `<td class="check-cell"><span class="check-x done">✓</span></td>`;
-        if(isRej)  return `<td class="check-cell"><span class="check-x rejected">✗</span></td>`;
-        if(i===huidigMaand) return `<td class="check-cell"><span class="check-x empty" onclick="vraagAfvinken(${t.id})">✓</span></td>`;
-        return `<td class="check-cell"><span class="check-x inactive">·</span></td>`;
-      }).join('')}
-      <td>${isDone?'<span style="color:var(--green);font-size:0.7rem;font-weight:600">✓ Klaar</span>':isRej?'<span style="color:var(--red);font-size:0.7rem;font-weight:600">✗ Afgekeurd</span>':'<span style="color:var(--brand);font-size:0.7rem;font-weight:600">Open</span>'}</td>
-    </tr>`;
+    html += '<tr style="' + (isRej ? 'background:#fff8f8' : isDone ? 'background:#f9fdf9' : '') + '">';
+    html += '<td><div class="task-name-cell ' + (isDone ? 'done-name' : '') + '">' +
+            (isMine ? '<div class="mine-dot"></div>' : '') + t.naam + '</div></td>';
+    html += '<td style="font-size:0.72rem;color:var(--ink3)">' + t.zone + '</td>';
+    MAANDEN.forEach((m, i) => {
+      if (isDone)         html += '<td class="check-cell"><span class="check-x done">\u2713</span></td>';
+      else if (isRej)     html += '<td class="check-cell"><span class="check-x rejected">\u2717</span></td>';
+      else if (i === huidigMnd) html += '<td class="check-cell"><span class="check-x empty" onclick="vraagAfvinken(' + t.id + ')">\u2713</span></td>';
+      else                html += '<td class="check-cell"><span class="check-x inactive">&middot;</span></td>';
+    });
+    const chip = isDone
+      ? '<span style="color:var(--green);font-size:0.7rem;font-weight:600">\u2713 Klaar</span>'
+      : isRej
+      ? '<span style="color:var(--red);font-size:0.7rem;font-weight:600">\u2717 Afgekeurd</span>'
+      : '<span style="color:var(--brand);font-size:0.7rem;font-weight:600">Open</span>';
+    html += '<td>' + chip + '</td></tr>';
   });
 
-  html += `</tbody></table></div></div>`;
+  html += '</tbody></table></div></div>';
   return html;
 }
 
 // ── RENDER VOORTGANG PER ZONE ──
 function renderProgressSection() {
   const taken = gefilterdeTaken();
-  const zones = [...new Set(taken.map(t=>t.zone))].sort();
-  if(zones.length === 0) return '';
+  const zones = [...new Set(taken.map(t => t.zone))].sort();
+  if (zones.length === 0) return '';
 
-  let html = `<div><div class="sec-title">📊 Voortgang per zone</div><div class="progress-section">`;
+  let html = '<div><div class="sec-title">&#128202; Voortgang per zone</div><div class="progress-section">';
   zones.forEach(zone => {
-    const zt = taken.filter(t=>t.zone===zone);
-    const done = zt.filter(t=>['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
+    const zt   = taken.filter(t => t.zone === zone);
+    const done = zt.filter(t => ['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
     const tot  = zt.length;
-    const pct  = tot > 0 ? Math.round(done/tot*100) : 0;
-    const color = pct===100 ? '#16a34a' : pct>60 ? '#d97706' : '#2563eb';
-    html += `<div class="prog-row">
-      <div class="prog-label" title="${zone}">${zone}</div>
-      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${color}"></div></div>
-      <div class="prog-pct">${pct}%</div>
-    </div>`;
+    const pct  = tot > 0 ? Math.round(done / tot * 100) : 0;
+    const clr  = pct === 100 ? '#16a34a' : pct > 60 ? '#d97706' : '#c9a227';
+    html += '<div class="prog-row">' +
+            '<div class="prog-label" title="' + zone + '">' + zone + '</div>' +
+            '<div class="prog-bar"><div class="prog-fill" style="width:' + pct + '%;background:' + clr + '"></div></div>' +
+            '<div class="prog-pct">' + pct + '%</div>' +
+            '</div>';
   });
-  html += `</div></div>`;
+  html += '</div></div>';
   return html;
 }
 
-// ── HOOFD RENDER FUNCTIE ──
+// ── HOOFD RENDER ──
 function render() {
   const taken = gefilterdeTaken();
-
-  if(taken.length === 0) {
-    document.getElementById('content').innerHTML = `<div class="loading-state">📋 Geen taken gevonden voor de huidige selectie.</div>`;
+  if (taken.length === 0) {
+    document.getElementById('content').innerHTML = '<div class="loading-state">&#128203; Geen taken gevonden voor de huidige selectie.</div>';
     return;
   }
 
-  // Groepeer taken per frequentie
   const freqGroepen = {};
   taken.forEach(t => {
-    if(!freqGroepen[t.freq]) freqGroepen[t.freq] = [];
+    if (!freqGroepen[t.freq]) freqGroepen[t.freq] = [];
     freqGroepen[t.freq].push(t);
   });
-
-  // Sorteer frequenties op volgorde
-  const gesorteerdeFreqs = Object.keys(freqGroepen).sort((a,b) => {
-    const oa = getFreqConfig(a).order;
-    const ob = getFreqConfig(b).order;
-    return oa - ob;
-  });
+  const gesorteerd = Object.keys(freqGroepen).sort((a, b) => getFreqConfig(a).order - getFreqConfig(b).order);
 
   let html = '';
-
-  // Render elke frequentiegroep
-  gesorteerdeFreqs.forEach(freq => {
-    const groepTaken = freqGroepen[freq];
-    const cfg = getFreqConfig(freq);
-
-    if(cfg.type === 'daily') {
-      html += renderDailySection(groepTaken, freq);
-    } else if(cfg.type === 'weekly') {
-      html += renderWeeklySection(groepTaken, freq);
-    } else {
-      // monthly en periodic
-      html += renderPeriodicSection(groepTaken, freq);
-    }
+  gesorteerd.forEach(freq => {
+    const groep = freqGroepen[freq];
+    const cfg   = getFreqConfig(freq);
+    if      (cfg.type === 'daily')  html += renderDailySection(groep, freq);
+    else if (cfg.type === 'weekly') html += renderWeeklySection(groep, freq);
+    else                            html += renderPeriodicSection(groep, freq);
   });
-
-  // Voortgang per zone altijd onderaan
   html += renderProgressSection();
-
   document.getElementById('content').innerHTML = html;
 }
 
 // ── BADGE FILTER ──
 function openBadgeFilter() {
-  if(state.medewerker) { clearBadgeFilter(); return; }
+  if (state.medewerker) { clearBadgeFilter(); return; }
   document.getElementById('filter-badge-input').value = '';
   document.getElementById('filter-status').textContent = '';
   document.getElementById('filter-status').className = 'popup-status';
   document.getElementById('popup-filter').classList.add('active');
-  setTimeout(()=>document.getElementById('filter-badge-input').focus(),100);
+  setTimeout(() => document.getElementById('filter-badge-input').focus(), 100);
 }
 function closeFilterPopup() { document.getElementById('popup-filter').classList.remove('active'); }
 async function doFilterBadge() {
-  const badge = document.getElementById('filter-badge-input').value.trim();
+  const badge    = document.getElementById('filter-badge-input').value.trim();
   const statusEl = document.getElementById('filter-status');
-  if(!badge) return;
-  statusEl.textContent = 'Opzoeken...'; statusEl.className = 'popup-status';
+  if (!badge) return;
+  statusEl.textContent = 'Opzoeken\u2026'; statusEl.className = 'popup-status';
   const m = await lookupBadge(badge);
-  if(m) {
-    statusEl.textContent = `✓ ${m.naam}`; statusEl.className = 'popup-status found';
-    setTimeout(()=>{
+  if (m) {
+    statusEl.textContent = '\u2713 ' + m.naam; statusEl.className = 'popup-status found';
+    setTimeout(() => {
       state.medewerker = m;
       closeFilterPopup();
       document.getElementById('badge-btn').classList.add('active');
-      document.getElementById('badge-btn').textContent = `✓ ${m.naam}`;
+      document.getElementById('badge-btn').textContent = '\u2713 ' + m.naam;
       render();
-      showToast(`Gefilterd op ${m.naam}`, 'success');
+      showToast('Gefilterd op ' + m.naam, 'success');
     }, 600);
   } else {
-    statusEl.textContent = '✗ Badge niet herkend'; statusEl.className = 'popup-status notfound';
+    statusEl.textContent = '\u2717 Badge niet herkend'; statusEl.className = 'popup-status notfound';
     document.getElementById('filter-badge-input').value = '';
     document.getElementById('filter-badge-input').focus();
   }
@@ -782,16 +809,16 @@ async function doFilterBadge() {
 function clearBadgeFilter() {
   state.medewerker = null;
   document.getElementById('badge-btn').classList.remove('active');
-  document.getElementById('badge-btn').innerHTML = '🏷️ Mijn taken';
+  document.getElementById('badge-btn').innerHTML = '&#127991; Mijn taken';
   render();
   showToast('Filter gewist');
 }
 
 // ── AFVINKEN ──
 function vraagAfvinken(id) {
-  const taak = state.taken.find(t=>t.id==id);
-  if(!taak) return;
-  if(['Uitgevoerd','Goedgekeurd','In Review'].includes(taak.status)) return;
+  const taak = state.taken.find(t => t.id == id);
+  if (!taak) return;
+  if (['Uitgevoerd','Goedgekeurd','In Review'].includes(taak.status)) return;
   state.pendingId = id;
   document.getElementById('popup-task-name').textContent = taak.naam;
   document.getElementById('popup-badge-input').value = '';
@@ -799,24 +826,24 @@ function vraagAfvinken(id) {
   document.getElementById('popup-status').className = 'popup-status';
   document.getElementById('popup-confirm').disabled = false;
   document.getElementById('popup-afvinken').classList.add('active');
-  setTimeout(()=>document.getElementById('popup-badge-input').focus(),100);
+  setTimeout(() => document.getElementById('popup-badge-input').focus(), 100);
 }
 function closeCheckPopup() {
   document.getElementById('popup-afvinken').classList.remove('active');
   state.pendingId = null;
 }
 async function verifyCheck() {
-  const badge = document.getElementById('popup-badge-input').value.trim();
+  const badge    = document.getElementById('popup-badge-input').value.trim();
   const statusEl = document.getElementById('popup-status');
-  if(!badge) { statusEl.textContent='⚠️ Voer badge in'; statusEl.className='popup-status notfound'; return; }
-  statusEl.textContent = 'Opzoeken...'; statusEl.className = 'popup-status';
+  if (!badge) { statusEl.textContent = '\u26a0\ufe0f Voer badge in'; statusEl.className = 'popup-status notfound'; return; }
+  statusEl.textContent = 'Opzoeken\u2026'; statusEl.className = 'popup-status';
   document.getElementById('popup-confirm').disabled = true;
   const m = await lookupBadge(badge);
-  if(m) {
-    statusEl.textContent = `✓ ${m.naam}`; statusEl.className = 'popup-status found';
-    setTimeout(async()=>{ await doAfvinken(m.naam); }, 500);
+  if (m) {
+    statusEl.textContent = '\u2713 ' + m.naam; statusEl.className = 'popup-status found';
+    setTimeout(async () => { await doAfvinken(m.naam); }, 500);
   } else {
-    statusEl.textContent = '✗ Badge niet herkend'; statusEl.className = 'popup-status notfound';
+    statusEl.textContent = '\u2717 Badge niet herkend'; statusEl.className = 'popup-status notfound';
     document.getElementById('popup-badge-input').value = '';
     document.getElementById('popup-badge-input').focus();
     document.getElementById('popup-confirm').disabled = false;
@@ -825,50 +852,58 @@ async function verifyCheck() {
 async function doAfvinken(naam) {
   const id = state.pendingId;
   closeCheckPopup();
-  if(!id) return;
-  const taak = state.taken.find(t=>t.id==id);
-  if(!taak) return;
+  if (!id) return;
+  const taak = state.taken.find(t => t.id == id);
+  if (!taak) return;
   taak.status = 'Uitgevoerd'; taak.uitgevoerdDoor = naam;
   render();
-  showToast(`✓ Afgetekend door ${naam}`, 'success');
+  showToast('\u2713 Afgetekend door ' + naam, 'success');
   const ok = await afvinkenFlow(id, naam);
-  if(!ok) { showToast('⚠️ Sync mislukt', 'error'); taak.status='Open'; taak.uitgevoerdDoor=''; render(); }
+  if (!ok) {
+    showToast('\u26a0\ufe0f Sync mislukt', 'error');
+    taak.status = 'Open'; taak.uitgevoerdDoor = '';
+    render();
+  }
 }
 
 // ── API ──
 async function lookupBadge(badge) {
   try {
     const res = await fetch(FLOWS.BADGE_LOOKUP, {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ badge })
     });
-    if(!res.ok) return null;
+    if (!res.ok) return null;
     const data = await res.json();
-    if(!data.naam) return null;
-    return { naam:data.naam, zone:data.zone, initials:data.naam.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase() };
+    if (!data.naam) return null;
+    return {
+      naam: data.naam,
+      zone: data.zone,
+      initials: data.naam.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    };
   } catch(e) { return null; }
 }
 async function afvinkenFlow(id, naam) {
   try {
     const res = await fetch(FLOWS.TAAK_AFVINKEN, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ taak_id: String(id), medewerker: naam, status:'Uitgevoerd' })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taak_id: String(id), medewerker: naam, status: 'Uitgevoerd' })
     });
-    return res.ok || res.status===204;
+    return res.ok || res.status === 204;
   } catch(e) { return false; }
 }
 
 // ── TOAST ──
-function showToast(msg, type='') {
+function showToast(msg, type) {
   const t = document.getElementById('toast');
-  t.textContent=msg; t.className='toast '+type;
+  t.textContent = msg; t.className = 'toast ' + (type || '');
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 3000);
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 // ── INIT ──
 laadTaken();
-setInterval(laadTaken, 5*60*1000);
+setInterval(laadTaken, 5 * 60 * 1000);
 </script>
 </body>
 </html>
