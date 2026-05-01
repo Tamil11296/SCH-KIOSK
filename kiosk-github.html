@@ -83,7 +83,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
 .day-card.day-sat .day-header{background:var(--sat);color:var(--sat-dk);}
 .day-card.day-sun .day-header{background:var(--sun);color:var(--sun-dk);}
 .day-card.today{outline:2px solid var(--bi-gold);outline-offset:-1px;}
-.day-tasks{flex:1;padding:6px;}
+/* day-tasks handled by scroll CSS */
 .day-task{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:6px;margin-bottom:3px;cursor:pointer;transition:background 0.15s;font-size:0.75rem;}
 .day-task:hover{background:var(--bg);}
 .day-task.done{opacity:0.5;}
@@ -323,6 +323,47 @@ tr.is-mine td:first-child { border-left: 3px solid #2563eb; }
   border-radius: 20px; background: #f0fdf4; color: #15803d;
   border: 1px dashed #86efac; white-space: nowrap; flex-shrink: 0;
 }
+
+/* ══ SCROLLBARE TAKEN ══ */
+.day-tasks {
+  flex: 1; padding: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.day-tasks::-webkit-scrollbar { width: 4px; }
+.day-tasks::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.task-table-wrap {
+  max-height: 340px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.task-table-wrap::-webkit-scrollbar { width: 4px; }
+.task-table-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.task-table thead th { position: sticky; top: 0; z-index: 2; }
+
+/* ══ AFGEROND SECTIE ══ */
+.afgerond-toggle {
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; padding: 8px 12px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); font-size: 0.75rem;
+  font-weight: 600; color: var(--green);
+  user-select: none; transition: background 0.15s;
+}
+.afgerond-toggle:hover { background: #f0fdf4; }
+.afgerond-toggle .toggle-arrow { font-size: 0.65rem; transition: transform 0.2s; }
+.afgerond-toggle.open .toggle-arrow { transform: rotate(90deg); }
+.afgerond-body { display: none; margin-top: 6px; }
+.afgerond-body.open { display: block; }
+.afgerond-count {
+  background: #dcfce7; color: #15803d;
+  font-size: 0.65rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px;
+}
 </style>
 </head>
 <body>
@@ -497,7 +538,7 @@ function renderDailySection(taken,freq){
   let html='<div><div class="sec-title">'+cfg.icon+' '+cfg.label+'</div><div class="daily-grid">';
   DAGEN.forEach((dag,i)=>{
     const isToday=i===dagIndex;
-    const done=taken.filter(t=>['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
+    const done=doneTaken.length;
     const total=taken.length;
     const pct=total>0?Math.round(done/total*100):0;
     const color=pct===100?'#16a34a':pct>50?'#d97706':'#c9a227';
@@ -517,6 +558,20 @@ function renderDailySection(taken,freq){
       if(hasToegewezen) html+='<span class="task-assignee"><span class="task-assignee-dot"></span>'+t.toegewezen.split(' ').map(n=>n[0]).join('').slice(0,3)+'</span>';
       html+='</div>';
     });
+    // Afgerond mini-sectie in dagkaart
+    if(doneTaken.length>0){
+      html+='<div style="padding:3px 6px;border-top:1px solid var(--border);">';
+      html+='<div onclick="this.nextSibling.classList.toggle('open');this.querySelector('.da').style.transform=this.nextSibling.classList.contains('open')?'rotate(90deg)':'';" style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:3px 0;font-size:0.65rem;font-weight:600;color:var(--green);">';
+      html+='<span class="da" style="font-size:0.6rem;transition:transform 0.2s">&#9654;</span> Afgerond <span style="background:#dcfce7;color:#15803d;font-size:0.6rem;font-weight:700;padding:1px 6px;border-radius:10px;">'+doneTaken.length+'</span></div>';
+      html+='<div style="display:none;max-height:120px;overflow-y:auto;">';
+      doneTaken.forEach(t=>{
+        html+='<div style="display:flex;align-items:center;gap:5px;padding:3px 4px;font-size:0.7rem;opacity:0.6;">';
+        html+='<span style="color:var(--green);font-size:0.65rem;">&#10003;</span>';
+        html+='<span style="text-decoration:line-through;color:var(--ink4);">'+t.naam+'</span>';
+        html+='</div>';
+      });
+      html+='</div></div>';
+    }
     html+='</div><div class="day-footer"><div class="ring-wrap"><div class="ring"><svg width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="none" stroke="#e6e2da" stroke-width="4"/><circle cx="16" cy="16" r="11" fill="none" stroke="'+color+'" stroke-width="4" stroke-dasharray="'+dash.toFixed(1)+' '+C.toFixed(1)+'" stroke-linecap="round"/></svg><div class="pct-text">'+pct+'%</div></div></div><div class="day-count">'+done+'/'+total+'</div></div></div>';
   });
   html+='</div></div>';
@@ -526,9 +581,12 @@ function renderDailySection(taken,freq){
 function renderWeeklySection(taken,freq){
   const cfg=getFreqConfig(freq);
   const dagIndex=(new Date().getDay()+6)%7;
-  const open=taken.filter(t=>t.status==='Open').length;
-  const done=taken.filter(t=>['Uitgevoerd','Goedgekeurd'].includes(t.status)).length;
-  const nok=taken.filter(t=>t.status==='Afgekeurd').length;
+  const openW=taken.filter(t=>!['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status)&&t.status!=='Afgekeurd');
+  const doneW=taken.filter(t=>['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status));
+  const nokW=taken.filter(t=>t.status==='Afgekeurd');
+  const open=openW.length+nokW.length;
+  const done=doneW.length;
+  const nok=nokW.length;
   let html='<div><div class="sec-title">'+cfg.icon+' '+cfg.label+' <span style="font-size:0.65rem;font-weight:400;color:var(--ink4);margin-left:8px;text-transform:none;letter-spacing:0">'+open+' open &middot; '+done+' klaar'+(nok>0?' &middot; <span style="color:var(--red)">'+nok+' afgekeurd</span>':'')+' </span></div>';
   html+='<div class="task-table-wrap"><table class="task-table"><thead><tr><th class="task-col">Taaknaam</th><th>Zone</th>';
   DAGEN.forEach((d,i)=>{html+='<th style="background:var(--'+DAG_CLS[i]+');color:var(--'+DAG_CLS[i]+'-dk)">'+d.slice(0,2)+'</th>';});
