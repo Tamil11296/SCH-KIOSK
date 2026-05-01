@@ -306,10 +306,6 @@ tr.is-mine td:first-child { border-left: 3px solid #2563eb; }
 }
 .day-task.is-mine:hover { background: #dbeafe; }
 
-/* DEBUG PANEL */
-.debug-panel{display:none;position:fixed;bottom:0;left:0;right:0;max-height:40vh;background:#1a1814;color:#22c55e;font-family:var(--mono);font-size:0.72rem;padding:12px 16px;overflow-y:auto;z-index:9999;border-top:2px solid #22c55e;}
-.debug-panel.show{display:block;}
-.debug-close{position:absolute;top:8px;right:12px;background:transparent;border:1px solid #22c55e;color:#22c55e;cursor:pointer;padding:2px 8px;font-family:var(--mono);font-size:0.72rem;}
 </style>
 </head>
 <body>
@@ -327,7 +323,6 @@ tr.is-mine td:first-child { border-left: 3px solid #2563eb; }
     </select>
     <div class="spacer"></div>
     <div class="clock" id="clock">00:00</div>
-    <button onclick="toggleDebug()" style="background:transparent;border:1px solid rgba(201,162,39,0.3);border-radius:8px;color:rgba(245,240,230,0.4);font-family:var(--sans);font-size:0.72rem;padding:5px 10px;cursor:pointer;" title="Debug: toon raw response">&#128270;</button>
     <button class="badge-btn" id="badge-btn" onclick="openBadgeFilter()">&#127991; Mijn taken</button>
   </div>
 
@@ -393,7 +388,6 @@ tr.is-mine td:first-child { border-left: 3px solid #2563eb; }
   </div>
 </div>
 <div class="toast" id="toast"></div>
-<div class="debug-panel" id="debug-panel"><button class="debug-close" onclick="toggleDebug()">✕ Sluiten</button><pre id="debug-content">Nog geen data geladen...</pre></div>
 
 <script>
 const FLOWS = {
@@ -418,38 +412,24 @@ async function laadTaken(){
     const res=await fetch(FLOWS.TAKEN_OPHALEN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({week:String(weekNr(new Date()))})});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();
-    // Debug: log raw response
-    const dbg=document.getElementById('debug-content');
-    if(dbg){
-      const preview=JSON.stringify(data,null,2).slice(0,3000);
-      dbg.textContent='Status: '+res.status+'\nKeys: '+Object.keys(data).join(', ')+'\n\nRaw (max 3000 chars):\n'+preview;
-    }
     // Probeer alle bekende response-structuren
     const items=data.taken||data.value||data.items||data.results||(Array.isArray(data)?data:[]);
-    // Extra debug: log item count and first item keys
     if(dbg){
       dbg.textContent+='\n\nItems gevonden: '+items.length;
       if(items.length>0) dbg.textContent+='\nEerste item keys: '+Object.keys(items[0]).join(', ');
     }
-    // Debug: toon eerste item compleet
-    const dbgEl=document.getElementById('debug-content');
-    if(dbgEl && items.length>0){
-      dbgEl.textContent='=== EERSTE ITEM RAW ===\n'+JSON.stringify(items[0],null,2).slice(0,4000);
-    }
-
-    // Helper om choice-veld te lezen (string of {Value:...})
-    function getVal(v){ return v && v.Value ? v.Value : (v||''); }
+    function getVal(v){ return (v && v.Value) ? v.Value : (typeof v === 'string' ? v : ''); }
 
     state.taken=items.map(item=>({
-      id: item.ID||item.Id,
-      naam: item.Title||item.Taaknaam||'',
-      zone: getVal(item['Locatie/Ruimte']||item.field_3||item.LocatieRuimte||item.Locatie||'Overig'),
-      afdeling: getVal(item.Afdeling||item.field_5||''),
-      status: getVal(item.Status||'Open'),
-      freq: getVal(item.Frequentie||item.field_4||item.Frequency||item.frequentie||'Wekelijks'),
-      referentie: item.Referentie||item.field_2||'',
-      toegewezen: getVal(item.Verantwoordelijke||item.Toegewezen||item.AssignedTo||''),
-      uitgevoerdDoor: item.UitgevoerdDoor||item.uitgevoerdDoor||'',
+      id:           item.ID || item.Id,
+      naam:         item.Title || '',
+      zone:         getVal(item.field_3) || 'Overig',
+      afdeling:     getVal(item.Afdeling) || getVal(item.field_5) || '',
+      status:       getVal(item.Status) || 'Open',
+      freq:         getVal(item.field_4) || 'Wekelijks',
+      referentie:   item.field_2 || '',
+      toegewezen:   getVal(item.Verantwoordelijke) || getVal(item.field_7) || getVal(item.AssignedTo) || '',
+      uitgevoerdDoor: item.UitgevoerdDoor || '',
     }));
   }catch(e){
     console.error('laadTaken fout:',e);
@@ -643,7 +623,6 @@ async function verifyCheck(){const badge=document.getElementById('popup-badge-in
 async function doAfvinken(naam){const id=state.pendingId;closeCheckPopup();if(!id)return;const taak=state.taken.find(t=>t.id==id);if(!taak)return;taak.status='Uitgevoerd';taak.uitgevoerdDoor=naam;render();showToast('✓ Afgetekend door '+naam,'success');const ok=await afvinkenFlow(id,naam);if(!ok){showToast('⚠️ Sync mislukt','error');taak.status='Open';taak.uitgevoerdDoor='';render();}}
 async function lookupBadge(badge){try{const res=await fetch(FLOWS.BADGE_LOOKUP,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({badge})});if(!res.ok)return null;const data=await res.json();if(!data.naam)return null;return{naam:data.naam,zone:data.zone,initials:data.naam.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()};}catch(e){return null;}}
 async function afvinkenFlow(id,naam){try{const res=await fetch(FLOWS.TAAK_AFVINKEN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({taak_id:String(id),medewerker:naam,status:'Uitgevoerd'})});return res.ok||res.status===204;}catch(e){return false;}}
-function toggleDebug(){document.getElementById('debug-panel').classList.toggle('show');}
 function showToast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 
 laadTaken();
