@@ -306,6 +306,23 @@ tr.is-mine td:first-child { border-left: 3px solid #2563eb; }
 }
 .day-task.is-mine:hover { background: #dbeafe; }
 
+
+/* ══ VRIJ TE PAKKEN ══ */
+.vrij-header {
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ink4);
+  padding: 6px 6px 2px; margin-top: 4px;
+  border-top: 1px dashed var(--border);
+}
+.day-task.vrij { opacity: 0.55; border-left: 2px dashed var(--border); }
+.day-task.vrij:hover { opacity: 0.85; background: #f0fdf4; border-left-color: var(--green); }
+.vrij-row td { opacity: 0.5; font-style: italic; }
+.vrij-row:hover td { opacity: 0.8; }
+.vrij-badge {
+  font-size: 0.6rem; font-weight: 600; padding: 1px 6px;
+  border-radius: 20px; background: #f0fdf4; color: #15803d;
+  border: 1px dashed #86efac; white-space: nowrap; flex-shrink: 0;
+}
 </style>
 </head>
 <body>
