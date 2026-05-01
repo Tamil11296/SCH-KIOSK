@@ -431,16 +431,25 @@ async function laadTaken(){
       dbg.textContent+='\n\nItems gevonden: '+items.length;
       if(items.length>0) dbg.textContent+='\nEerste item keys: '+Object.keys(items[0]).join(', ');
     }
+    // Debug: toon eerste item compleet
+    const dbgEl=document.getElementById('debug-content');
+    if(dbgEl && items.length>0){
+      dbgEl.textContent='=== EERSTE ITEM RAW ===\n'+JSON.stringify(items[0],null,2).slice(0,4000);
+    }
+
+    // Helper om choice-veld te lezen (string of {Value:...})
+    function getVal(v){ return v && v.Value ? v.Value : (v||''); }
+
     state.taken=items.map(item=>({
-      id:item.ID||item.Id,
-      naam:item.Title||'',
-      zone:(item.field_3&&item.field_3.Value)?item.field_3.Value:(item['Locatie/Ruimte']||'Overig'),
-      afdeling:(item.Afdeling&&item.Afdeling.Value)?item.Afdeling.Value:(item.Afdeling||''),
-      status:(item.Status&&item.Status.Value)?item.Status.Value:(item.Status||'Open'),
-      freq:(item.Frequentie&&item.Frequentie.Value)?item.Frequentie.Value:(item.Frequentie||'Wekelijks'),
-      referentie:item.Referentie||'',
-      toegewezen:(item.Verantwoordelijke&&item.Verantwoordelijke.Value)?item.Verantwoordelijke.Value:(item.Verantwoordelijke||''),
-      uitgevoerdDoor:item.UitgevoerdDoor||'',
+      id: item.ID||item.Id,
+      naam: item.Title||item.Taaknaam||'',
+      zone: getVal(item['Locatie/Ruimte']||item.field_3||item.LocatieRuimte||item.Locatie||'Overig'),
+      afdeling: getVal(item.Afdeling||item.field_5||''),
+      status: getVal(item.Status||'Open'),
+      freq: getVal(item.Frequentie||item.field_4||item.Frequency||item.frequentie||'Wekelijks'),
+      referentie: item.Referentie||item.field_2||'',
+      toegewezen: getVal(item.Verantwoordelijke||item.Toegewezen||item.AssignedTo||''),
+      uitgevoerdDoor: item.UitgevoerdDoor||item.uitgevoerdDoor||'',
     }));
   }catch(e){
     console.error('laadTaken fout:',e);
