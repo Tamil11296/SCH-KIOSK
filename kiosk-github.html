@@ -411,8 +411,8 @@ async function laadTaken(){
     const res=await fetch(FLOWS.TAKEN_OPHALEN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({week:String(weekNr(new Date()))})});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();
-    const items=data.taken||data.value||[];
-    if(items.length===0)throw new Error('geen data');
+    // Probeer alle bekende response-structuren
+    const items=data.taken||data.value||data.items||data.results||(Array.isArray(data)?data:[]);
     state.taken=items.map(item=>({
       id:item.ID||item.Id,
       naam:item.Title||'',
@@ -425,11 +425,13 @@ async function laadTaken(){
       uitgevoerdDoor:item.UitgevoerdDoor||'',
     }));
   }catch(e){
-    showToast('Fout bij laden: '+e.message,'error');
+    console.error('laadTaken fout:',e);
     if(state.taken.length===0){
-      document.getElementById('content').innerHTML='<div class="loading-state">&#9888; Kan geen verbinding maken met SharePoint.<br><small style="color:var(--ink4)">'+e.message+'</small></div>';
+      document.getElementById('content').innerHTML='<div class="loading-state">&#9888; Laden mislukt: '+e.message+'<br><small style="color:var(--ink4)">Controleer netwerkverbinding en Flow-URL.</small></div>';
+      showToast('Laden mislukt: '+e.message,'error');
       return;
     }
+    showToast('Herladen mislukt — vorige data zichtbaar','');
   }
   vulDropdowns();render();
 }
