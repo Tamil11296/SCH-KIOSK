@@ -277,6 +277,34 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
   .kpi-label { font-size: 0.55rem; }
   .week-progress-bar { padding: 0 12px 8px; }
 }
+
+/* ══ TOEGEWEZEN BADGE ══ */
+.task-assignee {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 0.62rem; font-weight: 600;
+  color: #1e40af;
+  background: #dbeafe;
+  border-radius: 20px;
+  padding: 1px 6px 1px 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.task-assignee-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #2563eb; flex-shrink: 0;
+}
+/* Highlighted row voor toegewezen taken in tabellen */
+tr.is-mine td { background: #eff6ff !important; }
+tr.is-mine td:first-child { border-left: 3px solid #2563eb; }
+/* Highlighted dagelijks kaartje voor toegewezen taken */
+.day-task.is-mine {
+  background: #eff6ff;
+  border-left: 2px solid #2563eb;
+}
+.day-task.is-mine:hover { background: #dbeafe; }
 </style>
 </head>
 <body>
@@ -373,27 +401,6 @@ const MAANDEN=['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov'
 
 let state={taken:[],afdelingFilter:'',zoneFilter:'',medewerker:null,pendingId:null};
 
-// Demo taken — zichtbaar als de flow niet bereikbaar is
-const DEMO_TAKEN=[
-  {id:1,naam:'Aanrecht schoonmaken',zone:'Kantine',afdeling:'Productie',status:'Uitgevoerd',freq:'Dagelijks',toegewezen:'M. Janssen',uitgevoerdDoor:'M. Janssen'},
-  {id:2,naam:'Prullenbakken legen',zone:'Kantine',afdeling:'Productie',status:'Open',freq:'Dagelijks',toegewezen:'K. de Vries',uitgevoerdDoor:''},
-  {id:3,naam:'Toilet reinigen',zone:'Sanitair',afdeling:'Productie',status:'Open',freq:'Dagelijks',toegewezen:'',uitgevoerdDoor:''},
-  {id:4,naam:'Vloer stofzuigen',zone:'Productiehal',afdeling:'Productie',status:'Uitgevoerd',freq:'Dagelijks',toegewezen:'M. Janssen',uitgevoerdDoor:'M. Janssen'},
-  {id:5,naam:'Deurknoppen reinigen',zone:'Entree',afdeling:'Productie',status:'Open',freq:'Dagelijks',toegewezen:'',uitgevoerdDoor:''},
-  {id:6,naam:'Koffieapparaat reinigen',zone:'Kantine',afdeling:'Logistiek',status:'Open',freq:'Dagelijks',toegewezen:'A. Bakker',uitgevoerdDoor:''},
-  {id:7,naam:'Spiegels reinigen',zone:'Sanitair',afdeling:'Logistiek',status:'Afgekeurd',freq:'Dagelijks',toegewezen:'',uitgevoerdDoor:''},
-  {id:8,naam:'Ramen lappen lijn 1',zone:'Lijn 1',afdeling:'Productie',status:'Open',freq:'Wekelijks',toegewezen:'K. de Vries',uitgevoerdDoor:''},
-  {id:9,naam:'Machines afnemen',zone:'Lijn 2',afdeling:'Productie',status:'Uitgevoerd',freq:'Wekelijks',toegewezen:'M. Janssen',uitgevoerdDoor:'M. Janssen'},
-  {id:10,naam:'Magazijn vegen',zone:'Magazijn',afdeling:'Logistiek',status:'Open',freq:'Wekelijks',toegewezen:'A. Bakker',uitgevoerdDoor:''},
-  {id:11,naam:'Koelkast diepterinigen',zone:'Kantine',afdeling:'Productie',status:'Uitgevoerd',freq:'Maandelijks',toegewezen:'',uitgevoerdDoor:'K. de Vries'},
-  {id:12,naam:'Afzuigkap filters reinigen',zone:'Kantine',afdeling:'Productie',status:'Open',freq:'Maandelijks',toegewezen:'',uitgevoerdDoor:''},
-  {id:13,naam:'Ventilatieroosters stofzuigen',zone:'Productiehal',afdeling:'Productie',status:'Open',freq:'Maandelijks',toegewezen:'',uitgevoerdDoor:''},
-  {id:14,naam:'Vaatwasmachine doorspuiten',zone:'Kantine',afdeling:'Productie',status:'Open',freq:'Kwartaal',toegewezen:'',uitgevoerdDoor:''},
-  {id:15,naam:'Oven grondig reinigen',zone:'Productiehal',afdeling:'Productie',status:'Uitgevoerd',freq:'Kwartaal',toegewezen:'',uitgevoerdDoor:'M. Janssen'},
-  {id:16,naam:'Vloerbedekking reinigen',zone:'Kantoor',afdeling:'Logistiek',status:'Open',freq:'Halfjaarlijks',toegewezen:'',uitgevoerdDoor:''},
-  {id:17,naam:'Gordijnen wassen',zone:'Kantoor',afdeling:'Logistiek',status:'Uitgevoerd',freq:'Jaarlijks',toegewezen:'',uitgevoerdDoor:'A. Bakker'},
-  {id:18,naam:'Schoorsteenreiniging',zone:'Productiehal',afdeling:'Productie',status:'Open',freq:'Jaarlijks',toegewezen:'',uitgevoerdDoor:''},
-];
 
 function weekNr(d){const dt=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));dt.setUTCDate(dt.getUTCDate()+4-(dt.getUTCDay()||7));const y=new Date(Date.UTC(dt.getUTCFullYear(),0,1));return Math.ceil((((dt-y)/86400000)+1)/7);}
 function updateClock(){const n=new Date();document.getElementById('clock').textContent=n.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});document.getElementById('week-pill').textContent='Week '+weekNr(n);}
@@ -418,9 +425,11 @@ async function laadTaken(){
       uitgevoerdDoor:item.UitgevoerdDoor||'',
     }));
   }catch(e){
-    // Flow niet bereikbaar — laad demo data
-    state.taken=JSON.parse(JSON.stringify(DEMO_TAKEN));
-    showToast('Demo modus — flow niet bereikbaar','');
+    showToast('Fout bij laden: '+e.message,'error');
+    if(state.taken.length===0){
+      document.getElementById('content').innerHTML='<div class="loading-state">&#9888; Kan geen verbinding maken met SharePoint.<br><small style="color:var(--ink4)">'+e.message+'</small></div>';
+      return;
+    }
   }
   vulDropdowns();render();
 }
@@ -478,10 +487,12 @@ function renderDailySection(taken,freq){
       const isMine=state.medewerker&&t.toegewezen===state.medewerker.naam;
       const chkCls=isDone?'done':isRej?'rejected':'';
       const chkIcon=isDone?'✓':isRej?'✗':'';
-      html+='<div class="day-task'+(isDone?' done':'')+(isRej?' rejected':'')+'" onclick="vraagAfvinken('+t.id+')">';
+      const hasToegewezen = t.toegewezen && t.toegewezen.trim() !== '';
+      const mineClass = isMine ? ' is-mine' : '';
+      html+='<div class="day-task'+(isDone?' done':'')+(isRej?' rejected':'')+mineClass+'" onclick="vraagAfvinken('+t.id+')">';
       html+='<div class="task-check '+chkCls+'" onclick="event.stopPropagation();vraagAfvinken('+t.id+')">'+chkIcon+'</div>';
       html+='<span class="task-text">'+t.naam+'</span>';
-      if(isMine)html+='<div class="task-mine"></div>';
+      if(hasToegewezen) html+='<span class="task-assignee"><span class="task-assignee-dot"></span>'+t.toegewezen.split(' ').map(n=>n[0]).join('').slice(0,3)+'</span>';
       html+='</div>';
     });
     html+='</div><div class="day-footer"><div class="ring-wrap"><div class="ring"><svg width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="none" stroke="#e6e2da" stroke-width="4"/><circle cx="16" cy="16" r="11" fill="none" stroke="'+color+'" stroke-width="4" stroke-dasharray="'+dash.toFixed(1)+' '+C.toFixed(1)+'" stroke-linecap="round"/></svg><div class="pct-text">'+pct+'%</div></div></div><div class="day-count">'+done+'/'+total+'</div></div></div>';
@@ -505,7 +516,9 @@ function renderWeeklySection(taken,freq){
     const isRej=t.status==='Afgekeurd';
     const isMine=state.medewerker&&t.toegewezen===state.medewerker.naam;
     const chip=isDone?'<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:600">✓ Klaar</span>':isRej?'<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:600">✗ Afgekeurd</span>':'<span style="background:#dbeafe;color:#2563eb;padding:2px 8px;border-radius:8px;font-size:0.68rem;font-weight:600">Open</span>';
-    html+='<tr style="'+(isRej?'background:#fff8f8':isDone?'background:#f9fdf9':'')+'"><td><div class="task-name-cell'+(isDone?' done-name':'')+'">'+( isMine?'<div class="mine-dot"></div>':'')+t.naam+'</div></td><td style="font-size:0.72rem;color:var(--ink3);white-space:nowrap">'+t.zone+'</td>';
+    const weekMineClass = isMine ? ' is-mine' : '';
+    const weekToegewezen = t.toegewezen && t.toegewezen.trim() !== '' ? '<span class="task-assignee" style="margin-left:6px"><span class="task-assignee-dot"></span>'+t.toegewezen+'</span>' : '';
+    html+='<tr class="'+weekMineClass+'"><td><div class="task-name-cell'+(isDone?' done-name':'')+'">'+( isMine?'<div class="mine-dot"></div>':'')+t.naam+weekToegewezen+'</div></td><td style="font-size:0.72rem;color:var(--ink3);white-space:nowrap">'+t.zone+'</td>';
     DAGEN.forEach((d,i)=>{if(isDone)html+='<td class="check-cell"><span class="check-x done">✓</span></td>';else if(isRej)html+='<td class="check-cell"><span class="check-x rejected">✗</span></td>';else if(i===dagIndex)html+='<td class="check-cell"><span class="check-x empty" onclick="vraagAfvinken('+t.id+')">✓</span></td>';else html+='<td class="check-cell"><span class="check-x inactive">&middot;</span></td>';});
     html+='<td>'+chip+'</td></tr>';
   });
@@ -526,7 +539,9 @@ function renderPeriodicSection(taken,freq){
     const isDone=['Uitgevoerd','Goedgekeurd','In Review'].includes(t.status);
     const isRej=t.status==='Afgekeurd';
     const isMine=state.medewerker&&t.toegewezen===state.medewerker.naam;
-    html+='<tr style="'+(isRej?'background:#fff8f8':isDone?'background:#f9fdf9':'')+'"><td><div class="task-name-cell'+(isDone?' done-name':'')+'">'+( isMine?'<div class="mine-dot"></div>':'')+t.naam+'</div></td><td style="font-size:0.72rem;color:var(--ink3)">'+t.zone+'</td>';
+    const perMineClass = isMine ? ' is-mine' : '';
+    const perToegewezen = t.toegewezen && t.toegewezen.trim() !== '' ? '<span class="task-assignee" style="margin-left:6px"><span class="task-assignee-dot"></span>'+t.toegewezen+'</span>' : '';
+    html+='<tr class="'+perMineClass+'"><td><div class="task-name-cell'+(isDone?' done-name':'')+'">'+( isMine?'<div class="mine-dot"></div>':'')+t.naam+perToegewezen+'</div></td><td style="font-size:0.72rem;color:var(--ink3)">'+t.zone+'</td>';
     MAANDEN.forEach((m,i)=>{if(isDone)html+='<td class="check-cell"><span class="check-x done">✓</span></td>';else if(isRej)html+='<td class="check-cell"><span class="check-x rejected">✗</span></td>';else if(i===huidigMnd)html+='<td class="check-cell"><span class="check-x empty" onclick="vraagAfvinken('+t.id+')">✓</span></td>';else html+='<td class="check-cell"><span class="check-x inactive">&middot;</span></td>';});
     const chip=isDone?'<span style="color:var(--green);font-size:0.7rem;font-weight:600">✓ Klaar</span>':isRej?'<span style="color:var(--red);font-size:0.7rem;font-weight:600">✗ Afgekeurd</span>':'<span style="color:var(--brand);font-size:0.7rem;font-weight:600">Open</span>';
     html+='<td>'+chip+'</td></tr>';
