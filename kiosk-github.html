@@ -183,6 +183,100 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
 .popup-badge-input{font-size:1.2rem;padding:0.8rem;}
 .check-x{width:28px;height:28px;font-size:0.9rem;}.task-check{width:18px;height:18px;}}
 @media(min-width:1280px){.check-x{width:28px;height:28px;font-size:0.88rem;}.task-check{width:20px;height:20px;}.day-task{padding:6px 8px;font-size:0.78rem;}}
+
+/* ══ KPI HEADER BAR ══ */
+.kpi-bar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  height: 72px;
+}
+.kpi-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-right: 1px solid var(--border);
+  padding: 8px 12px;
+  position: relative;
+}
+.kpi-item:last-child { border-right: none; }
+.kpi-item::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 20%; right: 20%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+}
+.kpi-item.kpi-total::before  { background: #64748b; }
+.kpi-item.kpi-open::before   { background: #2563eb; }
+.kpi-item.kpi-done::before   { background: #16a34a; }
+.kpi-item.kpi-review::before { background: #d97706; }
+.kpi-item.kpi-nok::before    { background: #dc2626; }
+
+.kpi-ring {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 3.5px solid currentColor;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.kpi-item.kpi-total  .kpi-ring { color: #64748b; }
+.kpi-item.kpi-open   .kpi-ring { color: #2563eb; }
+.kpi-item.kpi-done   .kpi-ring { color: #16a34a; }
+.kpi-item.kpi-review .kpi-ring { color: #d97706; }
+.kpi-item.kpi-nok    .kpi-ring { color: #dc2626; }
+
+.kpi-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink4);
+}
+
+/* Week voortgangsbalk */
+.week-progress-bar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px 10px;
+  flex-shrink: 0;
+}
+.week-prog-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--ink4);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 0 5px;
+}
+.week-prog-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.week-prog-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+  transition: width 0.6s ease;
+}
+
+@media(max-width:640px) {
+  .kpi-bar { height: auto; flex-wrap: wrap; }
+  .kpi-item { flex: 0 0 33.333%; border-bottom: 1px solid var(--border); }
+  .kpi-ring { width: 28px; height: 28px; font-size: 0.72rem; }
+  .kpi-label { font-size: 0.55rem; }
+  .week-progress-bar { padding: 0 12px 8px; }
+}
 </style>
 </head>
 <body>
@@ -201,6 +295,35 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
     <div class="spacer"></div>
     <div class="clock" id="clock">00:00</div>
     <button class="badge-btn" id="badge-btn" onclick="openBadgeFilter()">&#127991; Mijn taken</button>
+  </div>
+
+  <!-- ══ KPI HEADER BAR ══ -->
+  <div class="kpi-bar" id="kpi-bar">
+    <div class="kpi-item kpi-total">
+      <div class="kpi-ring" id="kpi-total">0</div>
+      <div class="kpi-label">Totaal week</div>
+    </div>
+    <div class="kpi-item kpi-open">
+      <div class="kpi-ring" id="kpi-open">0</div>
+      <div class="kpi-label">Open</div>
+    </div>
+    <div class="kpi-item kpi-done">
+      <div class="kpi-ring" id="kpi-done">0</div>
+      <div class="kpi-label">Afgerond</div>
+    </div>
+    <div class="kpi-item kpi-review">
+      <div class="kpi-ring" id="kpi-review">0</div>
+      <div class="kpi-label">In Review</div>
+    </div>
+    <div class="kpi-item kpi-nok">
+      <div class="kpi-ring" id="kpi-nok">0</div>
+      <div class="kpi-label">Afgekeurd</div>
+    </div>
+  </div>
+  <!-- Week voortgangsbalk -->
+  <div class="week-progress-bar">
+    <div class="week-prog-label">Week voortgang</div>
+    <div class="week-prog-track"><div class="week-prog-fill" id="week-prog-fill" style="width:0%"></div></div>
   </div>
   <div class="content" id="content">
     <div class="loading-state"><div class="spinner"></div><span>Taken worden geladen&hellip;</span></div>
@@ -429,6 +552,24 @@ function renderProgressSection(){
   return html;
 }
 
+
+// ── KPI BALK UPDATE ──
+function updateKpi() {
+  const t = gefilterdeTaken();
+  const total  = t.length;
+  const open   = t.filter(x => x.status === 'Open').length;
+  const done   = t.filter(x => ['Uitgevoerd','Goedgekeurd'].includes(x.status)).length;
+  const review = t.filter(x => x.status === 'In Review').length;
+  const nok    = t.filter(x => x.status === 'Afgekeurd').length;
+  const pct    = total > 0 ? Math.round((done + review) / total * 100) : 0;
+
+  document.getElementById('kpi-total').textContent  = total;
+  document.getElementById('kpi-open').textContent   = open;
+  document.getElementById('kpi-done').textContent   = done;
+  document.getElementById('kpi-review').textContent = review;
+  document.getElementById('kpi-nok').textContent    = nok;
+  document.getElementById('week-prog-fill').style.width = pct + '%';
+}
 function render(){
   const taken=gefilterdeTaken();
   if(taken.length===0){document.getElementById('content').innerHTML='<div class="loading-state">&#128203; Geen taken gevonden voor de huidige selectie.</div>';return;}
@@ -445,6 +586,7 @@ function render(){
   });
   html+=renderProgressSection();
   document.getElementById('content').innerHTML=html;
+  updateKpi();
 }
 
 function openBadgeFilter(){if(state.medewerker){clearBadgeFilter();return;}document.getElementById('filter-badge-input').value='';document.getElementById('filter-status').textContent='';document.getElementById('filter-status').className='popup-status';document.getElementById('popup-filter').classList.add('active');setTimeout(()=>document.getElementById('filter-badge-input').focus(),100);}
