@@ -431,10 +431,6 @@ async function laadTaken(){
     const data=await res.json();
     // Probeer alle bekende response-structuren
     const items=data.taken||data.value||data.items||data.results||(Array.isArray(data)?data:[]);
-    if(dbg){
-      dbg.textContent+='\n\nItems gevonden: '+items.length;
-      if(items.length>0) dbg.textContent+='\nEerste item keys: '+Object.keys(items[0]).join(', ');
-    }
     function getVal(v){ return (v && v.Value) ? v.Value : (typeof v === 'string' ? v : ''); }
 
     state.taken=items.map(item=>({
