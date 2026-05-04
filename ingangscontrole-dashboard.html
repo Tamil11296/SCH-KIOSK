@@ -918,14 +918,14 @@ function openPreview(idx){
   if(!b) return;
 
   document.getElementById('prev-titel').textContent = b.FileName;
-  document.getElementById('prev-dl').href = b.ServerRelativeUrl||'#';
+  document.getElementById('prev-dl').href = b.AbsoluteUri||'#';
 
   // Canvas
   const canvas = document.getElementById('prev-canvas');
   if(isAfbeelding(b.FileName)){
-    canvas.innerHTML = `<img src="${b.ServerRelativeUrl}" alt="${b.FileName}">`;
+    canvas.innerHTML = `<img src="${b.AbsoluteUri}" alt="${b.FileName}">`;
   } else if(b.FileName.toLowerCase().endsWith('.pdf')){
-    canvas.innerHTML = `<iframe src="${b.ServerRelativeUrl}"></iframe>`;
+    canvas.innerHTML = `<iframe src="${b.AbsoluteUri}"></iframe>`;
   } else {
     const {icon}=bijlageIcoon(b.FileName);
     canvas.innerHTML = `<div style="font-size:3rem;opacity:0.3;">${icon}</div>
