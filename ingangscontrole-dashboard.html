@@ -521,6 +521,7 @@ function bijlageIcoon(naam){
 }
 
 function isAfbeelding(naam){
+  if(!naam) return false;
   return ['jpg','jpeg','png','gif','webp'].includes(naam.split('.').pop().toLowerCase());
 }
 
@@ -594,15 +595,25 @@ function updateKlok(){
 // ═══════════════════════════════════════════════════════════════
 //  FLOW CALLS
 // ═══════════════════════════════════════════════════════════════
-async function flowPost(url, body={}){
-  const r = await fetch(url,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(body)
-  });
-  if(!r.ok) throw new Error(`Flow HTTP ${r.status}`);
-  const text = await r.text();
-  return text ? JSON.parse(text) : {};
+async function flowPost(url, body={}, timeoutMs=15000){
+  const controller = new AbortController();
+  const timer = setTimeout(()=>controller.abort(), timeoutMs);
+  try {
+    const r = await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body),
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    if(!r.ok) throw new Error(`Flow HTTP ${r.status}`);
+    const text = await r.text();
+    return text ? JSON.parse(text) : {};
+  } catch(e) {
+    clearTimeout(timer);
+    if(e.name === 'AbortError') throw new Error('Flow time-out na 15 seconden');
+    throw e;
+  }
 }
 
 async function haalItems(archief=false){
@@ -708,10 +719,11 @@ function renderDetail(){
   // Bijlagen
   const bijlHTML = bijl.length
     ? bijl.map((b,i)=>{
-        const {icon,bg}=bijlageIcoon(b.FileName);
+        const fname = b.FileName||b.Id||b.DisplayName||'bestand';
+        const {icon,bg}=bijlageIcoon(fname);
         return `<div class="bijlage-thumb" onclick="openPreview(${i})">
           <div class="bij-prev" style="background:${bg};">${icon}</div>
-          <div class="bij-naam" title="${b.FileName}">${b.FileName}</div>
+          <div class="bij-naam" title="${fname}">${fname}</div>
         </div>`;
       }).join('')
     : '<div style="font-size:.75rem;color:var(--ink4);grid-column:1/-1;padding:4px 0;">Geen bijlagen toegevoegd</div>';
@@ -904,7 +916,12 @@ async function selecteerItem(idx){
   renderWachtrij();
   document.getElementById('main').innerHTML=
     '<div class="loading"><div class="spinner"></div>Bijlagen ophalen…</div>';
-  try { state.bijlagen = await haalBijlagen(state.geselecteerd.ID); } catch { state.bijlagen=[]; }
+  try {
+    state.bijlagen = await haalBijlagen(state.geselecteerd.ID);
+  } catch(e) {
+    console.warn('Bijlagen fout:', e.message);
+    state.bijlagen = [];
+  }
   renderDetail();
 }
 
@@ -918,14 +935,14 @@ function openPreview(idx){
   if(!b) return;
 
   document.getElementById('prev-titel').textContent = b.FileName;
-  document.getElementById('prev-dl').href = b.AbsoluteUri||'#';
+  document.getElementById('prev-dl').href = b.AbsoluteUri||b.ServerRelativeUrl||'#';
 
   // Canvas
   const canvas = document.getElementById('prev-canvas');
   if(isAfbeelding(b.FileName)){
-    canvas.innerHTML = `<img src="${b.AbsoluteUri}" alt="${b.FileName}">`;
+    canvas.innerHTML = `<img src="${b.ServerRelativeUrl}" alt="${b.FileName}">`;
   } else if(b.FileName.toLowerCase().endsWith('.pdf')){
-    canvas.innerHTML = `<iframe src="${b.AbsoluteUri}"></iframe>`;
+    canvas.innerHTML = `<iframe src="${b.ServerRelativeUrl}"></iframe>`;
   } else {
     const {icon}=bijlageIcoon(b.FileName);
     canvas.innerHTML = `<div style="font-size:3rem;opacity:0.3;">${icon}</div>
@@ -935,9 +952,9 @@ function openPreview(idx){
   // Meta
   document.getElementById('prev-meta').innerHTML = `
     <div class="prev-meta-item"><div class="prev-meta-lbl">Bestandsnaam</div>
-      <div class="prev-meta-val">${b.FileName}</div></div>
+      <div class="prev-meta-val">${b.FileName||b.Id||'—'}</div></div>
     <div class="prev-meta-item"><div class="prev-meta-lbl">Type</div>
-      <div class="prev-meta-val">${b.FileName.split('.').pop().toUpperCase()}</div></div>`;
+      <div class="prev-meta-val">${(b.FileName||b.Id||'').split('.').pop().toUpperCase()}</div></div>`;
 
   // Navigatie
   const nav = document.getElementById('prev-nav');
