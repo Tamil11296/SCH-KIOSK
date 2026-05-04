@@ -945,41 +945,57 @@ async function selecteerItem(idx){
 // ═══════════════════════════════════════════════════════════════
 function openPreview(idx){
   state.previewIdx = idx;
-  const bijl = state.bijlagen;
-  const b    = bijl[idx];
+  const bijl = Array.isArray(state.bijlagen) ? state.bijlagen : [];
+  const b = bijl[idx];
   if(!b) return;
 
-  document.getElementById('prev-titel').textContent = bNaam;
-  document.getElementById('prev-dl').href = b.AbsoluteUri||b.ServerRelativeUrl||'#';
+  const fname = b.FileName || b.DisplayName
+    || (b.Id ? decodeURIComponent(b.Id.split('/').pop()) : 'bestand');
+  const url = b.AbsoluteUri || '#';
 
-  // Canvas
+  document.getElementById('prev-titel').textContent = fname;
+  document.getElementById('prev-dl').href = url;
+
   const canvas = document.getElementById('prev-canvas');
-  if(isAfbeelding(b.FileName)){
-    canvas.innerHTML = `<img src="${b.ServerRelativeUrl}" alt="${b.FileName}">`;
-  } else if(b.FileName.toLowerCase().endsWith('.pdf')){
-    canvas.innerHTML = `<iframe src="${b.ServerRelativeUrl}"></iframe>`;
+  const {icon: prevIcon} = bijlageIcoon(fname);
+  const ext = fname.split('.').pop().toUpperCase();
+
+  canvas.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px;text-align:center;">
+      <div style="font-size:3.5rem;">${prevIcon}</div>
+      <div style="font-size:.95rem;font-weight:700;color:var(--bi-navy);word-break:break-all;">${fname}</div>
+      <div style="font-size:.78rem;color:var(--ink4);">${ext} bestand</div>
+      <a href="${url}" target="_blank" rel="noopener"
+         style="background:var(--bi-navy);color:#fff;padding:10px 28px;border-radius:8px;
+                text-decoration:none;font-weight:700;font-size:.9rem;display:inline-block;">
+        Openen in SharePoint →
+      </a>
+      <div style="font-size:.7rem;color:var(--ink4);">
+        Zorg dat je ingelogd bent op SharePoint in deze browser
+      </div>
+    </div>`;
+
+  const nav = document.getElementById('prev-nav');
+  if(bijl.length > 1){
+    nav.style.display = 'flex';
+    document.getElementById('prev-teller').textContent = `${idx+1} / ${bijl.length}`;
   } else {
-    const {icon}=bijlageIcoon(b.FileName);
-    canvas.innerHTML = `<div style="font-size:3rem;opacity:0.3;">${icon}</div>
-      <div style="font-size:.8rem;color:var(--ink4);">Geen preview — gebruik Downloaden</div>`;
+    nav.style.display = 'none';
   }
 
-  // Meta
   document.getElementById('prev-meta').innerHTML = `
-    <div class="prev-meta-item"><div class="prev-meta-lbl">Bestandsnaam</div>
-      <div class="prev-meta-val">${bNaam}</div></div>
-    <div class="prev-meta-item"><div class="prev-meta-lbl">Type</div>
-      <div class="prev-meta-val">${bNaam.split('.').pop().toUpperCase()}</div></div>`;
-
-  // Navigatie
-  const nav = document.getElementById('prev-nav');
-  if(bijl.length>1){
-    nav.style.display='flex';
-    document.getElementById('prev-teller').textContent=`${idx+1} / ${bijl.length}`;
-  } else { nav.style.display='none'; }
+    <div class="prev-meta-item">
+      <div class="prev-meta-lbl">Bestandsnaam</div>
+      <div class="prev-meta-val">${fname}</div>
+    </div>
+    <div class="prev-meta-item">
+      <div class="prev-meta-lbl">Type</div>
+      <div class="prev-meta-val">${ext}</div>
+    </div>`;
 
   document.getElementById('popup-preview').classList.add('active');
 }
+
 
 function navigeerPreview(delta){
   const len = state.bijlagen.length;
@@ -991,13 +1007,15 @@ function navigeerPreview(delta){
 //  GOEDKEURING POPUPS
 // ═══════════════════════════════════════════════════════════════
 function openAkkoord(){
-  const naam = nl(state.geselecteerd?.[K.leverancier]);
-  document.getElementById('ak-leverancier').textContent = naam;
+  if(!state.geselecteerd){ showToast('Selecteer eerst een item','error'); return; }
+  const po = state.geselecteerd[K.purchaseNr] || state.geselecteerd[K.sapNr] || '—';
+  document.getElementById('ak-leverancier').textContent = po;
   document.getElementById('ak-naam').value = '';
   document.getElementById('ak-status').textContent = '';
   document.getElementById('ak-bevestig').disabled = false;
-  document.getElementById('popup-akkoord').classList.add('active');
-  setTimeout(()=>document.getElementById('ak-naam').focus(),100);
+  const popup = document.getElementById('popup-akkoord');
+  popup.classList.add('active');
+  setTimeout(()=>{ const el=document.getElementById('ak-naam'); if(el) el.focus(); },150);
 }
 
 async function bevestigAkkoord(){
