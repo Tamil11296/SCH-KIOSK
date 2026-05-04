@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Biscuit International — Ingangscontrole Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bi-navy:     #16213a;
+  --bi-navy-mid: #1e2d50;
+  --bi-gold:     #c9a227;
+  --bi-gold-lt:  #ddb83a;
+  --bi-gold-dim: rgba(201,162,39,0.18);
+  --bi-cream:    #f5f0e6;
+  --bg:    #f4f1eb;
+  --white: #ffffff;
+  --card:  #fffffe;
+  --ink:   #1a1814;
+  --ink2:  #3d3830;
+  --ink3:  #7a7268;
+  --ink4:  #b0a89e;
+  --border:#e6e2da;
+  --green: #16a34a;
+  --amber: #d97706;
+  --red:   #dc2626;
+  --blue:  #2563eb;
+  --teal:  #0f766e;
+  --sans:  'Outfit', sans-serif;
+  --mono:  'JetBrains Mono', monospace;
+  --radius:12px;
+  --shadow:0 2px 12px rgba(26,24,20,0.08);
+  --shadow-lg:0 8px 32px rgba(26,24,20,0.14);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--bi-navy);height:56px;display:flex;align-items:center;gap:12px;
+        padding:0 20px;flex-shrink:0;border-bottom:2px solid rgba(201,162,39,0.4);}
+.bi-logo{height:34px;width:auto;filter:brightness(0) invert(1);flex-shrink:0;}
+.brand-div{width:1px;height:26px;background:rgba(201,162,39,0.3);margin:0 4px;}
+.dash-label{font-size:0.68rem;font-weight:600;color:rgba(245,240,230,0.5);
+             letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap;}
+.week-pill{background:var(--bi-gold-dim);color:var(--bi-gold);font-family:var(--mono);
+           font-size:0.7rem;font-weight:600;padding:4px 12px;border-radius:20px;
+           border:1px solid rgba(201,162,39,0.3);white-space:nowrap;}
+.spacer{flex:1;}
+.clock{font-family:var(--mono);font-size:0.82rem;color:rgba(245,240,230,0.4);}
+.top-btn{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.07);
+         color:var(--bi-cream);border:1px solid rgba(201,162,39,0.22);border-radius:8px;
+         padding:6px 14px;font-family:var(--sans);font-size:0.8rem;font-weight:500;
+         cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.top-btn:hover{background:rgba(201,162,39,0.12);border-color:rgba(201,162,39,0.45);}
+.top-btn.active{background:var(--green);color:#fff;border-color:var(--green);}
+
+/* ── APP LAYOUT ── */
+.app{display:flex;flex-direction:column;height:100vh;}
+.body-wrap{display:flex;flex:1;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:260px;flex-shrink:0;background:var(--card);border-right:1px solid var(--border);
+         display:flex;flex-direction:column;overflow:hidden;}
+.sidebar-head{padding:14px 16px 10px;border-bottom:1px solid var(--border);}
+.sidebar-title{font-size:0.68rem;font-weight:700;color:var(--bi-gold);text-transform:uppercase;
+               letter-spacing:0.1em;margin-bottom:10px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.stat-card{background:var(--bg);border-radius:8px;padding:8px 10px;}
+.stat-lbl{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.05em;
+          color:var(--ink4);margin-bottom:2px;}
+.stat-val{font-size:1.3rem;font-weight:700;}
+.stat-val.oranje{color:var(--amber);}
+.stat-val.rood  {color:var(--red);}
+.stat-val.groen {color:var(--green);}
+
+/* TAB SWITCHER */
+.tab-bar{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.tab-btn{flex:1;padding:9px 0;font-family:var(--sans);font-size:0.78rem;font-weight:600;
+         border:none;background:none;cursor:pointer;color:var(--ink4);
+         border-bottom:2px solid transparent;transition:all 0.15s;}
+.tab-btn.active{color:var(--bi-navy);border-bottom-color:var(--bi-gold);}
+
+/* WACHTRIJ */
+.wachtrij{flex:1;overflow-y:auto;}
+.queue-item{display:flex;align-items:center;gap:10px;padding:11px 14px;
+            border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s;}
+.queue-item:hover{background:var(--bg);}
+.queue-item.actief{background:#eef4ff;}
+.q-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot-rood  {background:var(--red);}
+.dot-oranje{background:var(--amber);}
+.dot-groen {background:var(--green);}
+.q-naam{font-size:0.8rem;font-weight:600;color:var(--ink);white-space:nowrap;
+         overflow:hidden;text-overflow:ellipsis;max-width:130px;}
+.q-sub {font-size:0.7rem;color:var(--ink3);}
+.q-pill{padding:2px 8px;border-radius:20px;font-size:0.65rem;font-weight:700;
+        white-space:nowrap;flex-shrink:0;}
+.pill-rood  {background:#fee2e2;color:var(--red);}
+.pill-oranje{background:#fef3c7;color:var(--amber);}
+.pill-groen {background:#dcfce7;color:var(--green);}
+.pill-blauw {background:#dbeafe;color:var(--blue);}
+
+/* ── MAIN DETAIL ── */
+.main{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;}
+.leeg-scherm{display:flex;flex-direction:column;align-items:center;justify-content:center;
+             height:100%;color:var(--ink4);gap:12px;}
+.leeg-icon{font-size:3rem;opacity:0.25;}
+
+/* SECTION TITLE */
+.sec-title{font-size:0.68rem;font-weight:700;color:var(--bi-gold);text-transform:uppercase;
+           letter-spacing:0.12em;display:flex;align-items:center;gap:8px;
+           margin-bottom:8px;}
+.sec-title::after{content:'';flex:1;height:1px;background:rgba(201,162,39,0.2);}
+
+/* DETAIL CARD */
+.dcard{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);
+       overflow:hidden;box-shadow:var(--shadow);}
+.dcard-head{padding:8px 14px;font-size:0.7rem;font-weight:700;letter-spacing:0.06em;
+            text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;}
+.head-navy  {background:var(--bi-navy);color:#fff;}
+.head-grijs {background:var(--bg);color:var(--ink2);border-bottom:1px solid var(--border);}
+.head-rood  {background:#fee2e2;color:var(--red);border-bottom:1px solid #fecaca;}
+.head-groen {background:#dcfce7;color:var(--green);border-bottom:1px solid #86efac;}
+.head-teal  {background:#ccfbf1;color:var(--teal);border-bottom:1px solid #99f6e4;}
+.head-amber {background:#fef3c7;color:var(--amber);border-bottom:1px solid #fde68a;}
+
+/* KOP GRID */
+.kop-grid{display:grid;grid-template-columns:1fr 1fr;}
+.kop-cel{padding:10px 14px;border-bottom:1px solid var(--border);}
+.kop-cel:nth-child(odd){border-right:1px solid var(--border);}
+.kop-cel.last{border-bottom:none;}
+.kop-lbl{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.05em;
+          color:var(--ink4);margin-bottom:3px;}
+.kop-val{font-size:0.9rem;font-weight:600;color:var(--ink);}
+
+/* META STRIP */
+.meta-strip{padding:7px 14px;background:#f8f7f4;border-bottom:1px solid var(--border);
+            display:flex;align-items:center;justify-content:space-between;
+            font-size:0.75rem;color:var(--ink3);}
+.meta-strip b{color:var(--ink);font-weight:600;}
+
+/* CHECK RIJEN */
+.check-rij{display:flex;align-items:center;gap:10px;padding:7px 14px;
+           border-bottom:1px solid var(--border);}
+.check-rij:last-child{border-bottom:none;}
+.check-lbl{flex:1;font-size:0.78rem;line-height:1.4;color:var(--ink2);}
+.badge-ja {background:#dcfce7;color:#15803d;padding:2px 12px;border-radius:20px;
+           font-size:0.68rem;font-weight:700;}
+.badge-nee{background:#fee2e2;color:var(--red);padding:2px 12px;border-radius:20px;
+           font-size:0.68rem;font-weight:700;}
+.badge-nvt{background:#f3f4f6;color:var(--ink4);padding:2px 12px;border-radius:20px;
+           font-size:0.68rem;}
+.check-val{font-size:0.82rem;font-weight:700;color:var(--bi-navy);font-family:var(--mono);}
+
+/* AFWIJKING */
+.afwijking-blok{margin:10px 14px;padding:10px 12px;background:#fffbeb;
+                border-left:3px solid var(--amber);border-radius:4px;
+                font-size:0.78rem;color:#92400e;line-height:1.6;}
+
+/* BIJLAGEN */
+.bijlagen-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:12px;}
+.bijlage-thumb{border:1px solid var(--border);border-radius:8px;overflow:hidden;
+               cursor:pointer;transition:border-color 0.15s,transform 0.12s;background:var(--bg);}
+.bijlage-thumb:hover{border-color:var(--bi-gold);transform:translateY(-2px);}
+.bij-prev{height:56px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;}
+.bij-naam{padding:3px 6px;font-size:0.62rem;color:var(--ink4);white-space:nowrap;
+          overflow:hidden;text-overflow:ellipsis;border-top:1px solid var(--border);background:#fafaf8;}
+.upload-slot{border:1.5px dashed var(--border);border-radius:8px;
+             height:82px;display:flex;align-items:center;justify-content:center;
+             font-size:0.7rem;color:var(--ink4);cursor:default;gap:4px;}
+
+/* GOEDKEURING */
+.goed-wrap{padding:12px 14px;}
+.sign-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.sign-box{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:var(--bg);}
+.sign-lbl{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.05em;
+          color:var(--ink4);margin-bottom:4px;}
+.sign-naam{font-size:0.85rem;font-weight:600;color:var(--ink);}
+.sign-datum{font-size:0.7rem;color:var(--ink3);margin-top:2px;}
+.sign-leeg{font-size:0.78rem;color:var(--ink4);font-style:italic;}
+.btn-rij{display:flex;gap:10px;}
+.btn-akkoord{flex:1;padding:11px 0;background:#dcfce7;border:1px solid #86efac;
+             border-radius:8px;color:var(--green);font-size:0.9rem;font-weight:700;
+             cursor:pointer;font-family:var(--sans);transition:all 0.15s;}
+.btn-akkoord:hover{background:#bbf7d0;}
+.btn-afkeur{flex:1;padding:11px 0;background:#fee2e2;border:1px solid #fecaca;
+            border-radius:8px;color:var(--red);font-size:0.9rem;font-weight:700;
+            cursor:pointer;font-family:var(--sans);transition:all 0.15s;}
+.btn-afkeur:hover{background:#fecaca;}
+.banner-ok{background:#dcfce7;border:1px solid #86efac;border-radius:8px;
+           padding:12px 16px;font-size:0.85rem;color:var(--green);font-weight:600;
+           display:flex;align-items:center;gap:8px;}
+
+/* ── POPUPS ── */
+.popup-overlay{position:fixed;inset:0;background:rgba(16,21,42,0.6);
+               display:none;align-items:center;justify-content:center;z-index:200;}
+.popup-overlay.active{display:flex;}
+.popup-box{background:var(--card);border-radius:var(--radius);width:420px;max-width:92vw;
+           overflow:hidden;box-shadow:var(--shadow-lg);}
+.popup-head{background:var(--bi-navy);color:#fff;padding:14px 18px;
+            display:flex;align-items:center;justify-content:space-between;}
+.popup-titel{font-size:0.9rem;font-weight:700;}
+.popup-sluit{background:rgba(255,255,255,0.12);border:none;color:#fff;
+             width:26px;height:26px;border-radius:6px;cursor:pointer;
+             font-size:15px;display:flex;align-items:center;justify-content:center;}
+.popup-body{padding:18px;}
+.popup-taak{font-size:0.82rem;color:var(--ink3);margin-bottom:14px;line-height:1.5;}
+.popup-taak b{color:var(--ink);font-weight:600;}
+.popup-input{width:100%;border:1.5px solid var(--border);border-radius:8px;
+             padding:10px 12px;font-family:var(--sans);font-size:0.85rem;
+             color:var(--ink);outline:none;transition:border-color 0.15s;
+             background:var(--bg);margin-bottom:10px;}
+.popup-input:focus{border-color:var(--bi-gold);}
+.popup-textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;
+                padding:10px 12px;font-family:var(--sans);font-size:0.82rem;
+                color:var(--ink);outline:none;resize:vertical;min-height:80px;
+                background:var(--bg);margin-bottom:10px;}
+.popup-textarea:focus{border-color:var(--red);}
+.popup-status{font-size:0.78rem;height:20px;margin-bottom:8px;font-weight:600;}
+.popup-status.ok  {color:var(--green);}
+.popup-status.nok {color:var(--red);}
+.popup-btns{display:flex;gap:8px;}
+.popup-bevestig{flex:1;padding:10px 0;background:var(--bi-navy);border:none;
+                color:#fff;border-radius:8px;font-family:var(--sans);font-size:0.85rem;
+                font-weight:700;cursor:pointer;transition:background 0.15s;}
+.popup-bevestig:hover{background:var(--bi-navy-mid);}
+.popup-bevestig.groen{background:var(--green);}
+.popup-bevestig.groen:hover{background:#15803d;}
+.popup-bevestig:disabled{opacity:0.45;cursor:default;}
+.popup-annul{padding:10px 16px;background:var(--bg);border:1px solid var(--border);
+             color:var(--ink3);border-radius:8px;font-family:var(--sans);
+             font-size:0.85rem;cursor:pointer;}
+
+/* PREVIEW POPUP */
+.prev-canvas{width:100%;height:280px;background:var(--bg);border:1px solid var(--border);
+             border-radius:8px;overflow:hidden;display:flex;align-items:center;
+             justify-content:center;margin-bottom:12px;}
+.prev-canvas img{max-width:100%;max-height:100%;object-fit:contain;}
+.prev-canvas iframe{width:100%;height:100%;border:none;}
+.prev-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.prev-nav-btn{padding:5px 14px;background:var(--bg);border:1px solid var(--border);
+              border-radius:6px;cursor:pointer;font-size:0.78rem;font-family:var(--sans);}
+.prev-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}
+.prev-meta-item{background:var(--bg);border-radius:6px;padding:7px 10px;}
+.prev-meta-lbl{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.04em;
+               color:var(--ink4);margin-bottom:2px;}
+.prev-meta-val{font-size:0.78rem;font-weight:600;}
+.btn-dl{display:block;text-align:center;padding:9px 0;background:var(--bi-navy);
+        color:#fff;border-radius:8px;font-size:0.82rem;font-weight:700;
+        text-decoration:none;border:none;cursor:pointer;font-family:var(--sans);}
+
+/* SPINNER & TOAST */
+.loading{text-align:center;padding:40px 20px;color:var(--ink4);}
+.spinner{width:28px;height:28px;border:3px solid var(--border);
+         border-top-color:var(--bi-gold);border-radius:50%;
+         animation:spin 0.7s linear infinite;margin:0 auto 10px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+       background:var(--bi-navy);color:#fff;padding:10px 20px;border-radius:30px;
+       font-size:0.82rem;font-weight:600;opacity:0;transition:all 0.3s;pointer-events:none;
+       z-index:300;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.success{background:var(--green);}
+.toast.error  {background:var(--red);}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <img class="bi-logo" src="https://raw.githubusercontent.com/rconstantine/bi-dashboard/main/bi-logo.png"
+         onerror="this.style.display='none';document.getElementById('bi-tekst').style.display='block'">
+    <span id="bi-tekst" style="display:none;color:var(--bi-gold);font-weight:800;font-size:1rem;letter-spacing:0.05em;">BISCUIT</span>
+    <div class="brand-div"></div>
+    <div>
+      <div class="dash-label">Ingangscontrole</div>
+    </div>
+    <div class="week-pill" id="datum-pill">—</div>
+    <div class="spacer"></div>
+    <div class="clock" id="klok">—</div>
+    &nbsp;&nbsp;
+    <button class="top-btn" onclick="laadAlles()">↻ Vernieuwen</button>
+  </div>
+
+  <div class="body-wrap">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-head">
+        <div class="sidebar-title">Statistieken vandaag</div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-lbl">Open</div>
+            <div class="stat-val oranje" id="stat-open">–</div></div>
+          <div class="stat-card"><div class="stat-lbl">Afwijking</div>
+            <div class="stat-val rood" id="stat-afwijk">–</div></div>
+          <div class="stat-card"><div class="stat-lbl">Akkoord</div>
+            <div class="stat-val groen" id="stat-akkoord">–</div></div>
+          <div class="stat-card"><div class="stat-lbl">Vandaag</div>
+            <div class="stat-val" id="stat-vandaag">–</div></div>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('open')">Wachtrij</button>
+        <button class="tab-btn" onclick="switchTab('archief')">Archief</button>
+      </div>
+      <div class="wachtrij" id="wachtrij">
+        <div class="loading"><div class="spinner"></div>Laden…</div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main" id="main">
+      <div class="leeg-scherm">
+        <div class="leeg-icon">📋</div>
+        <div style="font-size:0.9rem;">Selecteer een item uit de wachtrij</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── POPUP: AKKOORD ── -->
+<div class="popup-overlay" id="popup-akkoord">
+  <div class="popup-box">
+    <div class="popup-head">
+      <div class="popup-titel">✓ Akkoord tekenen</div>
+      <button class="popup-sluit" onclick="sluitPopup('popup-akkoord')">✕</button>
+    </div>
+    <div class="popup-body">
+      <div class="popup-taak">
+        Levering: <b id="ak-leverancier">—</b><br>
+        Je staat op het punt deze ingangscontrole goed te keuren.
+      </div>
+      <input class="popup-input" id="ak-naam" placeholder="Jouw naam (verplicht)" autocomplete="off">
+      <div class="popup-status" id="ak-status"></div>
+      <div class="popup-btns">
+        <button class="popup-bevestig groen" id="ak-bevestig" onclick="bevestigAkkoord()">✓ Bevestig goedkeuring</button>
+        <button class="popup-annul" onclick="sluitPopup('popup-akkoord')">Annuleren</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── POPUP: AFKEUREN ── -->
+<div class="popup-overlay" id="popup-afkeur">
+  <div class="popup-box">
+    <div class="popup-head" style="background:var(--red);">
+      <div class="popup-titel">✕ Afkeuren</div>
+      <button class="popup-sluit" onclick="sluitPopup('popup-afkeur')">✕</button>
+    </div>
+    <div class="popup-body">
+      <div class="popup-taak">
+        Levering: <b id="af-leverancier">—</b><br>
+        Geef een reden op voor de afkeuring.
+      </div>
+      <input class="popup-input" id="af-naam" placeholder="Jouw naam (verplicht)" autocomplete="off">
+      <textarea class="popup-textarea" id="af-reden" placeholder="Reden voor afkeuring…"></textarea>
+      <div class="popup-status" id="af-status"></div>
+      <div class="popup-btns">
+        <button class="popup-bevestig" style="background:var(--red);" id="af-bevestig" onclick="bevestigAfkeur()">✕ Bevestig afkeuring</button>
+        <button class="popup-annul" onclick="sluitPopup('popup-afkeur')">Annuleren</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── POPUP: BIJLAGE PREVIEW ── -->
+<div class="popup-overlay" id="popup-preview">
+  <div class="popup-box" style="width:560px;max-width:95vw;">
+    <div class="popup-head">
+      <div class="popup-titel" id="prev-titel">—</div>
+      <button class="popup-sluit" onclick="sluitPopup('popup-preview')">✕</button>
+    </div>
+    <div class="popup-body">
+      <div class="prev-nav" id="prev-nav" style="display:none;">
+        <button class="prev-nav-btn" onclick="navigeerPreview(-1)">← Vorige</button>
+        <span id="prev-teller" style="font-size:0.75rem;color:var(--ink4);"></span>
+        <button class="prev-nav-btn" onclick="navigeerPreview(1)">Volgende →</button>
+      </div>
+      <div class="prev-canvas" id="prev-canvas"></div>
+      <div class="prev-meta" id="prev-meta"></div>
+      <a class="btn-dl" id="prev-dl" href="#" target="_blank">↓ Downloaden / Openen in nieuw tabblad</a>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  FLOW URLS — hier plak je de Power Automate HTTP trigger URLs
+// ═══════════════════════════════════════════════════════════════
+const FLOWS = {
+  HAAL_ITEMS:    'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/21ff6a8d03974c838ebb6bbbe586bd67/triggers/manual/paths/invoke?api-version=1',
+  HAAL_BIJLAGEN: 'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/39017d7c628f442fb7e19c47da6d69be/triggers/manual/paths/invoke?api-version=1',
+  GOEDKEURING:   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/0f022791d3284a979999c7f9a5c62283/triggers/manual/paths/invoke?api-version=1',
+  HAAL_ARCHIEF:  'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/39b8c9a05713462f943d6945bb7ac311/triggers/manual/paths/invoke?api-version=1',
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  KOLOMNAMEN — pas aan als SharePoint andere namen geeft
+//  (controleer via: Lijstinstellingen → kolom → URL → Field=...)
+// ═══════════════════════════════════════════════════════════════
+const K = {
+  leverancier:      'Title',
+  purchaseNr:       'Purchase_x0020_nr_x002e_',
+  sapNr:            'SAP_x0020_nummer',
+  typeOntvangst:    'Type_x0020_ontvangst',
+  ontvangstDatum:   'Ontvangen_x0020_op_x003a_',
+  juisteArtikel:    'Is_x0020_het_x0020_juiste_x0020_artikel_x0020_geleverd_x003f_',
+  hoeveelheid:      'Valt_x0020_de_x0020_gele_x0020_verde_x0020_hoeveelheid_x0020_binnen_x0020_de_x0020_norm_x003f_',
+  vrachtbrief:      'Kloppen_x0020_de_x0020_gegevens_x0020_op_x0020_de_x0020_vrachtbrief_x003f_',
+  transportcond:    'Transportcondities_x003a__x0020_Is_x0020_de_x0020_laadruimte_x0020_schoon_x003f_',
+  hygienePallets:   'Verpakking_x002f__x0020_Pallets_x003a__x0020_Is_x0020_deze_x0020_schoon_x003f_',
+  thtBbd:           'THT_x0020__x002f__x0020_BBD',
+  lotCode:          'Batch_x0020__x002f__x0020_lot_x0020_code_x0028_s_x0029_',
+  thtOk:            'Komen_x0020_de_x0020_THT_x0020_en_x0020_lotcode_x0020_overeen_x003f_',
+  kunststofPallets: 'Grondstoffen_x0020_geleverd_x0020_op_x0020_kunststof_x0020_pallets_x003f_',
+  zeefIntact:       'Zeef_x0020_gebruikt_x0020_en_x0020_intact_x003f_',
+  sealnummers:      'Sealnummers_x0020_komen_x0020_overeen_x0020_met_x0020_pakbon_x003f_',
+  reinigingscert:   'Reinigingscertificaat_x0020_bijgevoegd_x003f_',
+  siloNr:           'Welke_x0020_silo_x0020_is_x0020_gevuld_x003f_',
+  afvuldatum:       'Afvuldatum_x0020_IBC_x0027_s',
+  rspo:             'RSPO_x0020_en_x0020_SG_x0020_vermelding_x003f_',
+  tempNorm:         'Is_x0020_de_x0020_temperatuur_x0020_binnen_x0020_de_x0020_norm_x003f_',
+  tempGemeten:      'Gemeten_x0020_temperatuur',
+  actieAfwijkingen: 'Actie_x0020_bij_x0020_afwijkingen',
+  paraafMagazijn:   'Paraaf_x0020_akkoord_x0020_ontvangst_x0020_magazijnmedewerker',
+  goedkeuringStatus:'GoedkeuringStatus',
+  goedgekeurdOp:    'GoedgekeurdOp',
+  goedkeuringRol:   'GoedkeuringRol',
+  goedkeuringOpmerking:'GoedkeuringOpmerking',
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  STAAT
+// ═══════════════════════════════════════════════════════════════
+const state = { items:[], geselecteerd:null, bijlagen:[], previewIdx:0, tab:'open' };
+
+// ═══════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════
+function nl(v){ return (v===null||v===undefined||v==='')?'—':v; }
+
+function datumFmt(v){
+  if(!v) return '—';
+  return new Date(v).toLocaleString('nl-NL',{dateStyle:'short',timeStyle:'short'});
+}
+
+function typeVal(item){
+  const v = item[K.typeOntvangst];
+  if(!v) return '';
+  return typeof v === 'object' ? (v.Value||'') : v;
+}
+
+function isGrondstof(item){ return typeVal(item).toLowerCase().includes('grondstof'); }
+
+function heeftAfwijking(item){
+  const neeVelden = [K.juisteArtikel,K.hoeveelheid,K.transportcond,
+                     K.hygienePallets,K.thtOk,K.tempNorm];
+  return (item[K.actieAfwijkingen]&&item[K.actieAfwijkingen].trim()!=='')
+      || neeVelden.some(f=>item[f]&&String(item[f]).toLowerCase()==='nee');
+}
+
+function statusInfo(item){
+  const s = item[K.goedkeuringStatus];
+  if(s==='Akkoord')   return {cls:'dot-groen',  pill:'pill-groen',  label:'Akkoord'};
+  if(s==='Afgekeurd') return {cls:'dot-rood',   pill:'pill-rood',   label:'Afgekeurd'};
+  if(heeftAfwijking(item)) return {cls:'dot-rood',pill:'pill-rood',label:'⚠ Afwijking'};
+  return {cls:'dot-oranje', pill:'pill-oranje', label:'Open'};
+}
+
+function badgeJaNee(v){
+  if(!v||v==='—') return '<span class="badge-nvt">N.v.t.</span>';
+  const l=String(v).toLowerCase();
+  if(l==='ja')  return '<span class="badge-ja">Ja</span>';
+  if(l==='nee') return '<span class="badge-nee">Nee</span>';
+  return `<span class="badge-nvt">${v}</span>`;
+}
+
+function bijlageIcoon(naam){
+  const ext=naam.split('.').pop().toLowerCase();
+  if(['jpg','jpeg','png','gif','webp'].includes(ext)) return {icon:'🖼️',bg:'#dbeafe'};
+  if(ext==='pdf')  return {icon:'📄',bg:'#fee2e2'};
+  if(['xls','xlsx'].includes(ext)) return {icon:'📊',bg:'#dcfce7'};
+  if(['doc','docx'].includes(ext)) return {icon:'📝',bg:'#dbeafe'};
+  return {icon:'📎',bg:'#f3f4f6'};
+}
+
+function isAfbeelding(naam){
+  return ['jpg','jpeg','png','gif','webp'].includes(naam.split('.').pop().toLowerCase());
+}
+
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+(type||'');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function sluitPopup(id){ document.getElementById(id).classList.remove('active'); }
+
+function updateKlok(){
+  const nu=new Date();
+  document.getElementById('klok').textContent=
+    nu.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('datum-pill').textContent=
+    nu.toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'});
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  FLOW CALLS
+// ═══════════════════════════════════════════════════════════════
+async function flowPost(url, body={}){
+  const r = await fetch(url,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  if(!r.ok) throw new Error(`Flow HTTP ${r.status}`);
+  const text = await r.text();
+  return text ? JSON.parse(text) : {};
+}
+
+async function haalItems(archief=false){
+  const url = archief ? FLOWS.HAAL_ARCHIEF : FLOWS.HAAL_ITEMS;
+  const data = await flowPost(url);
+  return data.value || data || [];
+}
+
+async function haalBijlagen(itemId){
+  const data = await flowPost(FLOWS.HAAL_BIJLAGEN, {itemId});
+  return data.value || data || [];
+}
+
+async function stuurGoedkeuring(itemId, status, gebruiker, opmerking=''){
+  await flowPost(FLOWS.GOEDKEURING, {itemId, status, gebruiker, email:'', opmerking});
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  WACHTRIJ RENDEREN
+// ═══════════════════════════════════════════════════════════════
+function renderWachtrij(){
+  const items = state.items;
+  const vandaag = new Date().toDateString();
+  const open    = items.filter(i=>i[K.goedkeuringStatus]!=='Akkoord').length;
+  const afwijk  = items.filter(i=>heeftAfwijking(i)&&i[K.goedkeuringStatus]!=='Akkoord').length;
+  const akkoord = items.filter(i=>i[K.goedkeuringStatus]==='Akkoord').length;
+  const today   = items.filter(i=>new Date(i.Created).toDateString()===vandaag).length;
+
+  document.getElementById('stat-open').textContent    = open;
+  document.getElementById('stat-afwijk').textContent  = afwijk;
+  document.getElementById('stat-akkoord').textContent = akkoord;
+  document.getElementById('stat-vandaag').textContent = today;
+
+  if(!items.length){
+    document.getElementById('wachtrij').innerHTML=
+      '<div style="padding:24px;text-align:center;color:var(--ink4);font-size:0.8rem;">Geen items gevonden</div>';
+    return;
+  }
+
+  const html = items.map((item,idx)=>{
+    const si = statusInfo(item);
+    const naam = nl(item[K.leverancier]);
+    const type = typeVal(item);
+    const tijd = datumFmt(item.Created).split(',')[0];
+    const actief = state.geselecteerd?.ID === item.ID;
+    return `
+      <div class="queue-item${actief?' actief':''}" onclick="selecteerItem(${idx})">
+        <div class="q-dot ${si.cls}"></div>
+        <div style="flex:1;min-width:0;">
+          <div class="q-naam" title="${naam}">${naam}</div>
+          <div class="q-sub">${type||'—'} · ${tijd}</div>
+        </div>
+        <span class="q-pill ${si.pill}">${si.label}</span>
+      </div>`;
+  }).join('');
+  document.getElementById('wachtrij').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DETAIL RENDEREN
+// ═══════════════════════════════════════════════════════════════
+function renderDetail(){
+  const item   = state.geselecteerd;
+  const bijl   = state.bijlagen;
+  if(!item){ document.getElementById('main').innerHTML=
+    '<div class="leeg-scherm"><div class="leeg-icon">📋</div><div style="font-size:.9rem;">Selecteer een item</div></div>';
+    return; }
+
+  const grondstof  = isGrondstof(item);
+  const gekoeld    = item[K.tempGemeten]&&item[K.tempGemeten]!==''&&item[K.tempGemeten]!=='—';
+  const afwijk     = heeftAfwijking(item);
+  const isAkkoord  = item[K.goedkeuringStatus]==='Akkoord';
+  const isAfgekeurd= item[K.goedkeuringStatus]==='Afgekeurd';
+
+  const checks = [
+    {lbl:'Is het juiste artikel geleverd?',          veld:K.juisteArtikel},
+    {lbl:'Hoeveelheid binnen de norm?',              veld:K.hoeveelheid},
+    {lbl:'Gegevens op de vrachtbrief correct?',      veld:K.vrachtbrief},
+    {lbl:'Transportcondities — laadruimte schoon?',  veld:K.transportcond},
+    {lbl:'Verpakking / Pallets — schoon en intact?', veld:K.hygienePallets},
+  ];
+
+  const siloChecks = [
+    {lbl:'Zeef gebruikt en intact?',          veld:K.zeefIntact},
+    {lbl:'Sealnummers overeen met pakbon?',    veld:K.sealnummers},
+    {lbl:'Reinigingscertificaat bijgevoegd?',  veld:K.reinigingscert},
+  ];
+
+  // Bijlagen
+  const bijlHTML = bijl.length
+    ? bijl.map((b,i)=>{
+        const {icon,bg}=bijlageIcoon(b.FileName);
+        return `<div class="bijlage-thumb" onclick="openPreview(${i})">
+          <div class="bij-prev" style="background:${bg};">${icon}</div>
+          <div class="bij-naam" title="${b.FileName}">${b.FileName}</div>
+        </div>`;
+      }).join('')
+    : '<div style="font-size:.75rem;color:var(--ink4);grid-column:1/-1;padding:4px 0;">Geen bijlagen toegevoegd</div>';
+
+  document.getElementById('main').innerHTML = `
+    <!-- KOPTEKST -->
+    <div>
+      <div class="sec-title">Koptekst</div>
+      <div class="dcard">
+        <div class="dcard-head head-navy">
+          <span>INK-F-07 BL — Ingangscontrole formulier</span>
+          <span style="font-size:.65rem;opacity:.7;">${datumFmt(item.Created)}</span>
+        </div>
+        <div class="meta-strip">
+          <span>Controleur: <b>${nl(item.Author?.Title||item.AuthorId)}</b>
+            &nbsp;·&nbsp; Type: <b>${typeVal(item)||'—'}</b></span>
+          ${afwijk
+            ? '<span class="q-pill pill-rood">⚠ Afwijking</span>'
+            : '<span class="q-pill pill-groen">✓ Geen afwijkingen</span>'}
+        </div>
+        <div class="kop-grid">
+          <div class="kop-cel"><div class="kop-lbl">Purchase Order</div>
+            <div class="kop-val">${nl(item[K.purchaseNr])}</div></div>
+          <div class="kop-cel"><div class="kop-lbl">SAP nummer</div>
+            <div class="kop-val">${nl(item[K.sapNr])}</div></div>
+          <div class="kop-cel last"><div class="kop-lbl">Leverancier</div>
+            <div class="kop-val">${nl(item[K.leverancier])}</div></div>
+          <div class="kop-cel last"><div class="kop-lbl">Ontvangstdatum</div>
+            <div class="kop-val">${item[K.ontvangstDatum]?datumFmt(item[K.ontvangstDatum]):'—'}</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALGEMENE CONTROLE -->
+    <div>
+      <div class="sec-title">Algemene controle</div>
+      <div class="dcard">
+        <div class="dcard-head head-grijs">Ook invullen bij levering verpakkingsmateriaal</div>
+        ${checks.map(c=>`
+          <div class="check-rij">
+            <div class="check-lbl">${c.lbl}</div>
+            ${badgeJaNee(item[c.veld])}
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- THT & LOTCODES -->
+    <div>
+      <div class="sec-title">THT & Lotcodes</div>
+      <div class="dcard">
+        <div class="check-rij">
+          <div class="check-lbl">THT / BBD</div>
+          <div class="check-val">${nl(item[K.thtBbd])}</div>
+        </div>
+        <div class="check-rij">
+          <div class="check-lbl">Batch / lot code(s)</div>
+          <div class="check-val">${nl(item[K.lotCode])}</div>
+        </div>
+        <div class="check-rij">
+          <div class="check-lbl">THT en lotcode overeen met pakbon?</div>
+          ${badgeJaNee(item[K.thtOk])}
+        </div>
+        <div class="check-rij">
+          <div class="check-lbl">Geleverd op kunststof pallets?</div>
+          ${badgeJaNee(item[K.kunststofPallets])}
+        </div>
+      </div>
+    </div>
+
+    <!-- SILO / TANK / IBC — alleen grondstoffen -->
+    ${grondstof?`
+    <div>
+      <div class="sec-title">Silo / tank / IBC grondstoffen</div>
+      <div class="dcard">
+        ${siloChecks.map(c=>`
+          <div class="check-rij">
+            <div class="check-lbl">${c.lbl}</div>
+            ${badgeJaNee(item[c.veld])}
+          </div>`).join('')}
+        <div class="check-rij">
+          <div class="check-lbl">Welke silo is gevuld?</div>
+          <div class="check-val">${nl(item[K.siloNr])}</div>
+        </div>
+        <div class="check-rij">
+          <div class="check-lbl">Afvuldatum IBC's</div>
+          <div class="check-val">${nl(item[K.afvuldatum])}</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="sec-title">RSPO grondstoffen</div>
+      <div class="dcard">
+        <div class="check-rij">
+          <div class="check-lbl">'RSPO' en 'SG' vermelding op pakbon en verpakking?</div>
+          ${badgeJaNee(item[K.rspo])}
+        </div>
+      </div>
+    </div>`:''}
+
+    <!-- GEKOELDE GRONDSTOFFEN -->
+    ${gekoeld?`
+    <div>
+      <div class="sec-title">Gekoelde grondstoffen</div>
+      <div class="dcard">
+        <div class="dcard-head head-teal">Temperatuurcontrole</div>
+        <div class="check-rij">
+          <div class="check-lbl">Temperatuur binnen de norm?</div>
+          ${badgeJaNee(item[K.tempNorm])}
+        </div>
+        <div class="check-rij">
+          <div class="check-lbl">Gemeten temperatuur</div>
+          <div style="font-size:1.2rem;font-weight:800;color:var(--bi-navy);font-family:var(--mono);">
+            ${nl(item[K.tempGemeten])}
+          </div>
+        </div>
+      </div>
+    </div>`:''}
+
+    <!-- AFWIJKINGEN -->
+    ${afwijk?`
+    <div>
+      <div class="sec-title">Actie bij afwijkingen</div>
+      <div class="dcard">
+        <div class="dcard-head head-rood">⚠ Afwijking geregistreerd</div>
+        <div class="afwijking-blok">${nl(item[K.actieAfwijkingen])}</div>
+      </div>
+    </div>`:''}
+
+    <!-- BIJLAGEN -->
+    <div>
+      <div class="sec-title">Bijlagen (${bijl.length})</div>
+      <div class="dcard">
+        <div class="dcard-head head-amber">
+          <span>Toegevoegde documenten & foto's</span>
+          <span style="font-size:.65rem;">Klik om te openen</span>
+        </div>
+        <div class="bijlagen-grid">
+          ${bijlHTML}
+          <div class="upload-slot">+ Bijlage</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOEDKEURING -->
+    <div>
+      <div class="sec-title">Goedkeuring</div>
+      <div class="dcard">
+        <div class="dcard-head ${isAkkoord?'head-groen':isAfgekeurd?'head-rood':'head-grijs'}">
+          Paraaf akkoord ontvangst
+        </div>
+        <div class="goed-wrap">
+          <div class="sign-grid">
+            <div class="sign-box">
+              <div class="sign-lbl">Magazijnmedewerker</div>
+              <div class="sign-naam">${nl(item.Author?.Title||'—')}</div>
+              <div class="sign-datum">${datumFmt(item.Created)}</div>
+            </div>
+            <div class="sign-box">
+              <div class="sign-lbl">QA / Call-off akkoord</div>
+              ${isAkkoord||isAfgekeurd
+                ? `<div class="sign-naam" style="color:${isAkkoord?'var(--green)':'var(--red)'};">
+                     ${nl(item[K.goedkeuringRol]||'—')}</div>
+                   <div class="sign-datum">${datumFmt(item[K.goedgekeurdOp])}</div>
+                   ${item[K.goedkeuringOpmerking]
+                     ? `<div class="sign-datum" style="margin-top:4px;color:var(--red);">
+                          ${item[K.goedkeuringOpmerking]}</div>` : ''}`
+                : '<div class="sign-leeg">Nog niet afgetekend</div>'}
+            </div>
+          </div>
+          ${isAkkoord
+            ? '<div class="banner-ok">✓ Goedgekeurd en vastgelegd in auditlog</div>'
+            : isAfgekeurd
+            ? '<div class="banner-ok" style="background:#fee2e2;border-color:#fecaca;color:var(--red);">✕ Afgekeurd en vastgelegd in auditlog</div>'
+            : `<div class="btn-rij">
+                 <button class="btn-akkoord" onclick="openAkkoord()">✓ Akkoord tekenen</button>
+                 <button class="btn-afkeur"  onclick="openAfkeur()">✕ Afkeuren</button>
+               </div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ITEM SELECTEREN
+// ═══════════════════════════════════════════════════════════════
+async function selecteerItem(idx){
+  state.geselecteerd = state.items[idx];
+  state.bijlagen = [];
+  renderWachtrij();
+  document.getElementById('main').innerHTML=
+    '<div class="loading"><div class="spinner"></div>Bijlagen ophalen…</div>';
+  try { state.bijlagen = await haalBijlagen(state.geselecteerd.ID); } catch { state.bijlagen=[]; }
+  renderDetail();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BIJLAGE PREVIEW
+// ═══════════════════════════════════════════════════════════════
+function openPreview(idx){
+  state.previewIdx = idx;
+  const bijl = state.bijlagen;
+  const b    = bijl[idx];
+  if(!b) return;
+
+  document.getElementById('prev-titel').textContent = b.FileName;
+  document.getElementById('prev-dl').href = b.ServerRelativeUrl||'#';
+
+  // Canvas
+  const canvas = document.getElementById('prev-canvas');
+  if(isAfbeelding(b.FileName)){
+    canvas.innerHTML = `<img src="${b.ServerRelativeUrl}" alt="${b.FileName}">`;
+  } else if(b.FileName.toLowerCase().endsWith('.pdf')){
+    canvas.innerHTML = `<iframe src="${b.ServerRelativeUrl}"></iframe>`;
+  } else {
+    const {icon}=bijlageIcoon(b.FileName);
+    canvas.innerHTML = `<div style="font-size:3rem;opacity:0.3;">${icon}</div>
+      <div style="font-size:.8rem;color:var(--ink4);">Geen preview — gebruik Downloaden</div>`;
+  }
+
+  // Meta
+  document.getElementById('prev-meta').innerHTML = `
+    <div class="prev-meta-item"><div class="prev-meta-lbl">Bestandsnaam</div>
+      <div class="prev-meta-val">${b.FileName}</div></div>
+    <div class="prev-meta-item"><div class="prev-meta-lbl">Type</div>
+      <div class="prev-meta-val">${b.FileName.split('.').pop().toUpperCase()}</div></div>`;
+
+  // Navigatie
+  const nav = document.getElementById('prev-nav');
+  if(bijl.length>1){
+    nav.style.display='flex';
+    document.getElementById('prev-teller').textContent=`${idx+1} / ${bijl.length}`;
+  } else { nav.style.display='none'; }
+
+  document.getElementById('popup-preview').classList.add('active');
+}
+
+function navigeerPreview(delta){
+  const len = state.bijlagen.length;
+  sluitPopup('popup-preview');
+  openPreview((state.previewIdx+delta+len)%len);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GOEDKEURING POPUPS
+// ═══════════════════════════════════════════════════════════════
+function openAkkoord(){
+  const naam = nl(state.geselecteerd?.[K.leverancier]);
+  document.getElementById('ak-leverancier').textContent = naam;
+  document.getElementById('ak-naam').value = '';
+  document.getElementById('ak-status').textContent = '';
+  document.getElementById('ak-bevestig').disabled = false;
+  document.getElementById('popup-akkoord').classList.add('active');
+  setTimeout(()=>document.getElementById('ak-naam').focus(),100);
+}
+
+async function bevestigAkkoord(){
+  const naam = document.getElementById('ak-naam').value.trim();
+  const se   = document.getElementById('ak-status');
+  if(!naam){ se.textContent='⚠ Vul jouw naam in'; se.className='popup-status nok'; return; }
+  se.textContent='Verwerken…'; se.className='popup-status';
+  document.getElementById('ak-bevestig').disabled=true;
+  try {
+    await stuurGoedkeuring(state.geselecteerd.ID,'Akkoord',naam);
+    sluitPopup('popup-akkoord');
+    showToast('✓ Goedkeuring vastgelegd voor '+nl(state.geselecteerd[K.leverancier]),'success');
+    await laadAlles();
+    // Herbouw geselecteerde item
+    const bijgewerkt = state.items.find(i=>i.ID===state.geselecteerd.ID);
+    if(bijgewerkt){ state.geselecteerd=bijgewerkt; renderDetail(); }
+  } catch(e){
+    se.textContent='⚠ Fout: '+e.message; se.className='popup-status nok';
+    document.getElementById('ak-bevestig').disabled=false;
+  }
+}
+
+function openAfkeur(){
+  const naam = nl(state.geselecteerd?.[K.leverancier]);
+  document.getElementById('af-leverancier').textContent = naam;
+  document.getElementById('af-naam').value  = '';
+  document.getElementById('af-reden').value = '';
+  document.getElementById('af-status').textContent = '';
+  document.getElementById('af-bevestig').disabled = false;
+  document.getElementById('popup-afkeur').classList.add('active');
+  setTimeout(()=>document.getElementById('af-naam').focus(),100);
+}
+
+async function bevestigAfkeur(){
+  const naam  = document.getElementById('af-naam').value.trim();
+  const reden = document.getElementById('af-reden').value.trim();
+  const se    = document.getElementById('af-status');
+  if(!naam) { se.textContent='⚠ Vul jouw naam in'; se.className='popup-status nok'; return; }
+  if(!reden){ se.textContent='⚠ Vul een reden in'; se.className='popup-status nok'; return; }
+  se.textContent='Verwerken…'; se.className='popup-status';
+  document.getElementById('af-bevestig').disabled=true;
+  try {
+    await stuurGoedkeuring(state.geselecteerd.ID,'Afgekeurd',naam,reden);
+    sluitPopup('popup-afkeur');
+    showToast('Item afgekeurd en geregistreerd','error');
+    await laadAlles();
+    const bijgewerkt = state.items.find(i=>i.ID===state.geselecteerd.ID);
+    if(bijgewerkt){ state.geselecteerd=bijgewerkt; renderDetail(); }
+  } catch(e){
+    se.textContent='⚠ Fout: '+e.message; se.className='popup-status nok';
+    document.getElementById('af-bevestig').disabled=false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB NAVIGATIE
+// ═══════════════════════════════════════════════════════════════
+function switchTab(tab){
+  state.tab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active',(i===0&&tab==='open')||(i===1&&tab==='archief'));
+  });
+  laadAlles();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LADEN
+// ═══════════════════════════════════════════════════════════════
+async function laadAlles(){
+  document.getElementById('wachtrij').innerHTML=
+    '<div class="loading"><div class="spinner"></div>Laden…</div>';
+  try {
+    state.items = await haalItems(state.tab==='archief');
+    renderWachtrij();
+    if(state.geselecteerd){
+      const bijgewerkt = state.items.find(i=>i.ID===state.geselecteerd.ID);
+      if(bijgewerkt){ state.geselecteerd=bijgewerkt; renderDetail(); }
+    }
+  } catch(e){
+    document.getElementById('wachtrij').innerHTML=
+      `<div style="padding:16px;font-size:.75rem;color:var(--red);">
+        ⚠ Kan flow niet bereiken.<br><small>${e.message}</small>
+       </div>`;
+    showToast('Verbindingsfout','error');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+updateKlok();
+setInterval(updateKlok,1000);
+laadAlles();
+setInterval(laadAlles, 5*60*1000); // Auto-refresh elke 5 minuten
+</script>
+</body>
+</html>
