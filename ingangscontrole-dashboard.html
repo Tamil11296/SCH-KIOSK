@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>Biscuit International — INK-F-07 BL Ingangscontrole Dashboard</title>
+<title>Biscuit International — Ingangscontrole Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -268,6 +268,93 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+
+/* ══════════════════════════════════════════════════════
+   MOBIEL & TABLET — responsive
+══════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  html, body { overflow: auto; }
+
+  .app { height: auto; min-height: 100vh; }
+  .body-wrap { flex-direction: column; overflow: visible; height: auto; position: relative; }
+
+  /* Topbar compacter */
+  .topbar { padding: 0 14px; height: 48px; }
+  .topbar-title { font-size: 13px; }
+  .topbar-sub { display: none; }
+  .week-pill { font-size: .65rem; padding: 3px 9px; }
+  .clock { display: none; }
+  .top-btn { font-size: .75rem; padding: 5px 10px; }
+
+  /* Sidebar wordt wachtrij-paneel bovenaan */
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    max-height: none;
+  }
+  .stat-grid { grid-template-columns: repeat(4, 1fr); }
+  .stat-val { font-size: 1.1rem; }
+
+  /* Wachtrij scrollt horizontaal op tablet, verticaal op telefoon */
+  .wachtrij {
+    max-height: 280px;
+    overflow-y: auto;
+  }
+
+  /* Main detail — verborgen op mobiel tenzij item geselecteerd */
+  .main {
+    display: none !important;
+    padding: 12px 14px;
+    width: 100%;
+    min-width: 0;
+  }
+  .main.actief {
+    display: flex !important;
+  }
+
+  /* Terug-knop bovenaan detail */
+  .mobile-terug {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0 6px;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--bi-navy);
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: var(--sans);
+    margin-bottom: 4px;
+  }
+
+  /* Bijlagen grid smaller */
+  .bijlagen-grid { grid-template-columns: repeat(3, 1fr); }
+
+  /* Popup breder op mobiel */
+  .popup-box { width: 96vw; }
+  .prev-canvas { height: 220px; }
+}
+
+@media (max-width: 480px) {
+  /* Telefoon */
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .bijlagen-grid { grid-template-columns: repeat(2, 1fr); }
+  .sign-grid { grid-template-columns: 1fr; }
+  .kop-grid { grid-template-columns: 1fr; }
+  .kop-cel:nth-child(odd) { border-right: none; }
+  .btn-rij { flex-direction: column; }
+  .btn-akkoord, .btn-afkeur { width: 100%; }
+  .tab-btn { font-size: .72rem; padding: 8px 0; }
+  .wachtrij { max-height: 240px; }
+}
+
+/* Desktop — mobile-terug nooit tonen */
+@media (min-width: 901px) {
+  .mobile-terug { display: none !important; }
+  .main { display: flex !important; }
+}
 </style>
 </head>
 <body>
@@ -280,7 +367,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
     <span id="bi-tekst" style="display:none;color:var(--bi-gold);font-weight:800;font-size:1rem;letter-spacing:0.05em;">BISCUIT</span>
     <div class="brand-div"></div>
     <div>
-      <div class="dash-label">INK-F-07 BL Ingangscontrole</div>
+      <div class="dash-label">Ingangscontrole</div>
     </div>
     <div class="week-pill" id="datum-pill">—</div>
     <div class="spacer"></div>
@@ -512,10 +599,12 @@ async function stuurGoedkeuring(itemId,status,gebruiker,opmerking=''){
 function renderWachtrij(){
   const items=state.items;
   const vd=new Date().toDateString();
-  const open=items.filter(i=>choiceVal(i[K.goedkeuringStatus])!=='Akkoord').length;
-  const afw=items.filter(i=>heeftAfwijking(i)&&choiceVal(i[K.goedkeuringStatus])!=='Akkoord').length;
-  const akk=items.filter(i=>choiceVal(i[K.goedkeuringStatus])==='Akkoord').length;
-  const tod=items.filter(i=>new Date(i.Created).toDateString()===vd).length;
+  // Stats use allItems (includes Akkoord), queue only shows open
+  const all=state.allItems||items;
+  const open=all.filter(i=>choiceVal(i[K.goedkeuringStatus])!=='Akkoord'&&choiceVal(i[K.goedkeuringStatus])!=='Afgekeurd').length;
+  const afw=all.filter(i=>heeftAfwijking(i)&&choiceVal(i[K.goedkeuringStatus])!=='Akkoord').length;
+  const akk=all.filter(i=>choiceVal(i[K.goedkeuringStatus])==='Akkoord').length;
+  const tod=all.filter(i=>new Date(i.Created).toDateString()===vd).length;
   document.getElementById('stat-open').textContent=open;
   document.getElementById('stat-afwijk').textContent=afw;
   document.getElementById('stat-akkoord').textContent=akk;
@@ -566,6 +655,7 @@ function renderDetail(){
   }).join(''):'<div style="font-size:.75rem;color:var(--ink4);grid-column:1/-1;padding:4px 0;">Geen bijlagen</div>';
 
   document.getElementById('main').innerHTML=`
+    <button class="mobile-terug" onclick="sluitDetail()">\u2190 Terug naar wachtrij</button>
     <div>
       <div class="sec-title">Koptekst</div>
       <div class="dcard">
@@ -750,7 +840,11 @@ async function selecteerItem(idx){
   state.geselecteerd=state.items[idx];
   state.bijlagen=[];
   renderWachtrij();
-  document.getElementById('main').innerHTML='<div class="loading"><div class="spinner"></div>Bijlagen ophalen\u2026</div>';
+  const main=document.getElementById('main');
+  main.classList.add('actief');
+  main.innerHTML='<div class="loading"><div class="spinner"></div>Bijlagen ophalen\u2026</div>';
+  // Scroll main into view on mobile
+  if(window.innerWidth<=900){ main.scrollIntoView({behavior:'smooth',block:'start'}); }
   try{state.bijlagen=await haalBijlagen(state.geselecteerd.ID);}catch{state.bijlagen=[];}
   renderDetail();
 }
@@ -780,22 +874,53 @@ function zoekItems(query){
   }).join('');
 }
 
+function sluitDetail(){
+  state.geselecteerd=null;
+  const main=document.getElementById('main');
+  main.classList.remove('actief');
+  main.innerHTML='';
+  renderWachtrij();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
 function switchTab(tab){
   state.tab=tab;
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{b.classList.toggle('active',(i===0&&tab==='open')||(i===1&&tab==='archief'));});
   laadAlles();
 }
 
+function normalizeData(data){
+  if(Array.isArray(data))return data;
+  if(data&&Array.isArray(data.value))return data.value;
+  if(data&&typeof data==='object'){const k=Object.keys(data).find(k=>Array.isArray(data[k]));if(k)return data[k];}
+  return[];
+}
+
 async function laadAlles(){
   document.getElementById('wachtrij').innerHTML='<div class="loading"><div class="spinner"></div>Laden\u2026</div>';
   try{
-    const data=await haalItems(state.tab==='archief');
-    if(Array.isArray(data))state.items=data;
-    else if(data&&Array.isArray(data.value))state.items=data.value;
-    else if(data&&typeof data==='object'){const k=Object.keys(data).find(k=>Array.isArray(data[k]));state.items=k?data[k]:[];}
-    else state.items=[];
+    if(state.tab==='archief'){
+      // Archief: laad goedgekeurde items
+      const data=await haalItems(true);
+      state.items=normalizeData(data);
+      state.allItems=state.items;
+    } else {
+      // Wachtrij: laad open items voor queue
+      // En haal archief op voor akkoord-teller
+      const [openData, akkData] = await Promise.allSettled([
+        haalItems(false),
+        haalItems(true)
+      ]);
+      const openItems = openData.status==='fulfilled' ? normalizeData(openData.value) : [];
+      const akkItems  = akkData.status==='fulfilled'  ? normalizeData(akkData.value)  : [];
+      state.items    = openItems;
+      state.allItems = [...openItems, ...akkItems];
+    }
     renderWachtrij();
-    if(state.geselecteerd){const b=state.items.find(i=>i.ID===state.geselecteerd.ID);if(b){state.geselecteerd=b;renderDetail();}}
+    if(state.geselecteerd){
+      const b=state.items.find(i=>i.ID===state.geselecteerd.ID);
+      if(b){state.geselecteerd=b;renderDetail();}
+    }
   }catch(e){
     document.getElementById('wachtrij').innerHTML=`<div style="padding:16px;font-size:.75rem;color:var(--red);">\u26a0 Kan flow niet bereiken.<br><small>${e.message}</small></div>`;
     showToast('Verbindingsfout','error');
