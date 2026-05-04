@@ -899,22 +899,29 @@ function normalizeData(data){
 async function laadAlles(){
   document.getElementById('wachtrij').innerHTML='<div class="loading"><div class="spinner"></div>Laden\u2026</div>';
   try{
-    // Gebruik alleen HAAL_ITEMS — verwijder filter in flow zodat alle items terugkomen
-    const data = await haalItems(false);
-    state.allItems = normalizeData(data);
-
     if(state.tab==='archief'){
-      state.items = state.allItems.filter(i=>{
-        const s=choiceVal(i[K.goedkeuringStatus]);
-        return s==='Akkoord'||s==='Afgekeurd';
-      });
+      // Archief tab: gebruik HAAL_ARCHIEF flow (geeft Akkoord items)
+      const data = await haalItems(true);
+      state.items = normalizeData(data);
+      state.allItems = state.items;
     } else {
-      state.items = state.allItems.filter(i=>{
+      // Wachtrij tab: haal open items + archief tegelijk voor tellers
+      const [openRes, archRes] = await Promise.allSettled([
+        haalItems(false),
+        haalItems(true)
+      ]);
+      const openItems = openRes.status==='fulfilled' ? normalizeData(openRes.value) : [];
+      const archItems = archRes.status==='fulfilled' ? normalizeData(archRes.value) : [];
+      // Combineer voor statistieken, dedup op ID
+      const allMap = new Map();
+      [...archItems,...openItems].forEach(i=>allMap.set(i.ID,i));
+      state.allItems = [...allMap.values()];
+      // Wachtrij toont alleen niet-akkoord
+      state.items = openItems.filter(i=>{
         const s=choiceVal(i[K.goedkeuringStatus]);
         return s!=='Akkoord'&&s!=='Afgekeurd';
       });
     }
-
     renderWachtrij();
     if(state.geselecteerd){
       const b=state.allItems.find(i=>i.ID===state.geselecteerd.ID);
