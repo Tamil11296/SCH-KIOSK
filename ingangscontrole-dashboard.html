@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>Biscuit International — Ingangscontrole Dashboard</title>
+<title>Biscuit International — INK-F-07 BL Ingangscontrole Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -280,24 +280,14 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
     <span id="bi-tekst" style="display:none;color:var(--bi-gold);font-weight:800;font-size:1rem;letter-spacing:0.05em;">BISCUIT</span>
     <div class="brand-div"></div>
     <div>
-      <div class="dash-label">Ingangscontrole</div>
+      <div class="dash-label">INK-F-07 BL Ingangscontrole</div>
     </div>
     <div class="week-pill" id="datum-pill">—</div>
     <div class="spacer"></div>
     <div class="clock" id="klok">—</div>
     &nbsp;&nbsp;
     <button class="top-btn" onclick="laadAlles()">↻ Vernieuwen</button>
-    <button class="top-btn" id="debug-btn" onclick="toonDebug()" style="border-color:#c9a227;color:#c9a227;">Kolommen</button>
   </div>
-  <div id="debug-panel" style="display:none;position:fixed;top:56px;right:0;width:480px;height:calc(100vh - 56px);background:#1a1814;color:#f5f0e6;font-family:monospace;font-size:11px;overflow-y:auto;z-index:999;border-left:2px solid #c9a227;padding:16px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <span style="color:#c9a227;font-weight:700;font-size:13px;">Kolomnamen uit SharePoint</span>
-      <button onclick="document.getElementById('debug-panel').style.display='none'" style="background:rgba(255,255,255,0.1);border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;">Sluiten</button>
-    </div>
-    <div style="color:#888;margin-bottom:8px;font-size:10px;">Veldnamen van het geselecteerde item</div>
-    <div id="debug-inhoud">Selecteer eerst een item in de wachtrij...</div>
-  </div>
-
   <div class="body-wrap">
 
     <!-- SIDEBAR -->
@@ -410,706 +400,412 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
-//  FLOW URLS — hier plak je de Power Automate HTTP trigger URLs
-// ═══════════════════════════════════════════════════════════════
 const FLOWS = {
   HAAL_ITEMS:    'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/21ff6a8d03974c838ebb6bbbe586bd67/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=RzvTnk42zot2kH98pZ-pY6PEjxkygQLdl-b0EDJ5VVk',
   HAAL_BIJLAGEN: 'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/39017d7c628f442fb7e19c47da6d69be/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=pxl6v55-nattSgO6WuogvL3uUWOqa2D7ltQNah-gqlQ',
   GOEDKEURING:   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/0f022791d3284a979999c7f9a5c62283/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1yh4yebOmScpkSPAzr0NoGpwOeHx-nT_rR12NezHp-c',
   HAAL_ARCHIEF:  'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/39b8c9a05713462f943d6945bb7ac311/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zOFFSrYyTL-eczSyVEHflSy18Ufw0obUIuMLCkYwfU8',
 };
-
-// ═══════════════════════════════════════════════════════════════
-//  KOLOMNAMEN — pas aan als SharePoint andere namen geeft
-//  (controleer via: Lijstinstellingen → kolom → URL → Field=...)
-// ═══════════════════════════════════════════════════════════════
 const K = {
-  leverancier:      'Title',
-  purchaseNr:       'Purchasenr_x003a_',
-  sapNr:            'SAPnr',
-  typeOntvangst:    'Typeontvangst',
-  ontvangstDatum:   'Ontvangenop_x003a_',
-  controleur:       'Ontvangendoor_x003a_',
-  juisteArtikel:    'Ishetjuisteartikelgeleverd_x003f',
-  hoeveelheid:      'Isdejuistehoeveelheidgeleverd_x0',
-  vrachtbrief:      'Kloppendegegevens_x0028_leveranc',
-  transportcond:    'Transportcondities_x003a_Isdelaa',
-  hygienePallets:   'Verpakking_x002f_Pallets_x003a_I',
-  thtBbd:           'THT_x002f_BBD_x003a_',
-  lotCode:          'Batchlotcodes_x003a_',
-  thtOk:            'THTdatumnietverstrekenenvoldoeta',
-  kunststofPallets: 'Grondstoffengeleverdopkunststofp',
-  zeefIntact:       'Leveringbloem_x003a_',
-  sealnummers:      'Bijleveringbulkvagen_x002f_IBC_x',
-  reinigingscert:   'Bijleveringbulkvagen_x002f_IBC_0',
-  siloNr:           'Leveringsuiker_x003a_welkesilois',
-  afvuldatum:       'Bijlevering_x002f_IBCs_x003a_',
-  rspo:             'RSPO_x0027_enSG_x0027_vermeldingo',
-  tempNorm:         'Isdetemperatuurbinenorm_x003f_',
-  tempGemeten:      'Watisdegemetentemperatuur_x003f_',
-  actieAfwijkingen: 'Actiebijafwijkingen_x003a_',
-  goedkeuringStatus:'GoedkeuringStatus',
-  goedgekeurdOp:    'GoedgekeurdOp',
-  goedkeuringRol:   'GoedkeuringRol',
-  goedkeuringOpmerking:'GoedkeuringOpmerking',
+  leverancier:'Title', purchaseNr:'Purchasenr_x003a_', sapNr:'SAPnr',
+  typeOntvangst:'Typeontvangst', ontvangstDatum:'Ontvangenop_x003a_',
+  controleur:'Ontvangendoor_x003a_',
+  juisteArtikel:'Ishetjuisteartikelgeleverd_x003f',
+  hoeveelheid:'Isdejuistehoeveelheidgeleverd_x0',
+  vrachtbrief:'Kloppendegegevens_x0028_leveranc',
+  transportcond:'Transportcondities_x003a_Isdelaa',
+  hygienePallets:'Verpakking_x002f_Pallets_x003a_I',
+  thtBbd:'THT_x002f_BBD_x003a_', lotCode:'Batchlotcodes_x003a_',
+  thtOk:'THTdatumnietverstrekenenvoldoeta',
+  kunststofPallets:'Grondstoffengeleverdopkunststofp',
+  zeefIntact:'Leveringbloem_x003a_',
+  sealnummers:'Bijleveringbulkvagen_x002f_IBC_x',
+  reinigingscert:'Bijleveringbulkvagen_x002f_IBC_0',
+  siloNr:'Leveringsuiker_x003a_welkesilois',
+  afvuldatum:'Bijlevering_x002f_IBCs_x003a_',
+  rspo:'RSPO_x0027_enSG_x0027_vermeldingo',
+  tempNorm:'Isdetemperatuurbinenorm_x003f_',
+  tempGemeten:'Watisdegemetentemperatuur_x003f_',
+  actieAfwijkingen:'Actiebijafwijkingen_x003a_',
+  goedkeuringStatus:'GoedkeuringStatus', goedgekeurdOp:'GoedgekeurdOp',
+  goedkeuringRol:'GoedkeuringRol', goedkeuringOpmerking:'GoedkeuringOpmerking',
 };
+const state={items:[],geselecteerd:null,bijlagen:[],previewIdx:0,tab:'open'};
 
-// ═══════════════════════════════════════════════════════════════
-//  STAAT
-// ═══════════════════════════════════════════════════════════════
-const state = { items:[], geselecteerd:null, bijlagen:[], previewIdx:0, tab:'open' };
-
-// ═══════════════════════════════════════════════════════════════
-//  HELPERS
-// ═══════════════════════════════════════════════════════════════
-function nl(v){ return (v===null||v===undefined||v==='')?'—':v; }
-
-function datumFmt(v){
-  if(!v) return '—';
-  return new Date(v).toLocaleString('nl-NL',{dateStyle:'short',timeStyle:'short'});
-}
-
-function choiceVal(v){
-  if(!v) return '';
-  if(typeof v === 'object') return v.Value || '';
-  return String(v);
-}
-
-function typeVal(item){
-  return choiceVal(item[K.typeOntvangst]);
-}
-
-function isGrondstof(item){ return typeVal(item).toLowerCase().includes('grondstof'); }
-
+function nl(v){return(v===null||v===undefined||v==='')?'\u2014':v;}
+function datumFmt(v){if(!v)return '\u2014';return new Date(v).toLocaleString('nl-NL',{dateStyle:'short',timeStyle:'short'});}
+function choiceVal(v){if(!v)return '';if(typeof v==='object')return v.Value||'';return String(v);}
+function typeVal(item){return choiceVal(item[K.typeOntvangst]);}
+function isGrondstof(item){return typeVal(item).toLowerCase().includes('grondstof');}
 function heeftAfwijking(item){
-  const neeVelden = [K.juisteArtikel,K.hoeveelheid,K.transportcond,
-                     K.hygienePallets,K.thtOk,K.tempNorm];
-  const actie = item[K.actieAfwijkingen]||'';
-  return (actie.trim()!=='')
-      || neeVelden.some(f=>{
-           const v = item[f];
-           const s = (v&&typeof v==='object') ? (v.Value||'') : (v||'');
-           return s.toLowerCase()==='nee';
-         });
+  const nee=[K.juisteArtikel,K.hoeveelheid,K.transportcond,K.hygienePallets,K.thtOk,K.tempNorm];
+  const a=item[K.actieAfwijkingen]||'';
+  return a.trim()!==''||nee.some(f=>{const v=item[f];const s=(v&&typeof v==='object')?(v.Value||''):(v||'');return s.toLowerCase()==='nee';});
 }
-
 function statusInfo(item){
-  const s = choiceVal(item[K.goedkeuringStatus]);
-  if(s==='Akkoord')   return {cls:'dot-groen',  pill:'pill-groen',  label:'Akkoord'};
-  if(s==='Afgekeurd') return {cls:'dot-rood',   pill:'pill-rood',   label:'Afgekeurd'};
-  if(heeftAfwijking(item)) return {cls:'dot-rood',pill:'pill-rood',label:'⚠ Afwijking'};
-  return {cls:'dot-oranje', pill:'pill-oranje', label:'Open'};
+  const s=choiceVal(item[K.goedkeuringStatus]);
+  if(s==='Akkoord')   return{cls:'dot-groen',pill:'pill-groen',label:'Akkoord'};
+  if(s==='Afgekeurd') return{cls:'dot-rood', pill:'pill-rood', label:'Afgekeurd'};
+  if(heeftAfwijking(item))return{cls:'dot-rood',pill:'pill-rood',label:'\u26a0 Afwijking'};
+  return{cls:'dot-oranje',pill:'pill-oranje',label:'Open'};
 }
-
 function badgeJaNee(raw){
-  const v = (raw && typeof raw === 'object') ? (raw.Value||'') : (raw||'');
-  if(!v||v==='—') return '<span class="badge-nvt">N.v.t.</span>';
+  const v=(raw&&typeof raw==='object')?(raw.Value||''):(raw||'');
+  if(!v||v==='\u2014')return'<span class="badge-nvt">N.v.t.</span>';
   const l=String(v).toLowerCase();
-  if(l==='ja')  return '<span class="badge-ja">Ja</span>';
-  if(l==='nee') return '<span class="badge-nee">Nee</span>';
-  return `<span class="badge-nvt">${v}</span>`;
+  if(l==='ja') return'<span class="badge-ja">Ja</span>';
+  if(l==='nee')return'<span class="badge-nee">Nee</span>';
+  return`<span class="badge-nvt">${v}</span>`;
 }
-
-function extractNaam(b){
-  if(b.FileName && !b.FileName.includes('%')) return b.FileName;
-  if(b.DisplayName && !b.DisplayName.includes('%')) return b.DisplayName;
-  // Extract from AbsoluteUri or Id
-  const src = b.AbsoluteUri || b.Id || '';
-  try {
-    const decoded = decodeURIComponent(decodeURIComponent(src));
-    const parts = decoded.split('/');
-    return parts[parts.length-1] || 'bestand';
-  } catch {
-    const parts = src.split('/');
-    return parts[parts.length-1] || 'bestand';
-  }
-}
-
 function bijlageIcoon(naam){
+  if(!naam)return{icon:'\ud83d\udcce',bg:'#f3f4f6'};
   const ext=naam.split('.').pop().toLowerCase();
-  if(['jpg','jpeg','png','gif','webp'].includes(ext)) return {icon:'🖼️',bg:'#dbeafe'};
-  if(ext==='pdf')  return {icon:'📄',bg:'#fee2e2'};
-  if(['xls','xlsx'].includes(ext)) return {icon:'📊',bg:'#dcfce7'};
-  if(['doc','docx'].includes(ext)) return {icon:'📝',bg:'#dbeafe'};
-  return {icon:'📎',bg:'#f3f4f6'};
+  if(['jpg','jpeg','png','gif','webp'].includes(ext))return{icon:'\ud83d\uddbc\ufe0f',bg:'#dbeafe'};
+  if(ext==='pdf')return{icon:'\ud83d\udcc4',bg:'#fee2e2'};
+  if(['xls','xlsx'].includes(ext))return{icon:'\ud83d\udcca',bg:'#dcfce7'};
+  if(['doc','docx'].includes(ext))return{icon:'\ud83d\udcdd',bg:'#dbeafe'};
+  return{icon:'\ud83d\udcce',bg:'#f3f4f6'};
 }
-
-function isAfbeelding(naam){
-  if(!naam) return false;
-  return ['jpg','jpeg','png','gif','webp'].includes(naam.split('.').pop().toLowerCase());
-}
-
-function zoekItems(query){
-  const q = query.toLowerCase().trim();
-  if(!q){ renderWachtrij(); return; }
-  const gefilterd = state.items.filter(item=>{
-    const po   = (item[K.purchaseNr]||'').toLowerCase();
-    const sap  = (item[K.sapNr]||'').toLowerCase();
-    const type = typeVal(item).toLowerCase();
-    const auteur = (item.Author?.DisplayName||'').toLowerCase();
-    return po.includes(q)||sap.includes(q)||type.includes(q)||auteur.includes(q);
-  });
-  // Render gefilterde wachtrij tijdelijk
-  if(!gefilterd.length){
-    document.getElementById('wachtrij').innerHTML=
-      '<div style="padding:16px;text-align:center;color:var(--ink4);font-size:.78rem;">Geen resultaten voor "'+query+'"</div>';
-    return;
-  }
-  const html = gefilterd.map((item,idx)=>{
-    const si = statusInfo(item);
-    const naam = item[K.purchaseNr]||item[K.sapNr]||'—';
-    const type = typeVal(item);
-    const tijd = datumFmt(item.Created).split(',')[0];
-    const actief = state.geselecteerd?.ID === item.ID;
-    const origIdx = state.items.indexOf(item);
-    return `<div class="queue-item${actief?' actief':''}" onclick="selecteerItem(${origIdx})">
-      <div class="q-dot ${si.cls}"></div>
-      <div style="flex:1;min-width:0;">
-        <div class="q-naam" title="${naam}">${naam}</div>
-        <div class="q-sub">${type||'—'} · ${tijd}</div>
-      </div>
-      <span class="q-pill ${si.pill}">${si.label}</span>
-    </div>`;
-  }).join('');
-  document.getElementById('wachtrij').innerHTML = html;
-}
-
-function toonDebug(){
-  const panel = document.getElementById('debug-panel');
-  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-  if(!state.geselecteerd){ return; }
-  const item = state.geselecteerd;
-  const keys = Object.keys(item).sort();
-  let html = '';
-  keys.forEach(k => {
-    const v = item[k];
-    const val = (v === null || v === undefined || v === '') ? '<span style="color:#555">leeg</span>' : '<span style="color:#86efac">' + JSON.stringify(v).slice(0,80) + '</span>';
-    html += '<div style="margin-bottom:4px;border-bottom:1px solid #333;padding-bottom:4px;"><span style="color:#c9a227;">' + k + '</span><br>' + val + '</div>';
-  });
-  document.getElementById('debug-inhoud').innerHTML = html || 'Geen data';
-}
-
+function isAfbeelding(naam){if(!naam)return false;return['jpg','jpeg','png','gif','webp'].includes(naam.split('.').pop().toLowerCase());}
 function showToast(msg,type){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast '+(type||'');
-  t.classList.add('show');
+  t.textContent=msg;t.className='toast '+(type||'');t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),3000);
 }
-
-function sluitPopup(id){ document.getElementById(id).classList.remove('active'); }
-
+function sluitPopup(id){document.getElementById(id).classList.remove('active');}
 function updateKlok(){
   const nu=new Date();
-  document.getElementById('klok').textContent=
-    nu.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  document.getElementById('datum-pill').textContent=
-    nu.toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'});
+  document.getElementById('klok').textContent=nu.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('datum-pill').textContent=nu.toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'});
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  FLOW CALLS
-// ═══════════════════════════════════════════════════════════════
-async function flowPost(url, body={}, timeoutMs=15000){
-  const controller = new AbortController();
-  const timer = setTimeout(()=>controller.abort(), timeoutMs);
-  try {
-    const r = await fetch(url,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(body),
-      signal: controller.signal
-    });
-    clearTimeout(timer);
-    if(!r.ok) throw new Error(`Flow HTTP ${r.status}`);
-    const text = await r.text();
-    return text ? JSON.parse(text) : {};
-  } catch(e) {
-    clearTimeout(timer);
-    if(e.name === 'AbortError') throw new Error('Flow time-out na 15 seconden');
-    throw e;
-  }
+async function flowPost(url,body={},ms=20000){
+  const ctrl=new AbortController();
+  const t=setTimeout(()=>ctrl.abort(),ms);
+  try{
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctrl.signal});
+    clearTimeout(t);
+    if(!r.ok)throw new Error('Flow HTTP '+r.status);
+    const txt=await r.text();return txt?JSON.parse(txt):{};
+  }catch(e){clearTimeout(t);if(e.name==='AbortError')throw new Error('Flow time-out');throw e;}
 }
-
 async function haalItems(archief=false){
-  const url = archief ? FLOWS.HAAL_ARCHIEF : FLOWS.HAAL_ITEMS;
-  const data = await flowPost(url);
-  return data.value || data || [];
+  const data=await flowPost(archief?FLOWS.HAAL_ARCHIEF:FLOWS.HAAL_ITEMS);
+  if(Array.isArray(data))return data;
+  if(data&&Array.isArray(data.value))return data.value;
+  if(data&&typeof data==='object'){const k=Object.keys(data).find(k=>Array.isArray(data[k]));if(k)return data[k];}
+  return[];
 }
-
 async function haalBijlagen(itemId){
-  try {
-    const data = await flowPost(FLOWS.HAAL_BIJLAGEN, {itemId: parseInt(itemId)});
-    if(Array.isArray(data)) return data;
-    if(data && Array.isArray(data.value)) return data.value;
-    if(data && typeof data === 'object'){
-      const keys = Object.keys(data);
-      for(const k of keys){
-        if(Array.isArray(data[k])) return data[k];
-      }
-    }
-    return [];
-  } catch(e) {
-    console.warn('Bijlagen ophalen mislukt:', e);
-    return [];
-  }
+  try{
+    const data=await flowPost(FLOWS.HAAL_BIJLAGEN,{itemId:parseInt(itemId)});
+    if(Array.isArray(data))return data;
+    if(data&&Array.isArray(data.value))return data.value;
+    if(data&&typeof data==='object'){const k=Object.keys(data).find(k=>Array.isArray(data[k]));if(k)return data[k];}
+    return[];
+  }catch(e){console.warn('Bijlagen:',e.message);return[];}
+}
+async function stuurGoedkeuring(itemId,status,gebruiker,opmerking=''){
+  await flowPost(FLOWS.GOEDKEURING,{itemId,status,gebruiker,email:'',opmerking});
 }
 
-async function stuurGoedkeuring(itemId, status, gebruiker, opmerking=''){
-  await flowPost(FLOWS.GOEDKEURING, {itemId, status, gebruiker, email:'', opmerking});
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  WACHTRIJ RENDEREN
-// ═══════════════════════════════════════════════════════════════
 function renderWachtrij(){
-  const items = state.items;
-  const vandaag = new Date().toDateString();
-  const open    = items.filter(i=>i[K.goedkeuringStatus]!=='Akkoord').length;
-  const afwijk  = items.filter(i=>heeftAfwijking(i)&&i[K.goedkeuringStatus]!=='Akkoord').length;
-  const akkoord = items.filter(i=>i[K.goedkeuringStatus]==='Akkoord').length;
-  const today   = items.filter(i=>new Date(i.Created).toDateString()===vandaag).length;
-
-  document.getElementById('stat-open').textContent    = open;
-  document.getElementById('stat-afwijk').textContent  = afwijk;
-  document.getElementById('stat-akkoord').textContent = akkoord;
-  document.getElementById('stat-vandaag').textContent = today;
-
-  if(!items.length){
-    document.getElementById('wachtrij').innerHTML=
-      '<div style="padding:24px;text-align:center;color:var(--ink4);font-size:0.8rem;">Geen items gevonden</div>';
-    return;
-  }
-
-  const html = items.map((item,idx)=>{
-    const si = statusInfo(item);
-    const naam = item[K.purchaseNr]||item[K.sapNr]||nl(item[K.leverancier]);
-    const type = typeVal(item);
-    const tijd = datumFmt(item.Created).split(',')[0];
-    const actief = state.geselecteerd?.ID === item.ID;
-    return `
-      <div class="queue-item${actief?' actief':''}" onclick="selecteerItem(${idx})">
-        <div class="q-dot ${si.cls}"></div>
-        <div style="flex:1;min-width:0;">
-          <div class="q-naam" title="${naam}">${naam}</div>
-          <div class="q-sub">${type||'—'} · ${tijd}</div>
-        </div>
-        <span class="q-pill ${si.pill}">${si.label}</span>
-      </div>`;
+  const items=state.items;
+  const vd=new Date().toDateString();
+  const open=items.filter(i=>choiceVal(i[K.goedkeuringStatus])!=='Akkoord').length;
+  const afw=items.filter(i=>heeftAfwijking(i)&&choiceVal(i[K.goedkeuringStatus])!=='Akkoord').length;
+  const akk=items.filter(i=>choiceVal(i[K.goedkeuringStatus])==='Akkoord').length;
+  const tod=items.filter(i=>new Date(i.Created).toDateString()===vd).length;
+  document.getElementById('stat-open').textContent=open;
+  document.getElementById('stat-afwijk').textContent=afw;
+  document.getElementById('stat-akkoord').textContent=akk;
+  document.getElementById('stat-vandaag').textContent=tod;
+  if(!items.length){document.getElementById('wachtrij').innerHTML='<div style="padding:24px;text-align:center;color:var(--ink4);font-size:.8rem;">Geen items</div>';return;}
+  document.getElementById('wachtrij').innerHTML=items.map((item,idx)=>{
+    const si=statusInfo(item);
+    const naam=item[K.purchaseNr]||item[K.sapNr]||'\u2014';
+    const type=typeVal(item);
+    const tijd=datumFmt(item.Created).split(',')[0];
+    const actief=state.geselecteerd?.ID===item.ID;
+    return`<div class="queue-item${actief?' actief':''}" onclick="selecteerItem(${idx})">
+      <div class="q-dot ${si.cls}"></div>
+      <div style="flex:1;min-width:0;"><div class="q-naam" title="${naam}">${naam}</div>
+      <div class="q-sub">${type||'\u2014'} \u00b7 ${tijd}</div></div>
+      <span class="q-pill ${si.pill}">${si.label}</span></div>`;
   }).join('');
-  document.getElementById('wachtrij').innerHTML = html;
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  DETAIL RENDEREN
-// ═══════════════════════════════════════════════════════════════
 function renderDetail(){
-  const item   = state.geselecteerd;
-  const bijl   = Array.isArray(state.bijlagen) ? state.bijlagen : [];
-  if(!item){ document.getElementById('main').innerHTML=
-    '<div class="leeg-scherm"><div class="leeg-icon">📋</div><div style="font-size:.9rem;">Selecteer een item</div></div>';
-    return; }
-
-  const grondstof  = isGrondstof(item);
-  const gekoeld    = item[K.tempGemeten]&&item[K.tempGemeten]!==''&&item[K.tempGemeten]!=='—';
-  const afwijk     = heeftAfwijking(item);
-  const gsVal = choiceVal(item[K.goedkeuringStatus]);
-  const isAkkoord  = gsVal==='Akkoord';
-  const isAfgekeurd= gsVal==='Afgekeurd';
-
-  const checks = [
-    {lbl:'Is het juiste artikel geleverd?',          veld:K.juisteArtikel},
-    {lbl:'Hoeveelheid binnen de norm?',              veld:K.hoeveelheid},
-    {lbl:'Gegevens op de vrachtbrief correct?',      veld:K.vrachtbrief},
-    {lbl:'Transportcondities — laadruimte schoon?',  veld:K.transportcond},
-    {lbl:'Verpakking / Pallets — schoon en intact?', veld:K.hygienePallets},
+  const item=state.geselecteerd;
+  const bijl=Array.isArray(state.bijlagen)?state.bijlagen:[];
+  if(!item){document.getElementById('main').innerHTML='<div class="leeg-scherm"><div class="leeg-icon">\ud83d\udccb</div><div style="font-size:.9rem;">Selecteer een item</div></div>';return;}
+  const grondstof=isGrondstof(item);
+  const gekoeld=item[K.tempGemeten]&&item[K.tempGemeten]!=='';
+  const afwijk=heeftAfwijking(item);
+  const gs=choiceVal(item[K.goedkeuringStatus]);
+  const isAkkoord=gs==='Akkoord';
+  const isAfgekeurd=gs==='Afgekeurd';
+  const checks=[
+    {lbl:'Is het juiste artikel geleverd?',veld:K.juisteArtikel},
+    {lbl:'Hoeveelheid binnen de norm?',veld:K.hoeveelheid},
+    {lbl:'Gegevens op de vrachtbrief correct?',veld:K.vrachtbrief},
+    {lbl:'Transportcondities \u2014 laadruimte schoon?',veld:K.transportcond},
+    {lbl:'Verpakking / Pallets \u2014 schoon en intact?',veld:K.hygienePallets},
   ];
-
-  const siloChecks = [
-    {lbl:'Zeef gebruikt en intact?',          veld:K.zeefIntact},
-    {lbl:'Sealnummers overeen met pakbon?',    veld:K.sealnummers},
-    {lbl:'Reinigingscertificaat bijgevoegd?',  veld:K.reinigingscert},
+  const siloChecks=[
+    {lbl:'Zeef gebruikt en intact?',veld:K.zeefIntact},
+    {lbl:'Sealnummers overeen met pakbon?',veld:K.sealnummers},
+    {lbl:'Reinigingscertificaat bijgevoegd?',veld:K.reinigingscert},
   ];
+  const bijlHTML=bijl.length?bijl.map((b,i)=>{
+    const fname=b.FileName||b.DisplayName||(b.Id?decodeURIComponent(b.Id.split('/').pop()):'bestand');
+    const{icon,bg}=bijlageIcoon(fname);
+    return`<div class="bijlage-thumb" onclick="openPreview(${i})" title="${fname}">
+      <div class="bij-prev" style="background:${bg};">${icon}</div>
+      <div class="bij-naam">${fname}</div></div>`;
+  }).join(''):'<div style="font-size:.75rem;color:var(--ink4);grid-column:1/-1;padding:4px 0;">Geen bijlagen</div>';
 
-  // Bijlagen
-  const bijlHTML = bijl.length
-    ? bijl.map((b,i)=>{
-        const fname = extractNaam(b);
-        const {icon,bg}=bijlageIcoon(fname);
-        return `<div class="bijlage-thumb" onclick="openPreview(${i})">
-          <div class="bij-prev" style="background:${bg};">${icon}</div>
-          <div class="bij-naam" title="${fname}">${fname}</div>
-        </div>`;
-      }).join('')
-    : '<div style="font-size:.75rem;color:var(--ink4);grid-column:1/-1;padding:4px 0;">Geen bijlagen toegevoegd</div>';
-
-  document.getElementById('main').innerHTML = `
-    <!-- KOPTEKST -->
+  document.getElementById('main').innerHTML=`
     <div>
       <div class="sec-title">Koptekst</div>
       <div class="dcard">
-        <div class="dcard-head head-navy">
-          <span>INK-F-07 BL — Ingangscontrole formulier</span>
-          <span style="font-size:.65rem;opacity:.7;">${datumFmt(item.Created)}</span>
-        </div>
+        <div class="dcard-head head-navy"><span>INK-F-07 BL \u2014 Ingangscontrole formulier</span><span style="font-size:.65rem;opacity:.7;">${datumFmt(item.Created)}</span></div>
         <div class="meta-strip">
-          <span>Controleur: <b>${nl(item[K.controleur]?.Value||item.Author?.DisplayName||'—')}</b>
-            &nbsp;·&nbsp; Type: <b>${typeVal(item)||'—'}</b></span>
-          ${afwijk
-            ? '<span class="q-pill pill-rood">⚠ Afwijking</span>'
-            : '<span class="q-pill pill-groen">✓ Geen afwijkingen</span>'}
+          <span>Controleur: <b>${nl(choiceVal(item[K.controleur])||item.Author?.DisplayName)}</b> &nbsp;\u00b7&nbsp; Type: <b>${typeVal(item)||'\u2014'}</b></span>
+          ${afwijk?'<span class="q-pill pill-rood">\u26a0 Afwijking</span>':'<span class="q-pill pill-groen">\u2713 Geen afwijkingen</span>'}
         </div>
         <div class="kop-grid">
-          <div class="kop-cel"><div class="kop-lbl">Purchase Order</div>
-            <div class="kop-val">${nl(item[K.purchaseNr])}</div></div>
-          <div class="kop-cel"><div class="kop-lbl">SAP nummer</div>
-            <div class="kop-val">${nl(item[K.sapNr])}</div></div>
-          <div class="kop-cel last"><div class="kop-lbl">Leverancier</div>
-            <div class="kop-val">${nl(item[K.leverancier])}</div></div>
-          <div class="kop-cel last"><div class="kop-lbl">Ontvangstdatum</div>
-            <div class="kop-val">${item[K.ontvangstDatum]?datumFmt(item[K.ontvangstDatum]):'—'}</div></div>
+          <div class="kop-cel"><div class="kop-lbl">Purchase Order</div><div class="kop-val">${nl(item[K.purchaseNr])}</div></div>
+          <div class="kop-cel"><div class="kop-lbl">SAP nummer</div><div class="kop-val">${nl(item[K.sapNr])}</div></div>
+          <div class="kop-cel last"><div class="kop-lbl">Gecontroleerd door</div><div class="kop-val">${nl(choiceVal(item[K.controleur])||item.Author?.DisplayName)}</div></div>
+          <div class="kop-cel last"><div class="kop-lbl">Ontvangstdatum</div><div class="kop-val">${item[K.ontvangstDatum]?datumFmt(item[K.ontvangstDatum]):'\u2014'}</div></div>
         </div>
       </div>
     </div>
-
-    <!-- ALGEMENE CONTROLE -->
     <div>
       <div class="sec-title">Algemene controle</div>
       <div class="dcard">
         <div class="dcard-head head-grijs">Ook invullen bij levering verpakkingsmateriaal</div>
-        ${checks.map(c=>`
-          <div class="check-rij">
-            <div class="check-lbl">${c.lbl}</div>
-            ${badgeJaNee(item[c.veld])}
-          </div>`).join('')}
+        ${checks.map(c=>`<div class="check-rij"><div class="check-lbl">${c.lbl}</div>${badgeJaNee(item[c.veld])}</div>`).join('')}
       </div>
     </div>
-
-    <!-- THT & LOTCODES -->
     <div>
       <div class="sec-title">THT & Lotcodes</div>
       <div class="dcard">
-        <div class="check-rij">
-          <div class="check-lbl">THT / BBD</div>
-          <div class="check-val">${nl(item[K.thtBbd])}</div>
-        </div>
-        <div class="check-rij">
-          <div class="check-lbl">Batch / lot code(s)</div>
-          <div class="check-val">${nl(item[K.lotCode])}</div>
-        </div>
-        <div class="check-rij">
-          <div class="check-lbl">THT en lotcode overeen met pakbon?</div>
-          ${badgeJaNee(item[K.thtOk])}
-        </div>
-        <div class="check-rij">
-          <div class="check-lbl">Geleverd op kunststof pallets?</div>
-          ${badgeJaNee(item[K.kunststofPallets])}
-        </div>
+        <div class="check-rij"><div class="check-lbl">THT / BBD</div><div class="check-val">${nl(item[K.thtBbd])}</div></div>
+        <div class="check-rij"><div class="check-lbl">Batch / lot code(s)</div><div class="check-val">${nl(item[K.lotCode])}</div></div>
+        <div class="check-rij"><div class="check-lbl">THT en lotcode overeen met pakbon?</div>${badgeJaNee(item[K.thtOk])}</div>
+        <div class="check-rij"><div class="check-lbl">Geleverd op kunststof pallets?</div>${badgeJaNee(item[K.kunststofPallets])}</div>
       </div>
     </div>
-
-    <!-- SILO / TANK / IBC — alleen grondstoffen -->
-    ${grondstof?`
+    ${grondstof?`<div><div class="sec-title">Silo / tank / IBC grondstoffen</div><div class="dcard">
+      ${siloChecks.map(c=>`<div class="check-rij"><div class="check-lbl">${c.lbl}</div>${badgeJaNee(item[c.veld])}</div>`).join('')}
+      <div class="check-rij"><div class="check-lbl">Welke silo is gevuld?</div><div class="check-val">${nl(item[K.siloNr])}</div></div>
+      <div class="check-rij"><div class="check-lbl">Afvuldatum IBC's</div><div class="check-val">${nl(item[K.afvuldatum])}</div></div>
+    </div></div>
+    <div><div class="sec-title">RSPO grondstoffen</div><div class="dcard">
+      <div class="check-rij"><div class="check-lbl">'RSPO' en 'SG' vermelding op pakbon en verpakking?</div>${badgeJaNee(item[K.rspo])}</div>
+    </div></div>`:''}
+    ${gekoeld?`<div><div class="sec-title">Gekoelde grondstoffen</div><div class="dcard">
+      <div class="dcard-head head-teal">Temperatuurcontrole</div>
+      <div class="check-rij"><div class="check-lbl">Temperatuur binnen de norm?</div>${badgeJaNee(item[K.tempNorm])}</div>
+      <div class="check-rij"><div class="check-lbl">Gemeten temperatuur</div><div style="font-size:1.2rem;font-weight:800;color:var(--bi-navy);font-family:var(--mono);">${nl(item[K.tempGemeten])}</div></div>
+    </div></div>`:''}
+    ${afwijk?`<div><div class="sec-title">Actie bij afwijkingen</div><div class="dcard">
+      <div class="dcard-head head-rood">\u26a0 Afwijking geregistreerd</div>
+      <div class="afwijking-blok">${nl(item[K.actieAfwijkingen])}</div>
+    </div></div>`:''}
     <div>
-      <div class="sec-title">Silo / tank / IBC grondstoffen</div>
+      <div class="sec-title">Bijlagen (${bijl.length})</div>
       <div class="dcard">
-        ${siloChecks.map(c=>`
-          <div class="check-rij">
-            <div class="check-lbl">${c.lbl}</div>
-            ${badgeJaNee(item[c.veld])}
-          </div>`).join('')}
-        <div class="check-rij">
-          <div class="check-lbl">Welke silo is gevuld?</div>
-          <div class="check-val">${nl(item[K.siloNr])}</div>
-        </div>
-        <div class="check-rij">
-          <div class="check-lbl">Afvuldatum IBC's</div>
-          <div class="check-val">${nl(item[K.afvuldatum])}</div>
-        </div>
+        <div class="dcard-head head-amber"><span>Toegevoegde documenten & foto's</span><span style="font-size:.65rem;">Klik om te openen</span></div>
+        <div class="bijlagen-grid">${bijlHTML}<div class="upload-slot">+ Bijlage</div></div>
       </div>
     </div>
-    <div>
-      <div class="sec-title">RSPO grondstoffen</div>
-      <div class="dcard">
-        <div class="check-rij">
-          <div class="check-lbl">'RSPO' en 'SG' vermelding op pakbon en verpakking?</div>
-          ${badgeJaNee(item[K.rspo])}
-        </div>
-      </div>
-    </div>`:''}
-
-    <!-- GEKOELDE GRONDSTOFFEN -->
-    ${gekoeld?`
-    <div>
-      <div class="sec-title">Gekoelde grondstoffen</div>
-      <div class="dcard">
-        <div class="dcard-head head-teal">Temperatuurcontrole</div>
-        <div class="check-rij">
-          <div class="check-lbl">Temperatuur binnen de norm?</div>
-          ${badgeJaNee(item[K.tempNorm])}
-        </div>
-        <div class="check-rij">
-          <div class="check-lbl">Gemeten temperatuur</div>
-          <div style="font-size:1.2rem;font-weight:800;color:var(--bi-navy);font-family:var(--mono);">
-            ${nl(item[K.tempGemeten])}
-          </div>
-        </div>
-      </div>
-    </div>`:''}
-
-    <!-- AFWIJKINGEN -->
-    ${afwijk?`
-    <div>
-      <div class="sec-title">Actie bij afwijkingen</div>
-      <div class="dcard">
-        <div class="dcard-head head-rood">⚠ Afwijking geregistreerd</div>
-        <div class="afwijking-blok">${nl(item[K.actieAfwijkingen])}</div>
-      </div>
-    </div>`:''}
-
-    <!-- BIJLAGEN -->
-    <div>
-      <div class="sec-title">Bijlagen (${bijl ? bijl.length : 0})</div>
-      <div class="dcard">
-        <div class="dcard-head head-amber">
-          <span>Toegevoegde documenten & foto's</span>
-          <span style="font-size:.65rem;">Klik om te openen</span>
-        </div>
-        <div class="bijlagen-grid">
-          ${bijlHTML}
-          <div class="upload-slot">+ Bijlage</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- GOEDKEURING -->
     <div>
       <div class="sec-title">Goedkeuring</div>
       <div class="dcard">
-        <div class="dcard-head ${isAkkoord?'head-groen':isAfgekeurd?'head-rood':'head-grijs'}">
-          Paraaf akkoord ontvangst
-        </div>
+        <div class="dcard-head ${isAkkoord?'head-groen':isAfgekeurd?'head-rood':'head-grijs'}">Paraaf akkoord ontvangst</div>
         <div class="goed-wrap">
           <div class="sign-grid">
             <div class="sign-box">
               <div class="sign-lbl">Magazijnmedewerker</div>
-              <div class="sign-naam">${nl(item[K.controleur]?.Value||item.Author?.DisplayName||'—')}</div>
+              <div class="sign-naam">${nl(choiceVal(item[K.controleur])||item.Author?.DisplayName)}</div>
               <div class="sign-datum">${datumFmt(item.Created)}</div>
             </div>
             <div class="sign-box">
               <div class="sign-lbl">QA / Call-off akkoord</div>
               ${isAkkoord||isAfgekeurd
-                ? `<div class="sign-naam" style="color:${isAkkoord?'var(--green)':'var(--red)'};">
-                     ${nl(item[K.goedkeuringRol]||'—')}</div>
-                   <div class="sign-datum">${datumFmt(item[K.goedgekeurdOp])}</div>
-                   ${item[K.goedkeuringOpmerking]
-                     ? `<div class="sign-datum" style="margin-top:4px;color:var(--red);">
-                          ${item[K.goedkeuringOpmerking]}</div>` : ''}`
-                : '<div class="sign-leeg">Nog niet afgetekend</div>'}
+                ?`<div class="sign-naam" style="color:${isAkkoord?'var(--green)':'var(--red)'};">${nl(item[K.goedkeuringRol])}</div><div class="sign-datum">${datumFmt(item[K.goedgekeurdOp])}</div>${item[K.goedkeuringOpmerking]?`<div class="sign-datum" style="color:var(--red);">${item[K.goedkeuringOpmerking]}</div>`:''}`
+                :'<div class="sign-leeg">Nog niet afgetekend</div>'}
             </div>
           </div>
-          ${isAkkoord
-            ? '<div class="banner-ok">✓ Goedgekeurd en vastgelegd in auditlog</div>'
-            : isAfgekeurd
-            ? '<div class="banner-ok" style="background:#fee2e2;border-color:#fecaca;color:var(--red);">✕ Afgekeurd en vastgelegd in auditlog</div>'
-            : `<div class="btn-rij">
-                 <button class="btn-akkoord" onclick="openAkkoord()">✓ Akkoord tekenen</button>
-                 <button class="btn-afkeur"  onclick="openAfkeur()">✕ Afkeuren</button>
-               </div>`}
+          ${isAkkoord?'<div class="banner-ok">\u2713 Goedgekeurd en vastgelegd in auditlog</div>'
+            :isAfgekeurd?'<div class="banner-ok" style="background:#fee2e2;border-color:#fecaca;color:var(--red);">\u2715 Afgekeurd en vastgelegd in auditlog</div>'
+            :`<div class="btn-rij">
+              <button class="btn-akkoord" onclick="openAkkoord()">\u2713 Akkoord tekenen</button>
+              <button class="btn-afkeur" onclick="openAfkeur()">\u2715 Afkeuren</button>
+            </div>`}
         </div>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  ITEM SELECTEREN
-// ═══════════════════════════════════════════════════════════════
-async function selecteerItem(idx){
-  state.geselecteerd = state.items[idx];
-  state.bijlagen = [];
-  renderWachtrij();
-  document.getElementById('main').innerHTML=
-    '<div class="loading"><div class="spinner"></div>Bijlagen ophalen…</div>';
-  try {
-    state.bijlagen = await haalBijlagen(state.geselecteerd.ID);
-  } catch(e) {
-    console.warn('Bijlagen fout:', e.message);
-    state.bijlagen = [];
-  }
-  renderDetail();
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  BIJLAGE PREVIEW
-// ═══════════════════════════════════════════════════════════════
 function openPreview(idx){
-  state.previewIdx = idx;
-  const bijl = Array.isArray(state.bijlagen) ? state.bijlagen : [];
-  const b = bijl[idx];
-  if(!b) return;
-
-  const fname = b.FileName || b.DisplayName
-    || (b.Id ? decodeURIComponent(b.Id.split('/').pop()) : 'bestand');
-  const url = b.AbsoluteUri || '#';
-
-  document.getElementById('prev-titel').textContent = fname;
-  document.getElementById('prev-dl').href = url;
-
-  const canvas = document.getElementById('prev-canvas');
-  const {icon: prevIcon} = bijlageIcoon(fname);
-  const ext = fname.split('.').pop().toUpperCase();
-
-  canvas.innerHTML = `
+  state.previewIdx=idx;
+  const bijl=Array.isArray(state.bijlagen)?state.bijlagen:[];
+  const b=bijl[idx];if(!b)return;
+  const fname=b.FileName||b.DisplayName||(b.Id?decodeURIComponent(b.Id.split('/').pop()):'bestand');
+  const url=b.AbsoluteUri||'#';
+  document.getElementById('prev-titel').textContent=fname;
+  document.getElementById('prev-dl').href=url;
+  const{icon}=bijlageIcoon(fname);
+  const ext=fname.split('.').pop().toUpperCase();
+  document.getElementById('prev-canvas').innerHTML=`
     <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px;text-align:center;">
-      <div style="font-size:3.5rem;">${prevIcon}</div>
+      <div style="font-size:3.5rem;">${icon}</div>
       <div style="font-size:.95rem;font-weight:700;color:var(--bi-navy);word-break:break-all;">${fname}</div>
       <div style="font-size:.78rem;color:var(--ink4);">${ext} bestand</div>
       <a href="${url}" target="_blank" rel="noopener"
-         style="background:var(--bi-navy);color:#fff;padding:10px 28px;border-radius:8px;
-                text-decoration:none;font-weight:700;font-size:.9rem;display:inline-block;">
-        Openen in SharePoint →
+         style="background:var(--bi-navy);color:#fff;padding:10px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.9rem;">
+        Openen in SharePoint \u2192
       </a>
-      <div style="font-size:.7rem;color:var(--ink4);">
-        Zorg dat je ingelogd bent op SharePoint in deze browser
-      </div>
+      <div style="font-size:.7rem;color:var(--ink4);">Zorg dat je ingelogd bent op SharePoint</div>
     </div>`;
-
-  const nav = document.getElementById('prev-nav');
-  if(bijl.length > 1){
-    nav.style.display = 'flex';
-    document.getElementById('prev-teller').textContent = `${idx+1} / ${bijl.length}`;
-  } else {
-    nav.style.display = 'none';
-  }
-
-  document.getElementById('prev-meta').innerHTML = `
-    <div class="prev-meta-item">
-      <div class="prev-meta-lbl">Bestandsnaam</div>
-      <div class="prev-meta-val">${fname}</div>
-    </div>
-    <div class="prev-meta-item">
-      <div class="prev-meta-lbl">Type</div>
-      <div class="prev-meta-val">${ext}</div>
-    </div>`;
-
+  const nav=document.getElementById('prev-nav');
+  if(bijl.length>1){nav.style.display='flex';document.getElementById('prev-teller').textContent=`${idx+1} / ${bijl.length}`;}
+  else{nav.style.display='none';}
+  document.getElementById('prev-meta').innerHTML=`
+    <div class="prev-meta-item"><div class="prev-meta-lbl">Bestandsnaam</div><div class="prev-meta-val">${fname}</div></div>
+    <div class="prev-meta-item"><div class="prev-meta-lbl">Type</div><div class="prev-meta-val">${ext}</div></div>`;
   document.getElementById('popup-preview').classList.add('active');
 }
-
-
 function navigeerPreview(delta){
-  const len = state.bijlagen.length;
+  const len=state.bijlagen.length;
   sluitPopup('popup-preview');
   openPreview((state.previewIdx+delta+len)%len);
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  GOEDKEURING POPUPS
-// ═══════════════════════════════════════════════════════════════
 function openAkkoord(){
-  if(!state.geselecteerd){ showToast('Selecteer eerst een item','error'); return; }
-  const po = state.geselecteerd[K.purchaseNr] || state.geselecteerd[K.sapNr] || '—';
-  document.getElementById('ak-leverancier').textContent = po;
-  document.getElementById('ak-naam').value = '';
-  document.getElementById('ak-status').textContent = '';
-  document.getElementById('ak-bevestig').disabled = false;
-  const popup = document.getElementById('popup-akkoord');
-  popup.classList.add('active');
-  setTimeout(()=>{ const el=document.getElementById('ak-naam'); if(el) el.focus(); },150);
+  if(!state.geselecteerd){showToast('Selecteer eerst een item','error');return;}
+  const po=state.geselecteerd[K.purchaseNr]||state.geselecteerd[K.sapNr]||'\u2014';
+  document.getElementById('ak-leverancier').textContent=po;
+  document.getElementById('ak-naam').value='';
+  document.getElementById('ak-status').textContent='';
+  document.getElementById('ak-bevestig').disabled=false;
+  document.getElementById('popup-akkoord').classList.add('active');
+  setTimeout(()=>{const el=document.getElementById('ak-naam');if(el)el.focus();},150);
 }
-
 async function bevestigAkkoord(){
-  const naam = document.getElementById('ak-naam').value.trim();
-  const se   = document.getElementById('ak-status');
-  if(!naam){ se.textContent='⚠ Vul jouw naam in'; se.className='popup-status nok'; return; }
-  se.textContent='Verwerken…'; se.className='popup-status';
+  const naam=document.getElementById('ak-naam').value.trim();
+  const se=document.getElementById('ak-status');
+  if(!naam){se.textContent='\u26a0 Vul jouw naam in';se.className='popup-status nok';return;}
+  se.textContent='Verwerken\u2026';se.className='popup-status';
   document.getElementById('ak-bevestig').disabled=true;
-  try {
+  try{
     await stuurGoedkeuring(state.geselecteerd.ID,'Akkoord',naam);
     sluitPopup('popup-akkoord');
-    showToast('✓ Goedkeuring vastgelegd voor '+nl(state.geselecteerd[K.leverancier]),'success');
+    showToast('\u2713 Goedkeuring vastgelegd','success');
     await laadAlles();
-    // Herbouw geselecteerde item
-    const bijgewerkt = state.items.find(i=>i.ID===state.geselecteerd.ID);
-    if(bijgewerkt){ state.geselecteerd=bijgewerkt; renderDetail(); }
-  } catch(e){
-    se.textContent='⚠ Fout: '+e.message; se.className='popup-status nok';
+    const b=state.items.find(i=>i.ID===state.geselecteerd.ID);
+    if(b){state.geselecteerd=b;renderDetail();}
+  }catch(e){
+    se.textContent='\u26a0 Fout: '+e.message;se.className='popup-status nok';
     document.getElementById('ak-bevestig').disabled=false;
   }
 }
-
 function openAfkeur(){
-  const naam = nl(state.geselecteerd?.[K.leverancier]);
-  document.getElementById('af-leverancier').textContent = naam;
-  document.getElementById('af-naam').value  = '';
-  document.getElementById('af-reden').value = '';
-  document.getElementById('af-status').textContent = '';
-  document.getElementById('af-bevestig').disabled = false;
+  if(!state.geselecteerd){showToast('Selecteer eerst een item','error');return;}
+  const po=state.geselecteerd[K.purchaseNr]||state.geselecteerd[K.sapNr]||'\u2014';
+  document.getElementById('af-leverancier').textContent=po;
+  document.getElementById('af-naam').value='';
+  document.getElementById('af-reden').value='';
+  document.getElementById('af-status').textContent='';
+  document.getElementById('af-bevestig').disabled=false;
   document.getElementById('popup-afkeur').classList.add('active');
-  setTimeout(()=>document.getElementById('af-naam').focus(),100);
+  setTimeout(()=>{const el=document.getElementById('af-naam');if(el)el.focus();},150);
 }
-
 async function bevestigAfkeur(){
-  const naam  = document.getElementById('af-naam').value.trim();
-  const reden = document.getElementById('af-reden').value.trim();
-  const se    = document.getElementById('af-status');
-  if(!naam) { se.textContent='⚠ Vul jouw naam in'; se.className='popup-status nok'; return; }
-  if(!reden){ se.textContent='⚠ Vul een reden in'; se.className='popup-status nok'; return; }
-  se.textContent='Verwerken…'; se.className='popup-status';
+  const naam=document.getElementById('af-naam').value.trim();
+  const reden=document.getElementById('af-reden').value.trim();
+  const se=document.getElementById('af-status');
+  if(!naam){se.textContent='\u26a0 Vul jouw naam in';se.className='popup-status nok';return;}
+  if(!reden){se.textContent='\u26a0 Vul een reden in';se.className='popup-status nok';return;}
+  se.textContent='Verwerken\u2026';se.className='popup-status';
   document.getElementById('af-bevestig').disabled=true;
-  try {
+  try{
     await stuurGoedkeuring(state.geselecteerd.ID,'Afgekeurd',naam,reden);
     sluitPopup('popup-afkeur');
     showToast('Item afgekeurd en geregistreerd','error');
     await laadAlles();
-    const bijgewerkt = state.items.find(i=>i.ID===state.geselecteerd.ID);
-    if(bijgewerkt){ state.geselecteerd=bijgewerkt; renderDetail(); }
-  } catch(e){
-    se.textContent='⚠ Fout: '+e.message; se.className='popup-status nok';
+    const b=state.items.find(i=>i.ID===state.geselecteerd.ID);
+    if(b){state.geselecteerd=b;renderDetail();}
+  }catch(e){
+    se.textContent='\u26a0 Fout: '+e.message;se.className='popup-status nok';
     document.getElementById('af-bevestig').disabled=false;
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  TAB NAVIGATIE
-// ═══════════════════════════════════════════════════════════════
-function switchTab(tab){
-  state.tab = tab;
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
-    b.classList.toggle('active',(i===0&&tab==='open')||(i===1&&tab==='archief'));
+async function selecteerItem(idx){
+  state.geselecteerd=state.items[idx];
+  state.bijlagen=[];
+  renderWachtrij();
+  document.getElementById('main').innerHTML='<div class="loading"><div class="spinner"></div>Bijlagen ophalen\u2026</div>';
+  try{state.bijlagen=await haalBijlagen(state.geselecteerd.ID);}catch{state.bijlagen=[];}
+  renderDetail();
+}
+
+function zoekItems(query){
+  const q=query.toLowerCase().trim();
+  if(!q){renderWachtrij();return;}
+  const gef=state.items.filter(item=>{
+    const po=(item[K.purchaseNr]||'').toLowerCase();
+    const sap=(item[K.sapNr]||'').toLowerCase();
+    const type=typeVal(item).toLowerCase();
+    const aut=(item.Author?.DisplayName||'').toLowerCase();
+    return po.includes(q)||sap.includes(q)||type.includes(q)||aut.includes(q);
   });
+  if(!gef.length){document.getElementById('wachtrij').innerHTML=`<div style="padding:16px;text-align:center;color:var(--ink4);font-size:.78rem;">Geen resultaten voor "${query}"</div>`;return;}
+  document.getElementById('wachtrij').innerHTML=gef.map(item=>{
+    const si=statusInfo(item);
+    const naam=item[K.purchaseNr]||item[K.sapNr]||'\u2014';
+    const type=typeVal(item);
+    const tijd=datumFmt(item.Created).split(',')[0];
+    const actief=state.geselecteerd?.ID===item.ID;
+    const origIdx=state.items.indexOf(item);
+    return`<div class="queue-item${actief?' actief':''}" onclick="selecteerItem(${origIdx})">
+      <div class="q-dot ${si.cls}"></div>
+      <div style="flex:1;min-width:0;"><div class="q-naam">${naam}</div><div class="q-sub">${type||'\u2014'} \u00b7 ${tijd}</div></div>
+      <span class="q-pill ${si.pill}">${si.label}</span></div>`;
+  }).join('');
+}
+
+function switchTab(tab){
+  state.tab=tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{b.classList.toggle('active',(i===0&&tab==='open')||(i===1&&tab==='archief'));});
   laadAlles();
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  LADEN
-// ═══════════════════════════════════════════════════════════════
 async function laadAlles(){
-  document.getElementById('wachtrij').innerHTML=
-    '<div class="loading"><div class="spinner"></div>Laden…</div>';
-  try {
-    state.items = await haalItems(state.tab==='archief');
+  document.getElementById('wachtrij').innerHTML='<div class="loading"><div class="spinner"></div>Laden\u2026</div>';
+  try{
+    const data=await haalItems(state.tab==='archief');
+    if(Array.isArray(data))state.items=data;
+    else if(data&&Array.isArray(data.value))state.items=data.value;
+    else if(data&&typeof data==='object'){const k=Object.keys(data).find(k=>Array.isArray(data[k]));state.items=k?data[k]:[];}
+    else state.items=[];
     renderWachtrij();
-    if(state.geselecteerd){
-      const bijgewerkt = state.items.find(i=>i.ID===state.geselecteerd.ID);
-      if(bijgewerkt){ state.geselecteerd=bijgewerkt; renderDetail(); }
-    }
-  } catch(e){
-    document.getElementById('wachtrij').innerHTML=
-      `<div style="padding:16px;font-size:.75rem;color:var(--red);">
-        ⚠ Kan flow niet bereiken.<br><small>${e.message}</small>
-       </div>`;
+    if(state.geselecteerd){const b=state.items.find(i=>i.ID===state.geselecteerd.ID);if(b){state.geselecteerd=b;renderDetail();}}
+  }catch(e){
+    document.getElementById('wachtrij').innerHTML=`<div style="padding:16px;font-size:.75rem;color:var(--red);">\u26a0 Kan flow niet bereiken.<br><small>${e.message}</small></div>`;
     showToast('Verbindingsfout','error');
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════════════════════
 updateKlok();
 setInterval(updateKlok,1000);
 laadAlles();
-setInterval(laadAlles, 5*60*1000); // Auto-refresh elke 5 minuten
+setInterval(laadAlles,5*60*1000);
 </script>
 </body>
 </html>
