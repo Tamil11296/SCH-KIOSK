@@ -420,29 +420,29 @@ const FLOWS = {
 // ═══════════════════════════════════════════════════════════════
 const K = {
   leverancier:      'Title',
-  purchaseNr:       'Purchase_x0020_nr_x002e_',
-  sapNr:            'SAP_x0020_nummer',
-  typeOntvangst:    'Type_x0020_ontvangst',
-  ontvangstDatum:   'Ontvangen_x0020_op_x003a_',
-  juisteArtikel:    'Is_x0020_het_x0020_juiste_x0020_artikel_x0020_geleverd_x003f_',
-  hoeveelheid:      'Valt_x0020_de_x0020_gele_x0020_verde_x0020_hoeveelheid_x0020_binnen_x0020_de_x0020_norm_x003f_',
-  vrachtbrief:      'Kloppen_x0020_de_x0020_gegevens_x0020_op_x0020_de_x0020_vrachtbrief_x003f_',
-  transportcond:    'Transportcondities_x003a__x0020_Is_x0020_de_x0020_laadruimte_x0020_schoon_x003f_',
-  hygienePallets:   'Verpakking_x002f__x0020_Pallets_x003a__x0020_Is_x0020_deze_x0020_schoon_x003f_',
-  thtBbd:           'THT_x0020__x002f__x0020_BBD',
-  lotCode:          'Batch_x0020__x002f__x0020_lot_x0020_code_x0028_s_x0029_',
-  thtOk:            'Komen_x0020_de_x0020_THT_x0020_en_x0020_lotcode_x0020_overeen_x003f_',
-  kunststofPallets: 'Grondstoffen_x0020_geleverd_x0020_op_x0020_kunststof_x0020_pallets_x003f_',
-  zeefIntact:       'Zeef_x0020_gebruikt_x0020_en_x0020_intact_x003f_',
-  sealnummers:      'Sealnummers_x0020_komen_x0020_overeen_x0020_met_x0020_pakbon_x003f_',
-  reinigingscert:   'Reinigingscertificaat_x0020_bijgevoegd_x003f_',
-  siloNr:           'Welke_x0020_silo_x0020_is_x0020_gevuld_x003f_',
-  afvuldatum:       'Afvuldatum_x0020_IBC_x0027_s',
-  rspo:             'RSPO_x0020_en_x0020_SG_x0020_vermelding_x003f_',
-  tempNorm:         'Is_x0020_de_x0020_temperatuur_x0020_binnen_x0020_de_x0020_norm_x003f_',
-  tempGemeten:      'Gemeten_x0020_temperatuur',
-  actieAfwijkingen: 'Actie_x0020_bij_x0020_afwijkingen',
-  paraafMagazijn:   'Paraaf_x0020_akkoord_x0020_ontvangst_x0020_magazijnmedewerker',
+  purchaseNr:       'Purchasenr_x003a_',
+  sapNr:            'SAPnr',
+  typeOntvangst:    'Typeontvangst',
+  ontvangstDatum:   'Ontvangenop_x003a_',
+  controleur:       'Ontvangendoor_x003a_',
+  juisteArtikel:    'Ishetjuisteartikelgeleverd_x003f',
+  hoeveelheid:      'Isdejuistehoeveelheidgeleverd_x0',
+  vrachtbrief:      'Kloppendegegevens_x0028_leveranc',
+  transportcond:    'Transportcondities_x003a_Isdelaa',
+  hygienePallets:   'Verpakking_x002f_Pallets_x003a_I',
+  thtBbd:           'THT_x002f_BBD_x003a_',
+  lotCode:          'Batchlotcodes_x003a_',
+  thtOk:            'THTdatumnietverstrekenenvoldoeta',
+  kunststofPallets: 'Grondstoffengeleverdopkunststofp',
+  zeefIntact:       'Leveringbloem_x003a_',
+  sealnummers:      'Bijleveringbulkvagen_x002f_IBC_x',
+  reinigingscert:   'Bijleveringbulkvagen_x002f_IBC_0',
+  siloNr:           'Leveringsuiker_x003a_welkesilois',
+  afvuldatum:       'Bijlevering_x002f_IBCs_x003a_',
+  rspo:             'RSPO_x0027_enSG_x0027_vermeldingo',
+  tempNorm:         'Isdetemperatuurbinenorm_x003f_',
+  tempGemeten:      'Watisdegemetentemperatuur_x003f_',
+  actieAfwijkingen: 'Actiebijafwijkingen_x003a_',
   goedkeuringStatus:'GoedkeuringStatus',
   goedgekeurdOp:    'GoedgekeurdOp',
   goedkeuringRol:   'GoedkeuringRol',
@@ -464,10 +464,14 @@ function datumFmt(v){
   return new Date(v).toLocaleString('nl-NL',{dateStyle:'short',timeStyle:'short'});
 }
 
-function typeVal(item){
-  const v = item[K.typeOntvangst];
+function choiceVal(v){
   if(!v) return '';
-  return typeof v === 'object' ? (v.Value||'') : v;
+  if(typeof v === 'object') return v.Value || '';
+  return String(v);
+}
+
+function typeVal(item){
+  return choiceVal(item[K.typeOntvangst]);
 }
 
 function isGrondstof(item){ return typeVal(item).toLowerCase().includes('grondstof'); }
@@ -475,19 +479,25 @@ function isGrondstof(item){ return typeVal(item).toLowerCase().includes('grondst
 function heeftAfwijking(item){
   const neeVelden = [K.juisteArtikel,K.hoeveelheid,K.transportcond,
                      K.hygienePallets,K.thtOk,K.tempNorm];
-  return (item[K.actieAfwijkingen]&&item[K.actieAfwijkingen].trim()!=='')
-      || neeVelden.some(f=>item[f]&&String(item[f]).toLowerCase()==='nee');
+  const actie = item[K.actieAfwijkingen]||'';
+  return (actie.trim()!=='')
+      || neeVelden.some(f=>{
+           const v = item[f];
+           const s = (v&&typeof v==='object') ? (v.Value||'') : (v||'');
+           return s.toLowerCase()==='nee';
+         });
 }
 
 function statusInfo(item){
-  const s = item[K.goedkeuringStatus];
+  const s = choiceVal(item[K.goedkeuringStatus]);
   if(s==='Akkoord')   return {cls:'dot-groen',  pill:'pill-groen',  label:'Akkoord'};
   if(s==='Afgekeurd') return {cls:'dot-rood',   pill:'pill-rood',   label:'Afgekeurd'};
   if(heeftAfwijking(item)) return {cls:'dot-rood',pill:'pill-rood',label:'⚠ Afwijking'};
   return {cls:'dot-oranje', pill:'pill-oranje', label:'Open'};
 }
 
-function badgeJaNee(v){
+function badgeJaNee(raw){
+  const v = (raw && typeof raw === 'object') ? (raw.Value||'') : (raw||'');
   if(!v||v==='—') return '<span class="badge-nvt">N.v.t.</span>';
   const l=String(v).toLowerCase();
   if(l==='ja')  return '<span class="badge-ja">Ja</span>';
@@ -623,8 +633,9 @@ function renderDetail(){
   const grondstof  = isGrondstof(item);
   const gekoeld    = item[K.tempGemeten]&&item[K.tempGemeten]!==''&&item[K.tempGemeten]!=='—';
   const afwijk     = heeftAfwijking(item);
-  const isAkkoord  = item[K.goedkeuringStatus]==='Akkoord';
-  const isAfgekeurd= item[K.goedkeuringStatus]==='Afgekeurd';
+  const gsVal = choiceVal(item[K.goedkeuringStatus]);
+  const isAkkoord  = gsVal==='Akkoord';
+  const isAfgekeurd= gsVal==='Afgekeurd';
 
   const checks = [
     {lbl:'Is het juiste artikel geleverd?',          veld:K.juisteArtikel},
@@ -661,7 +672,7 @@ function renderDetail(){
           <span style="font-size:.65rem;opacity:.7;">${datumFmt(item.Created)}</span>
         </div>
         <div class="meta-strip">
-          <span>Controleur: <b>${nl(item.Author?.Title||item.AuthorId)}</b>
+          <span>Controleur: <b>${nl(item[K.controleur]?.Value||item.Author?.DisplayName||'—')}</b>
             &nbsp;·&nbsp; Type: <b>${typeVal(item)||'—'}</b></span>
           ${afwijk
             ? '<span class="q-pill pill-rood">⚠ Afwijking</span>'
@@ -801,7 +812,7 @@ function renderDetail(){
           <div class="sign-grid">
             <div class="sign-box">
               <div class="sign-lbl">Magazijnmedewerker</div>
-              <div class="sign-naam">${nl(item.Author?.Title||'—')}</div>
+              <div class="sign-naam">${nl(item[K.controleur]?.Value||item.Author?.DisplayName||'—')}</div>
               <div class="sign-datum">${datumFmt(item.Created)}</div>
             </div>
             <div class="sign-box">
