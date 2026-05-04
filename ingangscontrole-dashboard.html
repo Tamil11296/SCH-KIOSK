@@ -287,6 +287,15 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
     <div class="clock" id="klok">—</div>
     &nbsp;&nbsp;
     <button class="top-btn" onclick="laadAlles()">↻ Vernieuwen</button>
+    <button class="top-btn" id="debug-btn" onclick="toonDebug()" style="border-color:#c9a227;color:#c9a227;">Kolommen</button>
+  </div>
+  <div id="debug-panel" style="display:none;position:fixed;top:56px;right:0;width:480px;height:calc(100vh - 56px);background:#1a1814;color:#f5f0e6;font-family:monospace;font-size:11px;overflow-y:auto;z-index:999;border-left:2px solid #c9a227;padding:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <span style="color:#c9a227;font-weight:700;font-size:13px;">Kolomnamen uit SharePoint</span>
+      <button onclick="document.getElementById('debug-panel').style.display='none'" style="background:rgba(255,255,255,0.1);border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;">Sluiten</button>
+    </div>
+    <div style="color:#888;margin-bottom:8px;font-size:10px;">Veldnamen van het geselecteerde item</div>
+    <div id="debug-inhoud">Selecteer eerst een item in de wachtrij...</div>
   </div>
 
   <div class="body-wrap">
@@ -400,8 +409,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
 // ═══════════════════════════════════════════════════════════════
 const FLOWS = {
   HAAL_ITEMS:    'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/21ff6a8d03974c838ebb6bbbe586bd67/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=RzvTnk42zot2kH98pZ-pY6PEjxkygQLdl-b0EDJ5VVk',
-  HAAL_BIJLAGEN: 'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/39017d7c628f442fb7e19c47da6d69be/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=pxl6v55-nattSgO6WuogvL3uUWOqa2D7ltQNah-gqlQ',
-  GOEDKEURING:   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/0f022791d3284a979999c7f9a5c62283/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1yh4yebOmScpkSPAzr0NoGpwOeHx-nT_rR12NezHp-c',
+  HAAL_BIJLAGEN: 'NOG_INVULLEN',
+  GOEDKEURING:   'NOG_INVULLEN',
   HAAL_ARCHIEF:  'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/39b8c9a05713462f943d6945bb7ac311/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zOFFSrYyTL-eczSyVEHflSy18Ufw0obUIuMLCkYwfU8',
 };
 
@@ -411,20 +420,20 @@ const FLOWS = {
 // ═══════════════════════════════════════════════════════════════
 const K = {
   leverancier:      'Title',
-  purchaseNr:       'Purchasenr_x003a_',
-  sapNr:            'SAPnr',
-  typeOntvangst:    'Typeontvangst',
-  ontvangstDatum:   'Ontvangenop_x003a_',
-  juisteArtikel:    'Ishetjuisteartikelgeleverd_x003f',
-  hoeveelheid:      'Isdejuistehoeveelheidgeleverd_x0',
-  vrachtbrief:      'Kloppendegegevens_x0028_leveranc',
-  transportcond:    'Transportcondities_x003a_Isdelaa',
-  hygienePallets:   'Verpakking_x002f_Pallets_x003a_I',
-  thtBbd:           'THT_x002f_BBD_x003a_',
-  lotCode:          'Batch_x002f_lotcode_x0028_s_x002',
-  thtOk:            'KomendeTHTenlotcodeopdeverpakkin',
-  kunststofPallets: 'Grondstoffengeleverdopkunststofp',
-  zeefIntact:       'Leveringbloem_x003a_Zeefgebruikt',
+  purchaseNr:       'Purchase_x0020_nr_x002e_',
+  sapNr:            'SAP_x0020_nummer',
+  typeOntvangst:    'Type_x0020_ontvangst',
+  ontvangstDatum:   'Ontvangen_x0020_op_x003a_',
+  juisteArtikel:    'Is_x0020_het_x0020_juiste_x0020_artikel_x0020_geleverd_x003f_',
+  hoeveelheid:      'Valt_x0020_de_x0020_gele_x0020_verde_x0020_hoeveelheid_x0020_binnen_x0020_de_x0020_norm_x003f_',
+  vrachtbrief:      'Kloppen_x0020_de_x0020_gegevens_x0020_op_x0020_de_x0020_vrachtbrief_x003f_',
+  transportcond:    'Transportcondities_x003a__x0020_Is_x0020_de_x0020_laadruimte_x0020_schoon_x003f_',
+  hygienePallets:   'Verpakking_x002f__x0020_Pallets_x003a__x0020_Is_x0020_deze_x0020_schoon_x003f_',
+  thtBbd:           'THT_x0020__x002f__x0020_BBD',
+  lotCode:          'Batch_x0020__x002f__x0020_lot_x0020_code_x0028_s_x0029_',
+  thtOk:            'Komen_x0020_de_x0020_THT_x0020_en_x0020_lotcode_x0020_overeen_x003f_',
+  kunststofPallets: 'Grondstoffen_x0020_geleverd_x0020_op_x0020_kunststof_x0020_pallets_x003f_',
+  zeefIntact:       'Zeef_x0020_gebruikt_x0020_en_x0020_intact_x003f_',
   sealnummers:      'Sealnummers_x0020_komen_x0020_overeen_x0020_met_x0020_pakbon_x003f_',
   reinigingscert:   'Reinigingscertificaat_x0020_bijgevoegd_x003f_',
   siloNr:           'Welke_x0020_silo_x0020_is_x0020_gevuld_x003f_',
@@ -432,8 +441,8 @@ const K = {
   rspo:             'RSPO_x0020_en_x0020_SG_x0020_vermelding_x003f_',
   tempNorm:         'Is_x0020_de_x0020_temperatuur_x0020_binnen_x0020_de_x0020_norm_x003f_',
   tempGemeten:      'Gemeten_x0020_temperatuur',
-  actieAfwijkingen: 'Actiebijafwijkingen_x003a_',
-  paraafMagazijn:   'Paraaf',
+  actieAfwijkingen: 'Actie_x0020_bij_x0020_afwijkingen',
+  paraafMagazijn:   'Paraaf_x0020_akkoord_x0020_ontvangst_x0020_magazijnmedewerker',
   goedkeuringStatus:'GoedkeuringStatus',
   goedgekeurdOp:    'GoedgekeurdOp',
   goedkeuringRol:   'GoedkeuringRol',
@@ -497,6 +506,21 @@ function bijlageIcoon(naam){
 
 function isAfbeelding(naam){
   return ['jpg','jpeg','png','gif','webp'].includes(naam.split('.').pop().toLowerCase());
+}
+
+function toonDebug(){
+  const panel = document.getElementById('debug-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  if(!state.geselecteerd){ return; }
+  const item = state.geselecteerd;
+  const keys = Object.keys(item).sort();
+  let html = '';
+  keys.forEach(k => {
+    const v = item[k];
+    const val = (v === null || v === undefined || v === '') ? '<span style="color:#555">leeg</span>' : '<span style="color:#86efac">' + JSON.stringify(v).slice(0,80) + '</span>';
+    html += '<div style="margin-bottom:4px;border-bottom:1px solid #333;padding-bottom:4px;"><span style="color:#c9a227;">' + k + '</span><br>' + val + '</div>';
+  });
+  document.getElementById('debug-inhoud').innerHTML = html || 'Geen data';
 }
 
 function showToast(msg,type){
@@ -753,7 +777,7 @@ function renderDetail(){
 
     <!-- BIJLAGEN -->
     <div>
-      <div class="sec-title">Bijlagen (${bijl.length})</div>
+      <div class="sec-title">Bijlagen (${bijl ? bijl.length : 0})</div>
       <div class="dcard">
         <div class="dcard-head head-amber">
           <span>Toegevoegde documenten & foto's</span>
