@@ -511,6 +511,21 @@ function badgeJaNee(raw){
   return `<span class="badge-nvt">${v}</span>`;
 }
 
+function extractNaam(b){
+  if(b.FileName && !b.FileName.includes('%')) return b.FileName;
+  if(b.DisplayName && !b.DisplayName.includes('%')) return b.DisplayName;
+  // Extract from AbsoluteUri or Id
+  const src = b.AbsoluteUri || b.Id || '';
+  try {
+    const decoded = decodeURIComponent(decodeURIComponent(src));
+    const parts = decoded.split('/');
+    return parts[parts.length-1] || 'bestand';
+  } catch {
+    const parts = src.split('/');
+    return parts[parts.length-1] || 'bestand';
+  }
+}
+
 function bijlageIcoon(naam){
   const ext=naam.split('.').pop().toLowerCase();
   if(['jpg','jpeg','png','gif','webp'].includes(ext)) return {icon:'🖼️',bg:'#dbeafe'};
@@ -719,7 +734,7 @@ function renderDetail(){
   // Bijlagen
   const bijlHTML = bijl.length
     ? bijl.map((b,i)=>{
-        const fname = b.FileName||b.Id||b.DisplayName||'bestand';
+        const fname = extractNaam(b);
         const {icon,bg}=bijlageIcoon(fname);
         return `<div class="bijlage-thumb" onclick="openPreview(${i})">
           <div class="bij-prev" style="background:${bg};">${icon}</div>
@@ -934,7 +949,7 @@ function openPreview(idx){
   const b    = bijl[idx];
   if(!b) return;
 
-  document.getElementById('prev-titel').textContent = b.FileName;
+  document.getElementById('prev-titel').textContent = bNaam;
   document.getElementById('prev-dl').href = b.AbsoluteUri||b.ServerRelativeUrl||'#';
 
   // Canvas
@@ -952,9 +967,9 @@ function openPreview(idx){
   // Meta
   document.getElementById('prev-meta').innerHTML = `
     <div class="prev-meta-item"><div class="prev-meta-lbl">Bestandsnaam</div>
-      <div class="prev-meta-val">${b.FileName||b.Id||'—'}</div></div>
+      <div class="prev-meta-val">${bNaam}</div></div>
     <div class="prev-meta-item"><div class="prev-meta-lbl">Type</div>
-      <div class="prev-meta-val">${(b.FileName||b.Id||'').split('.').pop().toUpperCase()}</div></div>`;
+      <div class="prev-meta-val">${bNaam.split('.').pop().toUpperCase()}</div></div>`;
 
   // Navigatie
   const nav = document.getElementById('prev-nav');
