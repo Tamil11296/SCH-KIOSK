@@ -899,23 +899,31 @@ function normalizeData(data){
 async function laadAlles(){
   document.getElementById('wachtrij').innerHTML='<div class="loading"><div class="spinner"></div>Laden\u2026</div>';
   try{
+    // Haal ALLE items op via beide flows — filter client-side
+    const [openData, archData] = await Promise.allSettled([
+      haalItems(false),  // open/afwijking items
+      haalItems(true)    // archief — filter verwijderd in flow, geeft alles terug
+    ]);
+    const openItems  = openData.status==='fulfilled'  ? normalizeData(openData.value)  : [];
+    const archItems  = archData.status==='fulfilled'  ? normalizeData(archData.value)  : [];
+
+    // Dedup op ID
+    const allMap = new Map();
+    [...openItems,...archItems].forEach(i=>allMap.set(i.ID,i));
+    const allItems = [...allMap.values()];
+    state.allItems = allItems;
+
     if(state.tab==='archief'){
-      // Archief: laad goedgekeurde items
-      const data=await haalItems(true);
-      state.items=normalizeData(data);
-      state.allItems=state.items;
+      // Archief: alleen Akkoord of Afgekeurd
+      state.items = allItems.filter(i=>{
+        const s=choiceVal(i[K.goedkeuringStatus]);
+        return s==='Akkoord'||s==='Afgekeurd';
+      });
     } else {
-      // Wachtrij: laad open items voor queue
-      // En haal archief op voor akkoord-teller
-      const [openData, akkData] = await Promise.allSettled([
-        haalItems(false),
-        haalItems(true)
-      ]);
-      const openItems = openData.status==='fulfilled' ? normalizeData(openData.value) : [];
-      const akkItems  = akkData.status==='fulfilled'  ? normalizeData(akkData.value)  : [];
-      state.items    = openItems;
-      state.allItems = [...openItems, ...akkItems];
+      // Wachtrij: alles behalve Akkoord
+      state.items = allItems.filter(i=>choiceVal(i[K.goedkeuringStatus])!=='Akkoord');
     }
+
     renderWachtrij();
     if(state.geselecteerd){
       const b=state.items.find(i=>i.ID===state.geselecteerd.ID);
