@@ -612,8 +612,21 @@ async function haalItems(archief=false){
 }
 
 async function haalBijlagen(itemId){
-  const data = await flowPost(FLOWS.HAAL_BIJLAGEN, {itemId});
-  return data.value || data || [];
+  try {
+    const data = await flowPost(FLOWS.HAAL_BIJLAGEN, {itemId: parseInt(itemId)});
+    if(Array.isArray(data)) return data;
+    if(data && Array.isArray(data.value)) return data.value;
+    if(data && typeof data === 'object'){
+      const keys = Object.keys(data);
+      for(const k of keys){
+        if(Array.isArray(data[k])) return data[k];
+      }
+    }
+    return [];
+  } catch(e) {
+    console.warn('Bijlagen ophalen mislukt:', e);
+    return [];
+  }
 }
 
 async function stuurGoedkeuring(itemId, status, gebruiker, opmerking=''){
@@ -666,7 +679,7 @@ function renderWachtrij(){
 // ═══════════════════════════════════════════════════════════════
 function renderDetail(){
   const item   = state.geselecteerd;
-  const bijl   = state.bijlagen;
+  const bijl   = Array.isArray(state.bijlagen) ? state.bijlagen : [];
   if(!item){ document.getElementById('main').innerHTML=
     '<div class="leeg-scherm"><div class="leeg-icon">📋</div><div style="font-size:.9rem;">Selecteer een item</div></div>';
     return; }
