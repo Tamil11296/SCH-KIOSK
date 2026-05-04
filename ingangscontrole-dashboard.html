@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>Biscuit International — INK-F-07 BL Ingangscontrole Dashboard</title>
+<title>Biscuit International — Ingangscontrole Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -367,7 +367,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
     <span id="bi-tekst" style="display:none;color:var(--bi-gold);font-weight:800;font-size:1rem;letter-spacing:0.05em;">BISCUIT</span>
     <div class="brand-div"></div>
     <div>
-      <div class="dash-label">INK-F-07 BL Ingangscontrole</div>
+      <div class="dash-label">Ingangscontrole</div>
     </div>
     <div class="week-pill" id="datum-pill">—</div>
     <div class="spacer"></div>
@@ -657,7 +657,7 @@ function renderDetail(){
   document.getElementById('main').innerHTML=`
     <button class="mobile-terug" onclick="sluitDetail()">\u2190 Terug naar wachtrij</button>
     <div>
-      <div class="sec-title">INK-F-07 BL Ingangscontrole formulier</div>
+      <div class="sec-title">Koptekst</div>
       <div class="dcard">
         <div class="dcard-head head-navy"><span>INK-F-07 BL \u2014 Ingangscontrole formulier</span><span style="font-size:.65rem;opacity:.7;">${datumFmt(item.Created)}</span></div>
         <div class="meta-strip">
@@ -899,34 +899,25 @@ function normalizeData(data){
 async function laadAlles(){
   document.getElementById('wachtrij').innerHTML='<div class="loading"><div class="spinner"></div>Laden\u2026</div>';
   try{
-    // Haal ALLE items op via beide flows — filter client-side
-    const [openData, archData] = await Promise.allSettled([
-      haalItems(false),  // open/afwijking items
-      haalItems(true)    // archief — filter verwijderd in flow, geeft alles terug
-    ]);
-    const openItems  = openData.status==='fulfilled'  ? normalizeData(openData.value)  : [];
-    const archItems  = archData.status==='fulfilled'  ? normalizeData(archData.value)  : [];
-
-    // Dedup op ID
-    const allMap = new Map();
-    [...openItems,...archItems].forEach(i=>allMap.set(i.ID,i));
-    const allItems = [...allMap.values()];
-    state.allItems = allItems;
+    // Gebruik alleen HAAL_ITEMS — verwijder filter in flow zodat alle items terugkomen
+    const data = await haalItems(false);
+    state.allItems = normalizeData(data);
 
     if(state.tab==='archief'){
-      // Archief: alleen Akkoord of Afgekeurd
-      state.items = allItems.filter(i=>{
+      state.items = state.allItems.filter(i=>{
         const s=choiceVal(i[K.goedkeuringStatus]);
         return s==='Akkoord'||s==='Afgekeurd';
       });
     } else {
-      // Wachtrij: alles behalve Akkoord
-      state.items = allItems.filter(i=>choiceVal(i[K.goedkeuringStatus])!=='Akkoord');
+      state.items = state.allItems.filter(i=>{
+        const s=choiceVal(i[K.goedkeuringStatus]);
+        return s!=='Akkoord'&&s!=='Afgekeurd';
+      });
     }
 
     renderWachtrij();
     if(state.geselecteerd){
-      const b=state.items.find(i=>i.ID===state.geselecteerd.ID);
+      const b=state.allItems.find(i=>i.ID===state.geselecteerd.ID);
       if(b){state.geselecteerd=b;renderDetail();}
     }
   }catch(e){
