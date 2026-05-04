@@ -319,6 +319,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
         <button class="tab-btn active" onclick="switchTab('open')">Wachtrij</button>
         <button class="tab-btn" onclick="switchTab('archief')">Archief</button>
       </div>
+      <div style="padding:8px 10px;border-bottom:1px solid var(--border);">
+        <input id="zoek-input" type="text" placeholder="Zoek op PO, SAP, type..."
+          style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;
+                 font-family:var(--sans);font-size:0.78rem;background:var(--bg);color:var(--ink);outline:none;"
+          oninput="zoekItems(this.value)">
+      </div>
       <div class="wachtrij" id="wachtrij">
         <div class="loading"><div class="spinner"></div>Laden…</div>
       </div>
@@ -518,6 +524,41 @@ function isAfbeelding(naam){
   return ['jpg','jpeg','png','gif','webp'].includes(naam.split('.').pop().toLowerCase());
 }
 
+function zoekItems(query){
+  const q = query.toLowerCase().trim();
+  if(!q){ renderWachtrij(); return; }
+  const gefilterd = state.items.filter(item=>{
+    const po   = (item[K.purchaseNr]||'').toLowerCase();
+    const sap  = (item[K.sapNr]||'').toLowerCase();
+    const type = typeVal(item).toLowerCase();
+    const auteur = (item.Author?.DisplayName||'').toLowerCase();
+    return po.includes(q)||sap.includes(q)||type.includes(q)||auteur.includes(q);
+  });
+  // Render gefilterde wachtrij tijdelijk
+  if(!gefilterd.length){
+    document.getElementById('wachtrij').innerHTML=
+      '<div style="padding:16px;text-align:center;color:var(--ink4);font-size:.78rem;">Geen resultaten voor "'+query+'"</div>';
+    return;
+  }
+  const html = gefilterd.map((item,idx)=>{
+    const si = statusInfo(item);
+    const naam = item[K.purchaseNr]||item[K.sapNr]||'—';
+    const type = typeVal(item);
+    const tijd = datumFmt(item.Created).split(',')[0];
+    const actief = state.geselecteerd?.ID === item.ID;
+    const origIdx = state.items.indexOf(item);
+    return `<div class="queue-item${actief?' actief':''}" onclick="selecteerItem(${origIdx})">
+      <div class="q-dot ${si.cls}"></div>
+      <div style="flex:1;min-width:0;">
+        <div class="q-naam" title="${naam}">${naam}</div>
+        <div class="q-sub">${type||'—'} · ${tijd}</div>
+      </div>
+      <span class="q-pill ${si.pill}">${si.label}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('wachtrij').innerHTML = html;
+}
+
 function toonDebug(){
   const panel = document.getElementById('debug-panel');
   panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
@@ -603,7 +644,7 @@ function renderWachtrij(){
 
   const html = items.map((item,idx)=>{
     const si = statusInfo(item);
-    const naam = nl(item[K.leverancier]);
+    const naam = item[K.purchaseNr]||item[K.sapNr]||nl(item[K.leverancier]);
     const type = typeVal(item);
     const tijd = datumFmt(item.Created).split(',')[0];
     const actief = state.geselecteerd?.ID === item.ID;
