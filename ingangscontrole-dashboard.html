@@ -367,7 +367,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
     <span id="bi-tekst" style="display:none;color:var(--bi-gold);font-weight:800;font-size:1rem;letter-spacing:0.05em;">BISCUIT</span>
     <div class="brand-div"></div>
     <div>
-      <div class="dash-label">INK-F-07 BL Ingangscontrole Formulier</div>
+      <div class="dash-label">Ingangscontrole</div>
     </div>
     <div class="week-pill" id="datum-pill">—</div>
     <div class="spacer"></div>
@@ -494,6 +494,7 @@ const FLOWS = {
   HAAL_ARCHIEF:  'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/39b8c9a05713462f943d6945bb7ac311/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zOFFSrYyTL-eczSyVEHflSy18Ufw0obUIuMLCkYwfU8',
   ZOEK:          'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f5fa638f65a24b70af9163b3dc577e28/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Qe1PMD4pi8Pjj5zn4t-jnD4WUgaQe-UVHrU7pHGzUUY',
   HAAL_PARAAF:   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/bd0cf7bb906144879b94b884d9d01276/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=44TX1bUACpwwDkuhtPP0o4spjlhnhzdsdFvauJwRrGQ',
+  GENEREER_RAPPORT:'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2befc1d73a4144f2892785026cbffe70/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=7wTRO4TUKwiS4sPUoJzrheli_w49tVy1eaW0znYI8XE',
 };
 const K = {
   leverancier:'Title', purchaseNr:'Purchasenr_x003a_', sapNr:'SAPnr',
@@ -504,13 +505,21 @@ const K = {
   vrachtbrief:'Kloppendegegevens_x0028_leveranc',
   transportcond:'Transportcondities_x003a_Isdelaa',
   hygienePallets:'Verpakking_x002f_Pallets_x003a_I',
+  pakbonSAPcheck:'IsdepakbongecontroleerdmetSAPvoo',
+  thtLotcodeOvereen:'KomendeTHTenlotcodeopdeverpakkin',
   thtBbd:'THT_x002f_BBD_x003a_', lotCode:'Batchlotcodes_x003a_',
   thtOk:'THTdatumnietverstrekenenvoldoeta',
   kunststofPallets:'Grondstoffengeleverdopkunststofp',
-  zeefIntact:'Leveringbloem_x003a_',
-  sealnummers:'Bijleveringbulkvagen_x002f_IBC_x',
-  reinigingscert:'Bijleveringbulkvagen_x002f_IBC_0',
-  siloNr:'Leveringsuiker_x003a_welkesilois',
+  zeefBloem:'Leveringbloem_x003a_',
+  zeefSuiker:'Leveringsuiker_x003a_zeefgebruik',
+  sealBulk:'Bijleveringbulkvagen_x002f_IBC_x',
+  sealIBC:'BijleveringIBC_x003a_',
+  sealJamtanks:'BijleveringJamtanks_x003a_',
+  reinigingscertBulk:'Bijleveringbulkvagen_x002f_IBC_0',
+  reinigingscertBijlage:'Iserbijdeleveringeenreinigingsce',
+  siloBloem:'Leveringbloem_x003a_',
+  siloSuiker:'Leveringsuiker_x003a_welkesilois',
+  siloGlucose:'LeveringGlucose_x003a_Welkesiloi',
   afvuldatum:'Bijlevering_x002f_IBCs_x003a_',
   rspo:'RSPO_x0027_enSG_x0027_vermeldingo',
   tempNorm:'Isdetemperatuurbinenorm_x003f_',
@@ -642,11 +651,16 @@ function renderDetail(){
     {lbl:'Gegevens op de vrachtbrief correct?',veld:K.vrachtbrief},
     {lbl:'Transportcondities \u2014 laadruimte schoon?',veld:K.transportcond},
     {lbl:'Verpakking / Pallets \u2014 schoon en intact?',veld:K.hygienePallets},
+    {lbl:'Pakbon gecontroleerd met SAP \u2014 goederen voor locatie BOL?',veld:K.pakbonSAPcheck},
   ];
   const siloChecks=[
-    {lbl:'Zeef gebruikt en intact?',veld:K.zeefIntact},
-    {lbl:'Sealnummers overeen met pakbon?',veld:K.sealnummers},
-    {lbl:'Reinigingscertificaat bijgevoegd?',veld:K.reinigingscert},
+    {lbl:'Bloem: zeef gebruikt en intact?',veld:K.zeefBloem},
+    {lbl:'Suiker: zeef gebruikt en intact?',veld:K.zeefSuiker},
+    {lbl:'Bulk wagen: geseald en sealnummers overeen?',veld:K.sealBulk},
+    {lbl:'IBC: geseald en sealnummers overeen?',veld:K.sealIBC},
+    {lbl:'Jamtanks: geseald en sealnummers overeen?',veld:K.sealJamtanks},
+    {lbl:'Reinigingscertificaat (bulk wagen)',veld:K.reinigingscertBulk},
+    {lbl:'Reinigingscertificaat + origineel bijgevoegd?',veld:K.reinigingscertBijlage},
   ];
   // Splits paraaf-bijlage af van gewone bijlagen
   const paraafBijl = bijl.find(b => {
@@ -682,9 +696,9 @@ function renderDetail(){
   document.getElementById('main').innerHTML=`
     <button class="mobile-terug" onclick="sluitDetail()">\u2190 Terug naar wachtrij</button>
     <div>
-      <div class="sec-title">INK-F-07 BL Ingangscontrole formulier</div>
+      <div class="sec-title">Koptekst</div>
       <div class="dcard">
-        <div class="dcard-head head-navy"><span>INK-F-07 BL Ingangscontrole formulier          Version 1.7 | Date: 04-12-2025</span><span style="font-size:.65rem;opacity:.7;">${datumFmt(item.Created)}</span></div>
+        <div class="dcard-head head-navy"><span>INK-F-07 BL \u2014 Ingangscontrole formulier</span><span style="font-size:.65rem;opacity:.7;">${datumFmt(item.Created)}</span></div>
         <div class="meta-strip">
           <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">${(()=>{
             let html='';
@@ -710,21 +724,23 @@ function renderDetail(){
     <div>
       <div class="sec-title">THT & Lotcodes</div>
       <div class="dcard">
-        <div class="check-rij"><div class="check-lbl">THT / BBD</div><div class="check-val">${nl(item[K.thtBbd])}</div></div>
-        <div class="check-rij"><div class="check-lbl">Batch / lot code(s)</div><div class="check-val">${nl(item[K.lotCode])}</div></div>
-        <div class="check-rij"><div class="check-lbl">THT en lotcode overeen met pakbon?</div>${badgeJaNee(item[K.thtOk])}</div>
-        <div class="check-rij"><div class="check-lbl">Geleverd op kunststof pallets?</div>${badgeJaNee(item[K.kunststofPallets])}</div>
+        ${item[K.thtBbd]?'<div class="check-rij"><div class="check-lbl">THT / BBD</div><div class="check-val">'+nl(item[K.thtBbd])+'</div></div>':''}
+        ${item[K.lotCode]?'<div class="check-rij"><div class="check-lbl">Batch / lot code(s)</div><div class="check-val">'+nl(item[K.lotCode])+'</div></div>':''}
+        ${choiceVal(item[K.thtLotcodeOvereen])?'<div class="check-rij"><div class="check-lbl">THT en lotcode overeen met pakbon?</div>'+badgeJaNee(item[K.thtLotcodeOvereen])+'</div>':''}
+        ${choiceVal(item[K.thtOk])?'<div class="check-rij"><div class="check-lbl">THT datum niet verstreken en voldoet aan norm?</div>'+badgeJaNee(item[K.thtOk])+'</div>':''}
+        ${choiceVal(item[K.kunststofPallets])?'<div class="check-rij"><div class="check-lbl">Geleverd op kunststof pallets?</div>'+badgeJaNee(item[K.kunststofPallets])+'</div>':''}
       </div>
     </div>
     ${grondstof?`<div><div class="sec-title">Silo / tank / IBC grondstoffen</div><div class="dcard">
-      ${siloChecks.map(c=>`<div class="check-rij"><div class="check-lbl">${c.lbl}</div>${badgeJaNee(item[c.veld])}</div>`).join('')}
-      <div class="check-rij"><div class="check-lbl">Welke silo is gevuld?</div><div class="check-val">${nl(item[K.siloNr])}</div></div>
-      <div class="check-rij"><div class="check-lbl">Afvuldatum IBC's</div><div class="check-val">${nl(item[K.afvuldatum])}</div></div>
+      ${siloChecks.filter(c=>choiceVal(item[c.veld])).map(c=>'<div class="check-rij"><div class="check-lbl">'+c.lbl+'</div>'+badgeJaNee(item[c.veld])+'</div>').join('')}
+      ${choiceVal(item[K.siloBloem])?'<div class="check-rij"><div class="check-lbl">Silo bloem gevuld</div><div class="check-val">'+nl(choiceVal(item[K.siloBloem]))+'</div></div>':''}
+      ${choiceVal(item[K.siloSuiker])?'<div class="check-rij"><div class="check-lbl">Silo suiker gevuld</div><div class="check-val">'+nl(choiceVal(item[K.siloSuiker]))+'</div></div>':''}
+      ${choiceVal(item[K.siloGlucose])?'<div class="check-rij"><div class="check-lbl">Silo glucose gevuld</div><div class="check-val">'+nl(choiceVal(item[K.siloGlucose]))+'</div></div>':''}
+      ${item[K.afvuldatum]?'<div class="check-rij"><div class="check-lbl">Afvuldatum IBC\u2019s</div><div class="check-val">'+nl(item[K.afvuldatum])+'</div></div>':''}
     </div></div>
-    <div><div class="sec-title">RSPO grondstoffen</div><div class="dcard">
-      <div class="check-rij"><div class="check-lbl">'RSPO' en 'SG' vermelding op pakbon en verpakking?</div>${badgeJaNee(item[K.rspo])}</div>
-    </div></div>`:''}
-    ${gekoeld?`<div><div class="sec-title">Gekoelde grondstoffen</div><div class="dcard">
+    ${choiceVal(item[K.rspo])?'<div><div class="sec-title">RSPO grondstoffen</div><div class="dcard"><div class="check-rij"><div class="check-lbl">\u2018RSPO\u2019 en \u2018SG\u2019 vermelding op pakbon en verpakking?</div>'+badgeJaNee(item[K.rspo])+'</div></div></div>':''}
+    `:''}
+    ${(gekoeld&&(choiceVal(item[K.tempNorm])||item[K.tempGemeten]))?`<div><div class="sec-title">Gekoelde grondstoffen</div><div class="dcard">
       <div class="dcard-head head-teal">Temperatuurcontrole</div>
       <div class="check-rij"><div class="check-lbl">Temperatuur binnen de norm?</div>${badgeJaNee(item[K.tempNorm])}</div>
       <div class="check-rij"><div class="check-lbl">Gemeten temperatuur</div><div style="font-size:1.2rem;font-weight:800;color:var(--bi-navy);font-family:var(--mono);">${nl(item[K.tempGemeten])}</div></div>
@@ -758,7 +774,7 @@ function renderDetail(){
             </div>
             </div>
             <div class="sign-box">
-              <div class="sign-lbl">Manager / Call-off akkoord</div>
+              <div class="sign-lbl">QA / Call-off akkoord</div>
               ${isAkkoord||isAfgekeurd
                 ?`<div class="sign-naam" style="color:${isAkkoord?'var(--green)':'var(--red)'};">${nl(item[K.goedkeuringRol])}</div><div class="sign-datum">${datumFmt(item[K.goedgekeurdOp])}</div>${item[K.goedkeuringOpmerking]?`<div class="sign-datum" style="color:var(--red);">${item[K.goedkeuringOpmerking]}</div>`:''}`
                 :'<div class="sign-leeg">Nog niet afgetekend</div>'}
@@ -772,6 +788,9 @@ function renderDetail(){
             </div>`}
         </div>
       </div>
+    </div>
+    <div style="margin-top:4px;">
+      <button id="btn-rapport" onclick="downloadRapport()" style="width:100%;padding:12px 0;background:var(--bi-navy);color:#fff;border:none;border-radius:8px;font-family:var(--sans);font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.15s;">\u2193 Download PDF rapport</button>
     </div>`;
 }
 
@@ -1020,6 +1039,27 @@ async function laadAlles(){
   }
 }
 
+async function downloadRapport(){
+  if(!state.geselecteerd){showToast('Selecteer eerst een item','error');return;}
+  const btn=document.getElementById('btn-rapport');
+  if(btn){btn.disabled=true;btn.textContent='Genereren...';}
+  try{
+    const data=await flowPost(FLOWS.GENEREER_RAPPORT,{id:state.geselecteerd.ID},60000);
+    if(data&&data.file){
+      const byteChars=atob(data.file);
+      const byteNums=new Array(byteChars.length);
+      for(let i=0;i<byteChars.length;i++)byteNums[i]=byteChars.charCodeAt(i);
+      const blob=new Blob([new Uint8Array(byteNums)],{type:'application/pdf'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;a.download=data.filename||'INK-F-07-rapport.pdf';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('PDF gedownload','success');
+    } else { showToast('Geen bestand ontvangen','error'); }
+  }catch(e){showToast('Fout: '+e.message,'error');}
+  finally{if(btn){btn.disabled=false;btn.textContent='\u2193 Download PDF rapport';}}
+}
 updateKlok();
 setInterval(updateKlok,1000);
 laadAlles();
