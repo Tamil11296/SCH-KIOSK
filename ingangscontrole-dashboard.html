@@ -364,7 +364,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
   <div class="topbar">
     <img class="bi-logo" src="https://raw.githubusercontent.com/rconstantine/bi-dashboard/main/bi-logo.png"
          onerror="this.style.display='none';document.getElementById('bi-tekst').style.display='block'">
-    <span id="bi-tekst" style="display:none;color:var(--bi-gold);font-weight:800;font-size:1rem;letter-spacing:0.05em;">Biscuit International BIN_BOL</span>
+    <span id="bi-tekst" style="display:none;color:var(--bi-gold);font-weight:800;font-size:1rem;letter-spacing:0.05em;">BISCUIT</span>
     <div class="brand-div"></div>
     <div>
       <div class="dash-label">Ingangscontrole</div>
@@ -492,6 +492,8 @@ const FLOWS = {
   HAAL_BIJLAGEN: 'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/39017d7c628f442fb7e19c47da6d69be/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=pxl6v55-nattSgO6WuogvL3uUWOqa2D7ltQNah-gqlQ',
   GOEDKEURING:   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/0f022791d3284a979999c7f9a5c62283/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1yh4yebOmScpkSPAzr0NoGpwOeHx-nT_rR12NezHp-c',
   HAAL_ARCHIEF:  'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/39b8c9a05713462f943d6945bb7ac311/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zOFFSrYyTL-eczSyVEHflSy18Ufw0obUIuMLCkYwfU8',
+  ZOEK:          'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f5fa638f65a24b70af9163b3dc577e28/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Qe1PMD4pi8Pjj5zn4t-jnD4WUgaQe-UVHrU7pHGzUUY',
+  HAAL_PARAAF:   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/bd0cf7bb906144879b94b884d9d01276/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=44TX1bUACpwwDkuhtPP0o4spjlhnhzdsdFvauJwRrGQ',
 };
 const K = {
   leverancier:'Title', purchaseNr:'Purchasenr_x003a_', sapNr:'SAPnr',
@@ -661,7 +663,10 @@ function renderDetail(){
       <div class="dcard">
         <div class="dcard-head head-navy"><span>INK-F-07 BL \u2014 Ingangscontrole formulier</span><span style="font-size:.65rem;opacity:.7;">${datumFmt(item.Created)}</span></div>
         <div class="meta-strip">
-          <span>Controleur: <b>${nl(choiceVal(item[K.controleur])||item.Author?.DisplayName)}</b> &nbsp;\u00b7&nbsp; Type: <b>${typeVal(item)||'\u2014'}</b></span>
+          <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">${(()=>{
+            let html='';
+            try{if(item.Paraaf_Foto){const d=typeof item.Paraaf_Foto==='string'?JSON.parse(item.Paraaf_Foto):item.Paraaf_Foto;const u=(d.serverUrl||'https://biscuitinternational.sharepoint.com')+d.serverRelativeUrl;html=`<img src="${u}" alt="Paraaf" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);" onerror="this.style.display='none'">`;}}catch(e){}return html;
+          })()}<span>Controleur: <b>${nl(choiceVal(item[K.controleur])||item.Author?.DisplayName)}</b> &nbsp;\u00b7&nbsp; Type: <b>${typeVal(item)||'\u2014'}</b></span>
           ${afwijk?'<span class="q-pill pill-rood">\u26a0 Afwijking</span>':'<span class="q-pill pill-groen">\u2713 Geen afwijkingen</span>'}
         </div>
         <div class="kop-grid">
@@ -707,6 +712,12 @@ function renderDetail(){
     </div></div>`:''}
     <div>
       <div class="sec-title">Bijlagen (${bijl.length})</div>
+      ${state.geselecteerd._paraafUrl ? `<div class="dcard" style="margin-bottom:12px;">
+        <div class="dcard-head" style="background:var(--navy);color:#fff;">Paraaf / Handtekening</div>
+        <div style="padding:12px;background:#fff;border-radius:0 0 8px 8px;">
+          <img src="${state.geselecteerd._paraafUrl}" alt="Paraaf" style="max-width:220px;max-height:130px;border:1px solid var(--border);border-radius:4px;display:block;" onerror="this.parentElement.innerHTML='<span style=font-size:.75rem;color:var(--ink4)>Paraaf niet beschikbaar</span>'">
+        </div>
+      </div>` : ''}
       <div class="dcard">
         <div class="dcard-head head-amber"><span>Toegevoegde documenten & foto's</span><span style="font-size:.65rem;">Klik om te openen</span></div>
         <div class="bijlagen-grid">${bijlHTML}<div class="upload-slot">+ Bijlage</div></div>
@@ -724,7 +735,7 @@ function renderDetail(){
               <div class="sign-datum">${datumFmt(item.Created)}</div>
             </div>
             <div class="sign-box">
-              <div class="sign-lbl">Manager / Teamleider akkoord</div>
+              <div class="sign-lbl">QA / Call-off akkoord</div>
               ${isAkkoord||isAfgekeurd
                 ?`<div class="sign-naam" style="color:${isAkkoord?'var(--green)':'var(--red)'};">${nl(item[K.goedkeuringRol])}</div><div class="sign-datum">${datumFmt(item[K.goedgekeurdOp])}</div>${item[K.goedkeuringOpmerking]?`<div class="sign-datum" style="color:var(--red);">${item[K.goedkeuringOpmerking]}</div>`:''}`
                 :'<div class="sign-leeg">Nog niet afgetekend</div>'}
@@ -849,17 +860,32 @@ async function selecteerItem(idx){
   renderDetail();
 }
 
+let zoekTimer = null;
+
 function zoekItems(query){
-  const q=query.toLowerCase().trim();
-  if(!q){renderWachtrij();return;}
-  const gef=state.items.filter(item=>{
-    const po=(item[K.purchaseNr]||'').toLowerCase();
-    const sap=(item[K.sapNr]||'').toLowerCase();
-    const type=typeVal(item).toLowerCase();
-    const aut=(item.Author?.DisplayName||'').toLowerCase();
-    return po.includes(q)||sap.includes(q)||type.includes(q)||aut.includes(q);
+  const q = query.trim();
+  // Archief: server-side zoeken via ZOEK flow
+  if(state.tab === 'archief'){
+    clearTimeout(zoekTimer);
+    if(!q){ laadAlles(); return; }
+    zoekTimer = setTimeout(()=>zoekArchief(q), 400);
+    return;
+  }
+  // Wachtrij: lokaal filteren (max 50 items, snel)
+  const ql = q.toLowerCase();
+  if(!ql){ renderWachtrij(); return; }
+  const gef = state.items.filter(item=>{
+    const po  = (item[K.purchaseNr]||'').toLowerCase();
+    const sap = (item[K.sapNr]||'').toLowerCase();
+    const type= typeVal(item).toLowerCase();
+    const aut = (item.Author?.DisplayName||'').toLowerCase();
+    return po.includes(ql)||sap.includes(ql)||type.includes(ql)||aut.includes(ql);
   });
-  if(!gef.length){document.getElementById('wachtrij').innerHTML=`<div style="padding:16px;text-align:center;color:var(--ink4);font-size:.78rem;">Geen resultaten voor "${query}"</div>`;return;}
+  if(!gef.length){
+    document.getElementById('wachtrij').innerHTML=
+      `<div style="padding:16px;text-align:center;color:var(--ink4);font-size:.78rem;">Geen resultaten voor "${q}"</div>`;
+    return;
+  }
   document.getElementById('wachtrij').innerHTML=gef.map(item=>{
     const si=statusInfo(item);
     const naam=item[K.purchaseNr]||item[K.sapNr]||'\u2014';
@@ -872,6 +898,54 @@ function zoekItems(query){
       <div style="flex:1;min-width:0;"><div class="q-naam">${naam}</div><div class="q-sub">${type||'\u2014'} \u00b7 ${tijd}</div></div>
       <span class="q-pill ${si.pill}">${si.label}</span></div>`;
   }).join('');
+}
+
+async function zoekArchief(query){
+  document.getElementById('wachtrij').innerHTML=
+    '<div class="loading"><div class="spinner"></div>Zoeken in archief\u2026</div>';
+  try{
+    const data = await flowPost(FLOWS.ZOEK, {query});
+    const items = normalizeData(data);
+    if(!items.length){
+      document.getElementById('wachtrij').innerHTML=
+        `<div style="padding:16px;text-align:center;color:var(--ink4);font-size:.78rem;">Geen resultaten voor "${query}"</div>`;
+      return;
+    }
+    // Render zoekresultaten direct
+    document.getElementById('wachtrij').innerHTML=items.map((item,idx)=>{
+      const si=statusInfo(item);
+      const naam=item[K.purchaseNr]||item[K.sapNr]||'\u2014';
+      const type=typeVal(item);
+      const tijd=datumFmt(item.Created).split(',')[0];
+      return`<div class="queue-item" onclick="selecteerZoekResultaat(${idx}, zoekResultatenCache)">
+        <div class="q-dot ${si.cls}"></div>
+        <div style="flex:1;min-width:0;"><div class="q-naam">${naam}</div><div class="q-sub">${type||'\u2014'} \u00b7 ${tijd}</div></div>
+        <span class="q-pill ${si.pill}">${si.label}</span></div>`;
+    }).join('');
+    window.zoekResultatenCache = items;
+  }catch(e){
+    document.getElementById('wachtrij').innerHTML=
+      `<div style="padding:16px;font-size:.75rem;color:var(--red);">\u26a0 Zoekfout: ${e.message}</div>`;
+  }
+}
+
+async function selecteerZoekResultaat(idx, items){
+  state.geselecteerd = items[idx];
+  state.bijlagen = [];
+  const main = document.getElementById('main');
+  main.classList.add('actief');
+  main.innerHTML='<div class="loading"><div class="spinner"></div>Bijlagen ophalen\u2026</div>';
+  if(window.innerWidth<=900){ main.scrollIntoView({behavior:'smooth',block:'start'}); }
+  try{ state.bijlagen = await haalBijlagen(state.geselecteerd.ID); }catch{ state.bijlagen=[]; }
+  // Haal paraaf foto op via aparte flow (Get item geeft Image kolommen terug)
+  try{
+    const paraafData = await flowPost(FLOWS.HAAL_PARAAF, {id: state.geselecteerd.ID});
+    if(paraafData && paraafData.Paraaf_Foto){
+      const pf = typeof paraafData.Paraaf_Foto === 'string' ? JSON.parse(paraafData.Paraaf_Foto) : paraafData.Paraaf_Foto;
+      state.geselecteerd._paraafUrl = (pf.serverUrl || 'https://biscuitinternational.sharepoint.com') + pf.serverRelativeUrl;
+    } else { state.geselecteerd._paraafUrl = null; }
+  }catch(e){ state.geselecteerd._paraafUrl = null; }
+  renderDetail();
 }
 
 function sluitDetail(){
