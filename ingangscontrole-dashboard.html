@@ -648,12 +648,30 @@ function renderDetail(){
     {lbl:'Sealnummers overeen met pakbon?',veld:K.sealnummers},
     {lbl:'Reinigingscertificaat bijgevoegd?',veld:K.reinigingscert},
   ];
-  const bijlHTML=bijl.length?bijl.map((b,i)=>{
+  // Splits paraaf-bijlage af van gewone bijlagen
+  const paraafBijl = bijl.find(b => {
+    const fn = (b.FileName||b.DisplayName||'').toLowerCase();
+    return fn.includes('reserved_imageattachment') && fn.includes('paraaf');
+  });
+  const gewoneBijl = bijl.filter(b => {
+    const fn = (b.FileName||b.DisplayName||'').toLowerCase();
+    return !(fn.includes('reserved_imageattachment') && fn.includes('paraaf'));
+  });
+  const paraafSrc = (paraafBijl && paraafBijl.AbsoluteUri) || state.geselecteerd._paraafUrl || null;
+
+  const bijlHTML=gewoneBijl.length?gewoneBijl.map((b,i)=>{
     const fname=b.FileName||b.DisplayName||(b.Id?decodeURIComponent(b.Id.split('/').pop()):'bestand');
     const{icon,bg}=bijlageIcoon(fname);
-    return`<div class="bijlage-thumb" onclick="openPreview(${i})" title="${fname}">
-      <div class="bij-prev" style="background:${bg};">${icon}</div>
-      <div class="bij-naam">${fname}</div></div>`;
+    const ext=(fname.split('.').pop()||'').toLowerCase();
+    const isImg=['jpg','jpeg','png','gif','webp','bmp'].includes(ext);
+    const uri=b.AbsoluteUri||'';
+    const prevContent=isImg&&uri
+      ? `<img src="${uri}" alt="${fname}" style="width:100%;height:100%;object-fit:cover;border-radius:4px 4px 0 0;" onerror="this.parentElement.innerHTML='${icon}';this.parentElement.style.background='${bg}'">`
+      : icon;
+    const prevStyle=isImg&&uri ? 'background:#f3f4f6;' : \`background:\${bg};\`;
+    return\`<div class="bijlage-thumb" onclick="openPreview(\${i})" title="\${fname}">
+      <div class="bij-prev" style="\${prevStyle}">\${prevContent}</div>
+      <div class="bij-naam">\${fname}</div></div>\`;
   }).join(''):'<div style="font-size:.75rem;color:var(--ink4);grid-column:1/-1;padding:4px 0;">Geen bijlagen</div>';
 
   document.getElementById('main').innerHTML=`
@@ -712,10 +730,10 @@ function renderDetail(){
     </div></div>`:''}
     <div>
       <div class="sec-title">Bijlagen (${bijl.length})</div>
-      ${state.geselecteerd._paraafUrl ? `<div class="dcard" style="margin-bottom:12px;">
+      ${paraafSrc ? `<div class="dcard" style="margin-bottom:12px;">
         <div class="dcard-head" style="background:var(--navy);color:#fff;">Paraaf / Handtekening</div>
         <div style="padding:12px;background:#fff;border-radius:0 0 8px 8px;">
-          <img src="${state.geselecteerd._paraafUrl}" alt="Paraaf" style="max-width:220px;max-height:130px;border:1px solid var(--border);border-radius:4px;display:block;" onerror="this.parentElement.innerHTML='<span style=font-size:.75rem;color:var(--ink4)>Paraaf niet beschikbaar</span>'">
+          <img src="${paraafSrc}" alt="Paraaf" style="max-width:220px;max-height:130px;border:1px solid var(--border);border-radius:4px;display:block;" onerror="this.parentElement.innerHTML='<span style=font-size:.75rem;color:var(--ink4)>Paraaf niet beschikbaar</span>'">
         </div>
       </div>` : ''}
       <div class="dcard">
