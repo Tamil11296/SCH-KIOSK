@@ -724,7 +724,7 @@ function renderDetail(){
               <div class="sign-datum">${datumFmt(item.Created)}</div>
             </div>
             <div class="sign-box">
-              <div class="sign-lbl">QA / Call-off akkoord</div>
+              <div class="sign-lbl">Manager / Teamleider akkoord</div>
               ${isAkkoord||isAfgekeurd
                 ?`<div class="sign-naam" style="color:${isAkkoord?'var(--green)':'var(--red)'};">${nl(item[K.goedkeuringRol])}</div><div class="sign-datum">${datumFmt(item[K.goedgekeurdOp])}</div>${item[K.goedkeuringOpmerking]?`<div class="sign-datum" style="color:var(--red);">${item[K.goedkeuringOpmerking]}</div>`:''}`
                 :'<div class="sign-leeg">Nog niet afgetekend</div>'}
