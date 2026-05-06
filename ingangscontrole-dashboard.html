@@ -668,10 +668,10 @@ function renderDetail(){
     const prevContent=isImg&&uri
       ? `<img src="${uri}" alt="${fname}" style="width:100%;height:100%;object-fit:cover;border-radius:4px 4px 0 0;" onerror="this.parentElement.innerHTML='${icon}';this.parentElement.style.background='${bg}'">`
       : icon;
-    const prevStyle=isImg&&uri ? 'background:#f3f4f6;' : \`background:\${bg};\`;
-    return\`<div class="bijlage-thumb" onclick="openPreview(\${i})" title="\${fname}">
+    const prevStyle=isImg&&uri ? 'background:#f3f4f6;' : `background:\${bg};`;
+    return`<div class="bijlage-thumb" onclick="openPreview(\${i})" title="\${fname}">
       <div class="bij-prev" style="\${prevStyle}">\${prevContent}</div>
-      <div class="bij-naam">\${fname}</div></div>\`;
+      <div class="bij-naam">\${fname}</div></div>`;
   }).join(''):'<div style="font-size:.75rem;color:var(--ink4);grid-column:1/-1;padding:4px 0;">Geen bijlagen</div>';
 
   document.getElementById('main').innerHTML=`
