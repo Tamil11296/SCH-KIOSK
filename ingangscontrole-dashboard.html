@@ -659,19 +659,24 @@ function renderDetail(){
   });
   const paraafSrc = (paraafBijl && paraafBijl.AbsoluteUri) || state.geselecteerd._paraafUrl || null;
 
-  const bijlHTML=gewoneBijl.length?gewoneBijl.map((b,i)=>{
-    const fname=b.FileName||b.DisplayName||(b.Id?decodeURIComponent(b.Id.split('/').pop()):'bestand');
-    const{icon,bg}=bijlageIcoon(fname);
-    const ext=(fname.split('.').pop()||'').toLowerCase();
-    const isImg=['jpg','jpeg','png','gif','webp','bmp'].includes(ext);
-    const uri=b.AbsoluteUri||'';
-    const prevContent=isImg&&uri
-      ? `<img src="${uri}" alt="${fname}" style="width:100%;height:100%;object-fit:cover;border-radius:4px 4px 0 0;" onerror="this.parentElement.innerHTML='${icon}';this.parentElement.style.background='${bg}'">`
-      : icon;
-    const prevStyle=isImg&&uri ? 'background:#f3f4f6;' : `background:\${bg};`;
-    return`<div class="bijlage-thumb" onclick="openPreview(\${i})" title="\${fname}">
-      <div class="bij-prev" style="\${prevStyle}">\${prevContent}</div>
-      <div class="bij-naam">\${fname}</div></div>`;
+  const bijlHTML=gewoneBijl.length?gewoneBijl.map(function(b,i){
+    var fname=b.FileName||b.DisplayName||(b.Id?decodeURIComponent(b.Id.split('/').pop()):'bestand');
+    var info=bijlageIcoon(fname);
+    var ext=(fname.split('.').pop()||'').toLowerCase();
+    var isImg=['jpg','jpeg','png','gif','webp','bmp'].indexOf(ext)!==-1;
+    var uri=b.AbsoluteUri||'';
+    var origIdx=bijl.indexOf(b);
+    var prevContent,prevStyle;
+    if(isImg&&uri){
+      prevContent='<img src="'+uri+'" alt="'+fname+'" style="width:100%;height:100%;object-fit:cover;border-radius:4px 4px 0 0;" onerror="this.parentElement.innerHTML=\''+info.icon+'\';this.parentElement.style.background=\''+info.bg+'\'">';
+      prevStyle='background:#f3f4f6;';
+    } else {
+      prevContent=info.icon;
+      prevStyle='background:'+info.bg+';';
+    }
+    return '<div class="bijlage-thumb" onclick="openPreview('+origIdx+')" title="'+fname+'">'
+      +'<div class="bij-prev" style="'+prevStyle+'">'+prevContent+'</div>'
+      +'<div class="bij-naam">'+fname+'</div></div>';
   }).join(''):'<div style="font-size:.75rem;color:var(--ink4);grid-column:1/-1;padding:4px 0;">Geen bijlagen</div>';
 
   document.getElementById('main').innerHTML=`
@@ -730,12 +735,6 @@ function renderDetail(){
     </div></div>`:''}
     <div>
       <div class="sec-title">Bijlagen (${bijl.length})</div>
-      ${paraafSrc ? `<div class="dcard" style="margin-bottom:12px;">
-        <div class="dcard-head" style="background:var(--navy);color:#fff;">Paraaf / Handtekening</div>
-        <div style="padding:12px;background:#fff;border-radius:0 0 8px 8px;">
-          <img src="${paraafSrc}" alt="Paraaf" style="max-width:220px;max-height:130px;border:1px solid var(--border);border-radius:4px;display:block;" onerror="this.parentElement.innerHTML='<span style=font-size:.75rem;color:var(--ink4)>Paraaf niet beschikbaar</span>'">
-        </div>
-      </div>` : ''}
       <div class="dcard">
         <div class="dcard-head head-amber"><span>Toegevoegde documenten & foto's</span><span style="font-size:.65rem;">Klik om te openen</span></div>
         <div class="bijlagen-grid">${bijlHTML}<div class="upload-slot">+ Bijlage</div></div>
@@ -749,11 +748,17 @@ function renderDetail(){
           <div class="sign-grid">
             <div class="sign-box">
               <div class="sign-lbl">Magazijnmedewerker</div>
-              <div class="sign-naam">${nl(choiceVal(item[K.controleur])||item.Author?.DisplayName)}</div>
-              <div class="sign-datum">${datumFmt(item.Created)}</div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="flex:1;">
+                  <div class="sign-naam">${nl(choiceVal(item[K.controleur])||item.Author?.DisplayName)}</div>
+                  <div class="sign-datum">${datumFmt(item.Created)}</div>
+                </div>
+                ${paraafSrc ? '<img src="'+paraafSrc+'" alt="Paraaf" style="width:80px;height:50px;object-fit:contain;border:1px solid var(--border);border-radius:4px;background:#fff;" onerror="this.style.display=\'none\'">' : ''}
+              </div>
+            </div>
             </div>
             <div class="sign-box">
-              <div class="sign-lbl">QA / Call-off akkoord</div>
+              <div class="sign-lbl">Manager / Call-off akkoord</div>
               ${isAkkoord||isAfgekeurd
                 ?`<div class="sign-naam" style="color:${isAkkoord?'var(--green)':'var(--red)'};">${nl(item[K.goedkeuringRol])}</div><div class="sign-datum">${datumFmt(item[K.goedgekeurdOp])}</div>${item[K.goedkeuringOpmerking]?`<div class="sign-datum" style="color:var(--red);">${item[K.goedkeuringOpmerking]}</div>`:''}`
                 :'<div class="sign-leeg">Nog niet afgetekend</div>'}
