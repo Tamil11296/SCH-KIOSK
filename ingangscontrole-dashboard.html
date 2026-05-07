@@ -431,6 +431,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
         Je staat op het punt deze ingangscontrole goed te keuren.
       </div>
       <input class="popup-input" id="ak-naam" placeholder="Jouw naam (verplicht)" autocomplete="off">
+      <textarea class="popup-textarea" id="ak-opmerking" placeholder="Opmerking (optioneel)..." style="border-color:var(--border);"></textarea>
       <div class="popup-status" id="ak-status"></div>
       <div class="popup-btns">
         <button class="popup-bevestig groen" id="ak-bevestig" onclick="bevestigAkkoord()">✓ Bevestig goedkeuring</button>
@@ -853,7 +854,8 @@ async function bevestigAkkoord(){
   se.textContent='Verwerken\u2026';se.className='popup-status';
   document.getElementById('ak-bevestig').disabled=true;
   try{
-    await stuurGoedkeuring(state.geselecteerd.ID,'Akkoord',naam);
+    var opmerking=document.getElementById('ak-opmerking').value.trim();
+await stuurGoedkeuring(state.geselecteerd.ID,'Akkoord',naam,opmerking);
     sluitPopup('popup-akkoord');
     showToast('\u2713 Goedkeuring vastgelegd','success');
     await laadAlles();
