@@ -233,7 +233,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
              font-size:0.85rem;cursor:pointer;}
 
 /* PREVIEW POPUP */
-.prev-canvas{width:100%;height:280px;background:var(--bg);border:1px solid var(--border);
+.prev-canvas{width:100%;height:380px;background:var(--bg);border:1px solid var(--border);
              border-radius:8px;overflow:hidden;display:flex;align-items:center;
              justify-content:center;margin-bottom:12px;}
 .prev-canvas img{max-width:100%;max-height:100%;object-fit:contain;}
@@ -334,7 +334,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
 
   /* Popup breder op mobiel */
   .popup-box { width: 96vw; }
-  .prev-canvas { height: 220px; }
+  .prev-canvas { height: 300px; }
 }
 
 @media (max-width: 480px) {
@@ -802,25 +802,32 @@ function openPreview(idx){
   const url=b.AbsoluteUri||'#';
   document.getElementById('prev-titel').textContent=fname;
   document.getElementById('prev-dl').href=url;
-  const{icon}=bijlageIcoon(fname);
-  const ext=fname.split('.').pop().toUpperCase();
-  document.getElementById('prev-canvas').innerHTML=`
-    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px;text-align:center;">
-      <div style="font-size:3.5rem;">${icon}</div>
-      <div style="font-size:.95rem;font-weight:700;color:var(--bi-navy);word-break:break-all;">${fname}</div>
-      <div style="font-size:.78rem;color:var(--ink4);">${ext} bestand</div>
-      <a href="${url}" target="_blank" rel="noopener"
-         style="background:var(--bi-navy);color:#fff;padding:10px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.9rem;">
-        Openen in SharePoint \u2192
-      </a>
-      <div style="font-size:.7rem;color:var(--ink4);">Zorg dat je ingelogd bent op SharePoint</div>
-    </div>`;
-  const nav=document.getElementById('prev-nav');
-  if(bijl.length>1){nav.style.display='flex';document.getElementById('prev-teller').textContent=`${idx+1} / ${bijl.length}`;}
+  const ext=(fname.split('.').pop()||'').toLowerCase();
+  const isImg=['jpg','jpeg','png','gif','webp','bmp'].indexOf(ext)!==-1;
+  const canvas=document.getElementById('prev-canvas');
+
+  if(isImg&&url!=='#'){
+    canvas.innerHTML='<img src="'+url+'" alt="'+fname+'" style="max-width:100%;max-height:100%;object-fit:contain;" onerror="this.parentElement.innerHTML=\''+
+      '<div style=display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px;text-align:center>'+
+      '<div style=font-size:2.5rem>\\ud83d\\uddbc\\ufe0f</div>'+
+      '<div style=font-size:.85rem;font-weight:600>Foto kan niet geladen worden</div>'+
+      '<a href='+url+' target=_blank rel=noopener style=color:var(--blue);font-size:.78rem>Inloggen bij SharePoint \\u2192</a>'+
+      '</div>\';">';
+  } else {
+    var info=bijlageIcoon(fname);
+    canvas.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px;text-align:center;">'
+      +'<div style="font-size:3.5rem;">'+info.icon+'</div>'
+      +'<div style="font-size:.95rem;font-weight:700;color:var(--bi-navy);word-break:break-all;">'+fname+'</div>'
+      +'<div style="font-size:.78rem;color:var(--ink4);">'+ext.toUpperCase()+' bestand</div>'
+      +'<a href="'+url+'" target="_blank" rel="noopener" style="background:var(--bi-navy);color:#fff;padding:10px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.9rem;">Openen in SharePoint \u2192</a>'
+      +'</div>';
+  }
+
+  var nav=document.getElementById('prev-nav');
+  if(bijl.length>1){nav.style.display='flex';document.getElementById('prev-teller').textContent=(idx+1)+' / '+bijl.length;}
   else{nav.style.display='none';}
-  document.getElementById('prev-meta').innerHTML=`
-    <div class="prev-meta-item"><div class="prev-meta-lbl">Bestandsnaam</div><div class="prev-meta-val">${fname}</div></div>
-    <div class="prev-meta-item"><div class="prev-meta-lbl">Type</div><div class="prev-meta-val">${ext}</div></div>`;
+  document.getElementById('prev-meta').innerHTML='<div class="prev-meta-item"><div class="prev-meta-lbl">Bestandsnaam</div><div class="prev-meta-val">'+fname+'</div></div>'
+    +'<div class="prev-meta-item"><div class="prev-meta-lbl">Type</div><div class="prev-meta-val">'+ext.toUpperCase()+'</div></div>';
   document.getElementById('popup-preview').classList.add('active');
 }
 function navigeerPreview(delta){
