@@ -274,71 +274,27 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
 ══════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
   html, body { overflow: auto; }
-
   .app { height: auto; min-height: 100vh; }
   .body-wrap { flex-direction: column; overflow: visible; height: auto; position: relative; }
-
-  /* Topbar compacter */
   .topbar { padding: 0 14px; height: 48px; }
   .topbar-title { font-size: 13px; }
   .topbar-sub { display: none; }
   .week-pill { font-size: .65rem; padding: 3px 9px; }
   .clock { display: none; }
   .top-btn { font-size: .75rem; padding: 5px 10px; }
-
-  /* Sidebar wordt wachtrij-paneel bovenaan */
-  .sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    max-height: none;
-  }
+  .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: none; }
   .stat-grid { grid-template-columns: repeat(4, 1fr); }
   .stat-val { font-size: 1.1rem; }
-
-  /* Wachtrij scrollt horizontaal op tablet, verticaal op telefoon */
-  .wachtrij {
-    max-height: 280px;
-    overflow-y: auto;
-  }
-
-  /* Main detail — verborgen op mobiel tenzij item geselecteerd */
-  .main {
-    display: none !important;
-    padding: 12px 14px;
-    width: 100%;
-    min-width: 0;
-  }
-  .main.actief {
-    display: flex !important;
-  }
-
-  /* Terug-knop bovenaan detail */
-  .mobile-terug {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 0 6px;
-    font-size: .85rem;
-    font-weight: 600;
-    color: var(--bi-navy);
-    cursor: pointer;
-    border: none;
-    background: none;
-    font-family: var(--sans);
-    margin-bottom: 4px;
-  }
-
-  /* Bijlagen grid smaller */
+  .wachtrij { max-height: 280px; overflow-y: auto; }
+  .main { display: none !important; padding: 12px 14px; width: 100%; min-width: 0; }
+  .main.actief { display: flex !important; }
+  .mobile-terug { display: flex; align-items: center; gap: 8px; padding: 10px 0 6px; font-size: .85rem; font-weight: 600; color: var(--bi-navy); cursor: pointer; border: none; background: none; font-family: var(--sans); margin-bottom: 4px; }
   .bijlagen-grid { grid-template-columns: repeat(3, 1fr); }
-
-  /* Popup breder op mobiel */
   .popup-box { width: 96vw; }
   .prev-canvas { height: 300px; }
 }
 
 @media (max-width: 480px) {
-  /* Telefoon */
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .bijlagen-grid { grid-template-columns: repeat(2, 1fr); }
   .sign-grid { grid-template-columns: 1fr; }
@@ -350,7 +306,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
   .wachtrij { max-height: 240px; }
 }
 
-/* Desktop — mobile-terug nooit tonen */
 @media (min-width: 901px) {
   .mobile-terug { display: none !important; }
   .main { display: flex !important; }
@@ -535,7 +490,13 @@ function nl(v){return(v===null||v===undefined||v==='')?'\u2014':v;}
 function datumFmt(v){if(!v)return '\u2014';return new Date(v).toLocaleString('nl-NL',{dateStyle:'short',timeStyle:'short'});}
 function choiceVal(v){if(!v)return '';if(typeof v==='object')return v.Value||'';return String(v);}
 function typeVal(item){return choiceVal(item[K.typeOntvangst]);}
-function isGrondstof(item){return typeVal(item).toLowerCase().includes('grondstof');}
+
+// ── FIX 1: "Gekoelde grondstoffen" bevat "grondstof" maar is GEEN silo-type ──
+function isGrondstof(item){
+  const t=typeVal(item).toLowerCase();
+  return t.includes('grondstof')&&!t.includes('gekoeld');
+}
+
 function heeftAfwijking(item){
   const nee=[K.juisteArtikel,K.hoeveelheid,K.transportcond,K.hygienePallets,K.thtOk,K.tempNorm];
   const a=item[K.actieAfwijkingen]||'';
@@ -611,7 +572,6 @@ async function stuurGoedkeuring(itemId,status,gebruiker,opmerking=''){
 function renderWachtrij(){
   const items=state.items;
   const vd=new Date().toDateString();
-  // Stats use allItems (includes Akkoord), queue only shows open
   const all=state.allItems||items;
   const open=all.filter(i=>choiceVal(i[K.goedkeuringStatus])!=='Akkoord'&&choiceVal(i[K.goedkeuringStatus])!=='Afgekeurd').length;
   const afw=all.filter(i=>heeftAfwijking(i)&&choiceVal(i[K.goedkeuringStatus])!=='Akkoord').length;
@@ -641,7 +601,13 @@ function renderDetail(){
   const bijl=Array.isArray(state.bijlagen)?state.bijlagen:[];
   if(!item){document.getElementById('main').innerHTML='<div class="leeg-scherm"><div class="leeg-icon">\ud83d\udccb</div><div style="font-size:.9rem;">Selecteer een item</div></div>';return;}
   const grondstof=isGrondstof(item);
-  const gekoeld=item[K.tempGemeten]&&item[K.tempGemeten]!=='';
+
+  // ── FIX 2: gekoeld detectie op basis van type + ingevulde velden ──
+  const typeStr=typeVal(item).toLowerCase();
+  const gekoeld=typeStr.includes('gekoeld')
+    ||!!(item[K.tempGemeten]&&item[K.tempGemeten]!=='')
+    ||!!choiceVal(item[K.tempNorm]);
+
   const afwijk=heeftAfwijking(item);
   const gs=choiceVal(item[K.goedkeuringStatus]);
   const isAkkoord=gs==='Akkoord';
@@ -663,7 +629,6 @@ function renderDetail(){
     {lbl:'Reinigingscertificaat (bulk wagen)',veld:K.reinigingscertBulk},
     {lbl:'Reinigingscertificaat + origineel bijgevoegd?',veld:K.reinigingscertBijlage},
   ];
-  // Splits paraaf-bijlage af van gewone bijlagen
   const paraafBijl = bijl.find(b => {
     const fn = (b.FileName||b.DisplayName||'').toLowerCase();
     return fn.includes('reserved_imageattachment') && fn.includes('paraaf');
@@ -741,10 +706,10 @@ function renderDetail(){
     </div></div>
     ${choiceVal(item[K.rspo])?'<div><div class="sec-title">RSPO grondstoffen</div><div class="dcard"><div class="check-rij"><div class="check-lbl">\u2018RSPO\u2019 en \u2018SG\u2019 vermelding op pakbon en verpakking?</div>'+badgeJaNee(item[K.rspo])+'</div></div></div>':''}
     `:''}
-    ${(gekoeld&&(choiceVal(item[K.tempNorm])||item[K.tempGemeten]))?`<div><div class="sec-title">Gekoelde grondstoffen</div><div class="dcard">
+    ${gekoeld?`<div><div class="sec-title">Gekoelde grondstoffen</div><div class="dcard">
       <div class="dcard-head head-teal">Temperatuurcontrole</div>
-      <div class="check-rij"><div class="check-lbl">Temperatuur binnen de norm?</div>${badgeJaNee(item[K.tempNorm])}</div>
-      <div class="check-rij"><div class="check-lbl">Gemeten temperatuur</div><div style="font-size:1.2rem;font-weight:800;color:var(--bi-navy);font-family:var(--mono);">${nl(item[K.tempGemeten])}</div></div>
+      ${choiceVal(item[K.tempNorm])?'<div class="check-rij"><div class="check-lbl">Temperatuur binnen de norm?</div>'+badgeJaNee(item[K.tempNorm])+'</div>':''}
+      ${item[K.tempGemeten]?'<div class="check-rij"><div class="check-lbl">Gemeten temperatuur</div><div style="font-size:1.2rem;font-weight:800;color:var(--bi-navy);font-family:var(--mono);">'+nl(item[K.tempGemeten])+'</div></div>':''}
     </div></div>`:''}
     ${afwijk?`<div><div class="sec-title">Actie bij afwijkingen</div><div class="dcard">
       <div class="dcard-head head-rood">\u26a0 Afwijking geregistreerd</div>
@@ -773,7 +738,6 @@ function renderDetail(){
                 ${paraafSrc ? '<img src="'+paraafSrc+'" alt="Paraaf" style="width:120px;height:70px;object-fit:contain;margin-left:auto;border:1px solid var(--border);border-radius:4px;background:#fff;" onerror="this.style.display=\'none\'">' : ''}
               </div>
             </div>
-            
             <div class="sign-box">
               <div class="sign-lbl">Manager / Call-off akkoord</div>
               ${isAkkoord||isAfgekeurd
@@ -806,7 +770,6 @@ function openPreview(idx){
   const ext=(fname.split('.').pop()||'').toLowerCase();
   const isImg=['jpg','jpeg','png','gif','webp','bmp'].indexOf(ext)!==-1;
   const canvas=document.getElementById('prev-canvas');
-
   if(isImg&&url!=='#'){
     canvas.innerHTML='<img src="'+url+'" alt="'+fname+'" style="max-width:100%;max-height:100%;object-fit:contain;" onerror="this.parentElement.innerHTML=\''+
       '<div style=display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px;text-align:center>'+
@@ -823,7 +786,6 @@ function openPreview(idx){
       +'<a href="'+url+'" target="_blank" rel="noopener" style="background:var(--bi-navy);color:#fff;padding:10px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.9rem;">Openen in SharePoint \u2192</a>'
       +'</div>';
   }
-
   var nav=document.getElementById('prev-nav');
   if(bijl.length>1){nav.style.display='flex';document.getElementById('prev-teller').textContent=(idx+1)+' / '+bijl.length;}
   else{nav.style.display='none';}
@@ -855,7 +817,7 @@ async function bevestigAkkoord(){
   document.getElementById('ak-bevestig').disabled=true;
   try{
     var opmerking=document.getElementById('ak-opmerking').value.trim();
-await stuurGoedkeuring(state.geselecteerd.ID,'Akkoord',naam,opmerking);
+    await stuurGoedkeuring(state.geselecteerd.ID,'Akkoord',naam,opmerking);
     sluitPopup('popup-akkoord');
     showToast('\u2713 Goedkeuring vastgelegd','success');
     await laadAlles();
@@ -905,7 +867,6 @@ async function selecteerItem(idx){
   const main=document.getElementById('main');
   main.classList.add('actief');
   main.innerHTML='<div class="loading"><div class="spinner"></div>Bijlagen ophalen\u2026</div>';
-  // Scroll main into view on mobile
   if(window.innerWidth<=900){ main.scrollIntoView({behavior:'smooth',block:'start'}); }
   try{state.bijlagen=await haalBijlagen(state.geselecteerd.ID);}catch{state.bijlagen=[];}
   renderDetail();
@@ -915,14 +876,12 @@ let zoekTimer = null;
 
 function zoekItems(query){
   const q = query.trim();
-  // Archief: server-side zoeken via ZOEK flow
   if(state.tab === 'archief'){
     clearTimeout(zoekTimer);
     if(!q){ laadAlles(); return; }
     zoekTimer = setTimeout(()=>zoekArchief(q), 400);
     return;
   }
-  // Wachtrij: lokaal filteren (max 50 items, snel)
   const ql = q.toLowerCase();
   if(!ql){ renderWachtrij(); return; }
   const gef = state.items.filter(item=>{
@@ -962,7 +921,6 @@ async function zoekArchief(query){
         `<div style="padding:16px;text-align:center;color:var(--ink4);font-size:.78rem;">Geen resultaten voor "${query}"</div>`;
       return;
     }
-    // Render zoekresultaten direct
     document.getElementById('wachtrij').innerHTML=items.map((item,idx)=>{
       const si=statusInfo(item);
       const naam=item[K.purchaseNr]||item[K.sapNr]||'\u2014';
@@ -988,7 +946,6 @@ async function selecteerZoekResultaat(idx, items){
   main.innerHTML='<div class="loading"><div class="spinner"></div>Bijlagen ophalen\u2026</div>';
   if(window.innerWidth<=900){ main.scrollIntoView({behavior:'smooth',block:'start'}); }
   try{ state.bijlagen = await haalBijlagen(state.geselecteerd.ID); }catch{ state.bijlagen=[]; }
-  // Haal paraaf foto op via aparte flow (Get item geeft Image kolommen terug)
   try{
     const paraafData = await flowPost(FLOWS.HAAL_PARAAF, {id: state.geselecteerd.ID});
     if(paraafData && paraafData.Paraaf_Foto){
@@ -1029,7 +986,6 @@ async function laadAlles(){
       state.items = normalizeData(data);
       state.allItems = state.items;
     } else {
-      // Wachtrij: alleen HAAL_ITEMS (snel), geen parallel archief
       const data = await haalItems(false);
       state.allItems = normalizeData(data);
       state.items = state.allItems.filter(i=>{
@@ -1069,6 +1025,7 @@ async function downloadRapport(){
   }catch(e){showToast('Fout: '+e.message,'error');}
   finally{if(btn){btn.disabled=false;btn.textContent='\u2193 Download PDF rapport';}}
 }
+
 updateKlok();
 setInterval(updateKlok,1000);
 laadAlles();
