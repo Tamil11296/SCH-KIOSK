@@ -938,11 +938,12 @@ function testVerbinding() {
 }
 
 // ── POWER AUTOMATE URLs ────────────────────────────────────
-// Direct ingesteld — geen console stap nodig
-localStorage.setItem('wml_pa_url',
+// URL 1 = SCH Badge Lookup flow (gedeeld met SCH Kiosk)
+// URL 2 = WML Wissel Registreren flow
+localStorage.setItem('wml_pa_employee_url',
   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/0960a0a199f24d1799dbc81ab236f555/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Hmt2PPtfCgm27R33OIYUmbl-aw3naJ2QOk4KghTbLVI'
 );
-localStorage.setItem('wml_pa_employee_url',
+localStorage.setItem('wml_pa_url',
   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/490a78971650456d96ff5b7a69b5076d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=FvFrF339MSckAU8Bj-oaz_rodt3tJiJKkmya9MpaUfc'
 );
 if (!localStorage.getItem('wml_form_naam')) {
