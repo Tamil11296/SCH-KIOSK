@@ -789,7 +789,8 @@ function lookupBadge(val) {
   var paUrl = localStorage.getItem('wml_pa_employee_url');
   if (paUrl && val.length >= 3) {
     nameEl.textContent = 'Zoeken...'; nameEl.style.color = 'var(--muted)';
-    lookupPromise = fetch(paUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({badge_nr:val})})
+    // Verstuurt 'badge' (zelfde sleutel als SCH Kiosk — gedeelde flow)
+    lookupPromise = fetch(paUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({badge:val})})
       .then(function(r){ return r.json(); })
       .then(function(d) {
         var n = d.naam||d.name||d.Naam||'';
@@ -919,7 +920,7 @@ function testVerbinding() {
   fetch(empUrl, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({badge_nr: '0000'})
+    body: JSON.stringify({badge: '0000'})
   })
   .then(function(r) {
     if (r.ok || r.status === 200) {
