@@ -789,18 +789,30 @@ function lookupBadge(val) {
   var paUrl = localStorage.getItem('wml_pa_employee_url');
   if (paUrl && val.length >= 3) {
     nameEl.textContent = 'Zoeken...'; nameEl.style.color = 'var(--muted)';
-    // Verstuurt 'badge' (zelfde sleutel als SCH Kiosk — gedeelde flow)
-    lookupPromise = fetch(paUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({badge:val})})
-      .then(function(r){ return r.json(); })
-      .then(function(d) {
-        var n = d.naam||d.name||d.Naam||'';
-        if (n) {
-          medewerkers[val]=n; nameEl.textContent=n; nameEl.style.color='var(--green)';
-          resultBox.style.background='var(--green-pale)'; resultBox.style.border='1px solid #A7D7B5';
-          btn.disabled=false; btn.style.opacity='1';
-          pendingComplete.opName=n; pendingComplete.badgeNr=val;
-        } else { showBadgeNotFound(); }
-      }).catch(showBadgeNotFound);
+    lookupPromise = fetch(paUrl, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({badge: val})
+    })
+    .then(function(r) {
+      // Probeer JSON te lezen ongeacht statuscode
+      // SCH flow geeft 502 bij niet-gevonden badge — toch proberen
+      return r.json().catch(function() { return {}; });
+    })
+    .then(function(d) {
+      var n = d.naam || d.name || d.Naam || '';
+      if (n) {
+        medewerkers[val] = n;
+        nameEl.textContent = n; nameEl.style.color = 'var(--green)';
+        resultBox.style.background = 'var(--green-pale)';
+        resultBox.style.border = '1px solid #A7D7B5';
+        btn.disabled = false; btn.style.opacity = '1';
+        pendingComplete.opName = n; pendingComplete.badgeNr = val;
+      } else {
+        showBadgeNotFound();
+      }
+    })
+    .catch(showBadgeNotFound);
     return;
   }
   showBadgeNotFound();
@@ -908,32 +920,32 @@ function testVerbinding() {
   var banner = document.getElementById('conn-banner');
   var status = document.getElementById('conn-status');
 
-  var paUrl    = localStorage.getItem('wml_pa_url');
-  var empUrl   = localStorage.getItem('wml_pa_employee_url');
+  var paUrl  = localStorage.getItem('wml_pa_url');
+  var empUrl = localStorage.getItem('wml_pa_employee_url');
   if (!paUrl || !empUrl) {
     banner.style.background = '#92400E';
     status.textContent = '⚠ Geen PA-URLs ingesteld';
     return;
   }
 
-  // Test badge lookup met badge 0000 (verwacht: leeg antwoord = flow bereikbaar)
+  // Elke HTTP-response (ook 4xx/5xx) = flow-URL bereikbaar
+  // 502 = flow draait maar onbekende badge → dat is normaal gedrag
   fetch(empUrl, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({badge: '0000'})
   })
   .then(function(r) {
-    if (r.ok || r.status === 200) {
-      banner.style.background = '#1A3A2A';
-      banner.style.borderBottom = '2px solid #52B788';
-      status.textContent = '✓ Verbonden met SharePoint · Badge lookup actief · Wissels worden geregistreerd';
-    } else {
-      throw new Error('status ' + r.status);
-    }
+    // 200 = badge gevonden, 4xx/5xx = flow bereikbaar maar badge onbekend
+    // Beide betekenen: URL werkt
+    banner.style.background = '#1A3A2A';
+    banner.style.borderBottom = '2px solid #52B788';
+    status.textContent = '✓ Verbonden · Badge lookup actief · Wissels worden geregistreerd';
   })
   .catch(function(err) {
+    // Alleen een network-error (CORS, DNS) = echt onbereikbaar
     banner.style.background = '#7F1D1D';
-    status.textContent = '✗ Flow niet bereikbaar — controleer de URL of CORS-headers (' + err.message + ')';
+    status.textContent = '✗ Netwerk-fout — controleer CORS of internetverbinding (' + err.message + ')';
   });
 }
 
