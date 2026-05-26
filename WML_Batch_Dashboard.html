@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WML Batch Dashboard — TRA-F-03 BL Tracering grondstoffen deeg</title>
+<title>WML TRA </title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -79,8 +79,8 @@ button,input{font-family:var(--sans);font-size:14px}
 .list-table tbody td{padding:10px 12px;font-size:13px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);vertical-align:middle}
 .list-table tbody td:first-child{border-left:1px solid var(--border);border-radius:10px 0 0 10px}
 .list-table tbody td:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0}
-.mat-nr{font-family:var(--mono);font-size:18px;color:var(--muted)}
-.mat-name{font-size:13px;font-weight:500;color:var(--ink)}
+.mat-nr{font-family:var(--mono);font-size:14px;color:var(--ink);font-weight:600}
+.mat-name{font-size:11px;font-weight:400;color:var(--muted)}
 .loc-chip{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--cream);border:1px solid var(--border);padding:2px 7px;border-radius:4px}
 .loc-chip.prod{background:var(--blue-pale);border-color:#93C5FD;color:var(--blue)}
 .fefo-fix-tag{display:inline-flex;align-items:center;gap:3px;margin-top:4px;background:#FEF3C7;border:1px solid #FCD34D;color:#92400E;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px}
@@ -224,10 +224,10 @@ button,input{font-family:var(--sans);font-size:14px}
   <table class="list-table">
     <thead>
       <tr>
-<th style="width:35%">Materiaal</th>
-<th style="width:15%; text-align:right">Voorraad in PROD</th>
-<th style="width:35%">Voorraad in stelling</th>
-<th style="width:15%; text-align:right">Totaal</th>
+        <th>Materiaal</th>
+        <th style="text-align:right">Voorraad in PROD</th>
+        <th>Voorraad in stelling</th>
+        <th style="text-align:right">Totaal</th>
       </tr>
     </thead>
     <tbody id="listtbody"></tbody>
@@ -407,7 +407,7 @@ if (savedLogo) {
   if (wrap) { wrap.innerHTML = '<img src="' + savedLogo + '" alt="Logo">'; wrap.style.cursor = 'default'; wrap.onclick = null; }
 }
 document.getElementById('importdate').textContent =
-  new Date().toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'}) + ' · TRA-F-03 BL Tracering grondstoffen deeg';
+  new Date().toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'}) + ' · Demo v2';
 
 // ═══════════════════════════════════════════════════════════
 // FIX 3 — IndexedDB offline queue
