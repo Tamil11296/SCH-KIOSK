@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WML Voorraad Dashboard — Demo v2</title>
+<title>WML Batch Dashboard — Demo v2</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -19,10 +19,7 @@ button,input{font-family:var(--sans);font-size:14px}
 .demo-banner{background:#1D4ED8;color:#fff;text-align:center;padding:7px;font-size:12px;font-weight:500;letter-spacing:.02em}
 .demo-banner span{opacity:.7;margin:0 6px}
 
-/* FIXES STATUS BAR */
-#fixes-bar{background:#1A3A2A;color:#fff;padding:8px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:2px solid #2D6A4F}
-#fixes-bar-label{font-size:11px;font-weight:600;opacity:.5;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;margin-right:4px}
-.fix-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(82,183,136,.2);border:1px solid #52B788;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:#D8F3DC;white-space:nowrap}
+
 
 /* OFFLINE BANNER */
 #offline-banner{background:#FEF3C7;border-bottom:2px solid #FCD34D;padding:9px 20px;display:none;align-items:center;gap:10px;flex-wrap:wrap}
@@ -158,15 +155,6 @@ button,input{font-family:var(--sans);font-size:14px}
   ⚙️ Verbinding testen... <span id="conn-status">flows worden gecontroleerd</span>
 </div>
 
-<!-- FIXES STATUS BAR -->
-<div id="fixes-bar">
-  <span id="fixes-bar-label">Fixes actief:</span>
-  <span class="fix-badge">✓ FEFO sortering</span>
-  <span class="fix-badge">✓ localStorage persistentie</span>
-  <span class="fix-badge">✓ Offline IDB queue</span>
-  <span class="fix-badge">✓ Scanner Enter-fix</span>
-  <span class="fix-badge">✓ Live SharePoint data</span>
-</div>
 
 <!-- OFFLINE QUEUE BANNER (FIX 3) -->
 <div id="offline-banner">
@@ -183,7 +171,7 @@ button,input{font-family:var(--sans);font-size:14px}
     </div>
     <input type="file" id="logo-upload" accept="image/*" style="display:none" onchange="loadLogo(this)">
     <div class="tb-info">
-      <h1 id="dashboard-title">WML Voorraad Dashboard</h1>
+      <h1 id="dashboard-title">WML Batch Dashboard</h1>
       <p id="importdate"></p>
     </div>
   </div>
@@ -582,7 +570,7 @@ function notifyTeamleider() {
   var payload = {
     type:      'missing_wissel_alert',
     tijdstip:  new Date().toLocaleString('nl-NL'),
-    dashboard: localStorage.getItem('wml_form_naam') || 'TRA-F-03 BL Tracering grondstoffen deeg',
+    dashboard: localStorage.getItem('wml_form_naam') || 'WML Batch Dashboard',
     ontbrekend: open.map(function(m){
       return {
         materiaal_nr:   m.matNr,
@@ -604,10 +592,8 @@ function notifyTeamleider() {
   }).catch(function(){ btn.className='missing-notify-btn'; btn.innerHTML='Meld aan teamleider'; btn.disabled=false; });
 }
 
-function detectMissingTransitions(newGroups){
+function detectMissingTransitions(newGroups) {
   saveProdSnapshot(newGroups); return;
-  var prevJson = localStorage.getItem('wml_prev_prod');
-  if(!prevJson){ saveProdSnapshot(newGroups); return; }
   var prevProd = JSON.parse(prevJson);
   var newProdMap = {};
   newGroups.forEach(function(g){ newProdMap[g.matNr] = g.inProd.map(function(r){ return r.pallet; }); });
@@ -927,7 +913,7 @@ function confirmComplete() {
       body: JSON.stringify({
         type:         'wissel_geregistreerd',
         tijdstip:     entry.ts,
-        dashboard:    localStorage.getItem('wml_form_naam') || 'TRA-F-03 BL Tracering grondstoffen deeg',
+        dashboard:    localStorage.getItem('wml_form_naam') || 'WML Batch Dashboard',
         materiaal_nr: entry.matNr,
         omschrijving: entry.desc,
         van_batch:    entry.oldBatch,
@@ -1031,7 +1017,7 @@ localStorage.setItem('wml_pa_data_url',
   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/769e283259fd44a8bf52dad5bf683139/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-sj3WGojPUO-LMEYVH3XR3ZzC-qN3rKRsuWbe1CAc0U'
 );
 if (!localStorage.getItem('wml_form_naam')) {
-  localStorage.setItem('wml_form_naam', 'TRA-F-03 BL Tracering grondstoffen deeg');
+  localStorage.setItem('wml_form_naam', 'WML Batch Dashboard');
 }
 
 // ── INIT ───────────────────────────────────────────────────
