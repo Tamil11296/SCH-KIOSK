@@ -183,7 +183,7 @@ button,input{font-family:var(--sans);font-size:14px}
     </div>
     <input type="file" id="logo-upload" accept="image/*" style="display:none" onchange="loadLogo(this)">
     <div class="tb-info">
-      <h1 id="dashboard-title">WML Batch Dashboard</h1>
+      <h1 id="dashboard-title">WML Voorraad Dashboard</h1>
       <p id="importdate"></p>
     </div>
   </div>
@@ -582,7 +582,7 @@ function notifyTeamleider() {
   var payload = {
     type:      'missing_wissel_alert',
     tijdstip:  new Date().toLocaleString('nl-NL'),
-    dashboard: localStorage.getItem('wml_form_naam') || 'WML Batch Dashboard',
+    dashboard: localStorage.getItem('wml_form_naam') || 'TRA-F-03 BL Tracering grondstoffen deeg',
     ontbrekend: open.map(function(m){
       return {
         materiaal_nr:   m.matNr,
@@ -927,7 +927,7 @@ function confirmComplete() {
       body: JSON.stringify({
         type:         'wissel_geregistreerd',
         tijdstip:     entry.ts,
-        dashboard:    localStorage.getItem('wml_form_naam') || 'WML Batch Dashboard',
+        dashboard:    localStorage.getItem('wml_form_naam') || 'TRA-F-03 BL Tracering grondstoffen deeg',
         materiaal_nr: entry.matNr,
         omschrijving: entry.desc,
         van_batch:    entry.oldBatch,
@@ -1031,7 +1031,7 @@ localStorage.setItem('wml_pa_data_url',
   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/769e283259fd44a8bf52dad5bf683139/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-sj3WGojPUO-LMEYVH3XR3ZzC-qN3rKRsuWbe1CAc0U'
 );
 if (!localStorage.getItem('wml_form_naam')) {
-  localStorage.setItem('wml_form_naam', 'WML Batch Dashboard');
+  localStorage.setItem('wml_form_naam', 'TRA-F-03 BL Tracering grondstoffen deeg');
 }
 
 // ── INIT ───────────────────────────────────────────────────
