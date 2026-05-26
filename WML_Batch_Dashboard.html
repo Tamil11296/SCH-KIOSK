@@ -604,9 +604,10 @@ function notifyTeamleider() {
   }).catch(function(){ btn.className='missing-notify-btn'; btn.innerHTML='Meld aan teamleider'; btn.disabled=false; });
 }
 
-function detectMissingTransitions(newGroups) {
+function detectMissingTransitions(newGroups){
+  saveProdSnapshot(newGroups); return;
   var prevJson = localStorage.getItem('wml_prev_prod');
-  if (!prevJson) { saveProdSnapshot(newGroups); return; }
+  if(!prevJson){ saveProdSnapshot(newGroups); return; }
   var prevProd = JSON.parse(prevJson);
   var newProdMap = {};
   newGroups.forEach(function(g){ newProdMap[g.matNr] = g.inProd.map(function(r){ return r.pallet; }); });
