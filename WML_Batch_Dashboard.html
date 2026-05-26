@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WML Batch Dashboard — Demo v2</title>
+<title>WML Voorraad Dashboard — Demo v2</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -165,6 +165,7 @@ button,input{font-family:var(--sans);font-size:14px}
   <span class="fix-badge">✓ localStorage persistentie</span>
   <span class="fix-badge">✓ Offline IDB queue</span>
   <span class="fix-badge">✓ Scanner Enter-fix</span>
+  <span class="fix-badge">✓ Live SharePoint data</span>
 </div>
 
 <!-- OFFLINE QUEUE BANNER (FIX 3) -->
@@ -294,70 +295,102 @@ function normaliseerGroepen(grps) {
   });
 }
 
-// ── DEMO DATA ──────────────────────────────────────────────
-// DEMO: 4852 Sojalecithine heeft volgend opzettelijk in VERKEERDE
-// FEFO-volgorde → normaliseerGroepen() corrigeert dit automatisch
-var groups = [
-  { matNr:'4852', desc:'Sojalecithine',
-    inProd:[{loc:'PROD01',pallet:'10042015',batch:'1449892',unit:'KG',qty:280,date:'15-04-2026'}],
-    volgend:[
-      // OMGEKEERDE VOLGORDE in brondata (later THT staat eerst)
-      {loc:'B23B2',pallet:'10042017',batch:'1449920',unit:'KG',qty:280,date:'22-04-2026'},
-      {loc:'B23B1',pallet:'10042016',batch:'1449905',unit:'KG',qty:280,date:'18-04-2026'}
-    ]
-  },
-  { matNr:'4858', desc:'Glucose-fructosestroop',
-    inProd:[{loc:'PROD02',pallet:'10042020',batch:'1450280',unit:'KG',qty:1000,date:'10-04-2026'}],
-    volgend:[{loc:'ONTVANGST',pallet:'10042045',batch:'1450518',unit:'KG',qty:1000,date:'20-05-2026'}]
-  },
-  { matNr:'5110', desc:'Margarine Excellent E1022 RSPO SG',
-    inProd:[
-      {loc:'PROD01',pallet:'10042054',batch:'1450559',unit:'KG',qty:980,date:'20-05-2026'},
-      {loc:'PROD01',pallet:'10042056',batch:'1450559',unit:'KG',qty:980,date:'20-05-2026'}
-    ],
-    volgend:[{loc:'B23A1',pallet:'10042048',batch:'1450601',unit:'KG',qty:980,date:'21-05-2026'},
-             {loc:'B23A2',pallet:'10042049',batch:'1450601',unit:'KG',qty:980,date:'21-05-2026'}]
-  },
-  { matNr:'4875', desc:'Egg yolk liq barn 4% salt BiB KAT BM',
-    inProd:[{loc:'KOELCEL',pallet:'10042057',batch:'1450631',unit:'KG',qty:440,date:'14-05-2026'}],
-    volgend:[{loc:'KOELCEL',pallet:'10042058',batch:'1450680',unit:'KG',qty:440,date:'19-05-2026'}]
-  },
-  { matNr:'4861', desc:'Vercosine 70',
-    inProd:[{loc:'PROD03',pallet:'10041997',batch:'1449895',unit:'KG',qty:1050,date:'08-04-2026'}],
-    volgend:[{loc:'B23C1',pallet:'10041998',batch:'1449910',unit:'KG',qty:1050,date:'12-04-2026'}]
-  },
-  { matNr:'4867', desc:'Kaneel Ceylon poeder',
-    inProd:[{loc:'PROD02',pallet:'10042001',batch:'1449895',unit:'KG',qty:25,date:'09-04-2026'}],
-    volgend:[]
-  },
-  { matNr:'4876', desc:'Gebrande suikerstroop',
-    inProd:[{loc:'PROD01',pallet:'10042010',batch:'1449904',unit:'KG',qty:600,date:'17-04-2026'}],
-    volgend:[{loc:'B23C3',pallet:'10042011',batch:'1449930',unit:'KG',qty:600,date:'25-04-2026'}]
-  },
-  { matNr:'4880', desc:'Botero GB',
-    inProd:[{loc:'PROD03',pallet:'10042030',batch:'1450293',unit:'KG',qty:222,date:'18-04-2026'}],
-    volgend:[{loc:'B23D1',pallet:'10042031',batch:'1450310',unit:'KG',qty:222,date:'20-04-2026'}]
-  },
-  { matNr:'4594', desc:'Citroenrasp',
-    inProd:[{loc:'PROD01',pallet:'10042035',batch:'1450300',unit:'KG',qty:12,date:'05-04-2026'}],
-    volgend:[{loc:'B23D2',pallet:'10042036',batch:'1450355',unit:'KG',qty:12,date:'14-04-2026'}]
-  },
-  { matNr:'5149', desc:'Imitation paste XB BM',
-    inProd:[{loc:'B23G1',pallet:'10042064',batch:'1451095',unit:'KG',qty:1000,date:'21-05-2026'}],
-    volgend:[{loc:'B23G2',pallet:'10042065',batch:'1451110',unit:'KG',qty:1000,date:'22-05-2026'}]
-  },
-  { matNr:'4891', desc:'Zedolux RSPO SG',
-    inProd:[{loc:'PROD02',pallet:'10042040',batch:'1450400',unit:'KG',qty:800,date:'12-04-2026'}],
-    volgend:[{loc:'B24A1',pallet:'10042041',batch:'1450420',unit:'KG',qty:800,date:'16-04-2026'}]
-  },
-  { matNr:'4883', desc:'Citroma A',
-    inProd:[{loc:'PROD01',pallet:'10042050',batch:'1450500',unit:'KG',qty:150,date:'02-05-2026'}],
-    volgend:[{loc:'B24B1',pallet:'10042051',batch:'1450540',unit:'KG',qty:150,date:'08-05-2026'}]
-  }
-];
+// ── LIVE DATA ───────────────────────────────────────────────
+// groups wordt geladen via Flow 5 (WML_Voorraad SharePoint lijst)
+// PROD-locaties: alles dat begint met 'PROD'
+var groups = [];
+var _dataLastLoaded = null;
 
-// FIX 1: normaliseer direct na data-definitie
-groups = normaliseerGroepen(groups);
+// Parseert SAP hoeveelheid: "10.000,000" → 10000
+function parseSapQty(s) {
+  if (!s) return 0;
+  var clean = String(s).replace(/\./g, '').replace(',', '.');
+  var n = parseFloat(clean);
+  return isNaN(n) ? 0 : n;
+}
+
+// Bepaalt of een locatie PROD is
+function isProdLocatie(bin) {
+  return /^PROD/i.test(String(bin).trim());
+}
+
+// Transformeert SharePoint rijen naar groups-formaat
+function rijen2Groups(items) {
+  var map = {};
+  items.forEach(function(r) {
+    var matNr = String(r.Material || r.Materiaal || '').trim();
+    var desc   = String(r.Material_Description || r.Materiaal_Omschrijving || '').trim();
+    var bin    = String(r.Storage_Bin || '').trim();
+    var pallet = String(r.Pallet_Number || '').trim();
+    var batch  = String(r.Batch || '').trim();
+    var qty    = parseSapQty(r.Quantity || r.TOTAL || 0);
+    var unit   = String(r.Unit || r.BUnit || '').trim();
+    // Gebruik Created_On als tijdelijke FEFO-datum (later THT_Datum)
+    var date   = String(r.THT_Datum || r.Created_On || '').trim();
+
+    if (!matNr) return;
+    if (!map[matNr]) map[matNr] = { matNr:matNr, desc:desc, inProd:[], volgend:[] };
+
+    var rij = { loc:bin, pallet:pallet, batch:batch, unit:unit, qty:qty, date:date };
+    if (isProdLocatie(bin)) {
+      map[matNr].inProd.push(rij);
+    } else {
+      map[matNr].volgend.push(rij);
+    }
+  });
+
+  // Alleen materialen tonen die minstens iets in PROD hebben
+  return Object.values(map).filter(function(g) { return g.inProd.length > 0; });
+}
+
+// Laad data van SharePoint via Flow 5
+function laadVoorraad(callback) {
+  var dataUrl = localStorage.getItem('wml_pa_data_url');
+  if (!dataUrl) {
+    // Geen data-URL → blijf op lege staat
+    toonLaadStatus('⚠ Geen data-URL ingesteld', '#92400E');
+    if (callback) callback();
+    return;
+  }
+
+  toonLaadStatus('⟳ Voorraad laden...', 'rgba(255,255,255,.6)');
+
+  fetch(dataUrl, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({})
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var items = data.value || data || [];
+    if (!Array.isArray(items)) {
+      // SharePoint geeft soms {value:[...]}
+      items = data.value || [];
+    }
+    groups = normaliseerGroepen(rijen2Groups(items));
+    detectMissingTransitions(groups);
+    _dataLastLoaded = new Date();
+    var ts = _dataLastLoaded.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'});
+    toonLaadStatus('✓ Verbonden · ' + groups.length + ' materialen · Bijgewerkt ' + ts, null);
+    renderAll();
+    if (callback) callback();
+  })
+  .catch(function(err) {
+    toonLaadStatus('✗ Data laden mislukt — ' + err.message, '#7F1D1D');
+    if (callback) callback();
+  });
+}
+
+function toonLaadStatus(tekst, kleur) {
+  var el = document.getElementById('conn-status');
+  var banner = document.getElementById('conn-banner');
+  if (el) el.textContent = tekst;
+  if (banner && kleur) banner.style.background = kleur;
+  else if (banner && !kleur) { banner.style.background = '#1A3A2A'; banner.style.borderBottom = '2px solid #52B788'; }
+}
+
+// Auto-refresh elk uur (synchroon met SAP export)
+setInterval(function() { laadVoorraad(); }, 60 * 60 * 1000);
 
 // ═══════════════════════════════════════════════════════════
 // FIX 2 — localStorage persistentie voor completed + log
@@ -548,15 +581,30 @@ function notifyTeamleider() {
   if (!open.length) return;
   var btn = document.getElementById('notify-tl-btn');
   btn.textContent = 'Versturen...'; btn.disabled = true;
-  var paUrl = localStorage.getItem('wml_pa_alert_url');
-  var payload = {type:'missing_wissel_alert',tijdstip:new Date().toLocaleString('nl-NL'),ontbrekend:open};
-  (paUrl ? fetch(paUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}) : Promise.resolve())
-    .then(function(){
-      btn.className='missing-notify-btn sent';
-      btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Teamleider gemeld';
-      btn.disabled=false;
-      setTimeout(function(){ btn.className='missing-notify-btn'; btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg> Meld aan teamleider'; btn.disabled=false; },3000);
-    }).catch(function(){ btn.className='missing-notify-btn'; btn.innerHTML='Meld aan teamleider'; btn.disabled=false; });
+  var alertUrl = localStorage.getItem('wml_pa_alert_url');
+  var payload = {
+    type:      'missing_wissel_alert',
+    tijdstip:  new Date().toLocaleString('nl-NL'),
+    dashboard: localStorage.getItem('wml_form_naam') || 'WML Batch Dashboard',
+    ontbrekend: open.map(function(m){
+      return {
+        materiaal_nr:   m.matNr,
+        omschrijving:   m.desc,
+        batch:          m.batch,
+        locatie:        m.locatie,
+        laatste_gezien: m.laatstGezien
+      };
+    })
+  };
+  (alertUrl
+    ? fetch(alertUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)})
+    : Promise.resolve()
+  ).then(function(){
+    btn.className='missing-notify-btn sent';
+    btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Teamleider gemeld';
+    btn.disabled=false;
+    setTimeout(function(){ btn.className='missing-notify-btn'; btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg> Meld aan teamleider'; btn.disabled=false; }, 3000);
+  }).catch(function(){ btn.className='missing-notify-btn'; btn.innerHTML='Meld aan teamleider'; btn.disabled=false; });
 }
 
 function detectMissingTransitions(newGroups) {
@@ -851,7 +899,7 @@ function confirmComplete() {
   for (var j = 0; j < g.inProd.length; j++) if (g.inProd[j].pallet === pallet) { row = g.inProd[j]; break; }
   if (!row) return;
   completed[matNr+'-'+pallet] = true;
-  saveCompleted(); // FIX 2
+  saveCompleted();
   var next = g.volgend[0];
   var entry = {
     ts: new Date().toLocaleString('nl-NL'), matNr:matNr, desc:g.desc,
@@ -860,9 +908,9 @@ function confirmComplete() {
     operator:opName, badgeNr:badgeNr||'—'
   };
   logEntries.unshift(entry);
-  saveLog(); // FIX 2
+  saveLog();
 
-  // FIX 3: POST met offline fallback naar IDB
+  // POST wissel naar SharePoint (met offline fallback)
   if (_demoOffline) {
     enqueueOffline(entry).then(function(){ showToast('📶 Offline — wissel gebufferd in wachtrij'); });
   } else {
@@ -872,10 +920,30 @@ function confirmComplete() {
     });
   }
 
+  // Teamleider-alert via Flow 3 (type: wissel_geregistreerd)
+  var alertUrl = localStorage.getItem('wml_pa_alert_url');
+  if (alertUrl && !_demoOffline) {
+    fetch(alertUrl, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        type:         'wissel_geregistreerd',
+        tijdstip:     entry.ts,
+        dashboard:    localStorage.getItem('wml_form_naam') || 'WML Batch Dashboard',
+        materiaal_nr: entry.matNr,
+        omschrijving: entry.desc,
+        van_batch:    entry.oldBatch,
+        van_locatie:  entry.oldLoc,
+        naar_batch:   entry.newBatch,
+        naar_locatie: entry.newLoc,
+        medewerker:   entry.operator
+      })
+    }).catch(function(){});
+  }
+
   updateLogPanel(); updateStats();
   var card = document.getElementById('bc-'+matNr);
   if (card) { var tmp=document.createElement('div'); tmp.innerHTML=renderBadgeCard(g); card.parentNode.replaceChild(tmp.firstChild,card); }
-  // FIX 4: focus terug na bevestiging
   setTimeout(function(){ var nc=document.getElementById('bc-'+matNr); if(nc){nc.setAttribute('tabindex','-1');nc.focus();} },50);
 }
 
@@ -958,6 +1026,12 @@ localStorage.setItem('wml_pa_employee_url',
 localStorage.setItem('wml_pa_url',
   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/490a78971650456d96ff5b7a69b5076d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=FvFrF339MSckAU8Bj-oaz_rodt3tJiJKkmya9MpaUfc'
 );
+localStorage.setItem('wml_pa_alert_url',
+  'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/08095e4a2bf44c49a9bc4078de1d7b42/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=MO2qIKX8H7RMBisbs5LtKHOlafxal27aXByaOPvPF8M'
+);
+localStorage.setItem('wml_pa_data_url',
+  'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/769e283259fd44a8bf52dad5bf683139/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-sj3WGojPUO-LMEYVH3XR3ZzC-qN3rKRsuWbe1CAc0U'
+);
 if (!localStorage.getItem('wml_form_naam')) {
   localStorage.setItem('wml_form_naam', 'WML Batch Dashboard');
 }
@@ -967,7 +1041,8 @@ updateOfflineBanner();
 updateLogPanel();
 switchView(1);
 renderMissingBar();
-testVerbinding();
+// Laad live data bij opstarten — daarna elk uur automatisch
+laadVoorraad(function() { testVerbinding(); });
 </script>
 
 <!-- OPERATOR MODAL (FIX 4: type=text, inputmode=numeric, lookupPromise) -->
