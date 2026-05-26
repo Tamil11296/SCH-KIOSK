@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WML Batch Dashboard — Demo v2</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#1A3A2A;--green-mid:#2D6A4F;--green-lit:#52B788;--green-pale:#D8F3DC;
+  --cream:#F8F4EE;--paper:#FFFFFF;--ink:#1A1A1A;--muted:#6B7280;--border:#E5E0D8;
+  --red:#C0392B;--red-pale:#FDECEA;--orange:#D97706;--orange-pale:#FEF3C7;
+  --blue:#1D4ED8;--blue-pale:#DBEAFE;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--cream);color:var(--ink);font-size:14px;min-height:100vh}
+button,input{font-family:var(--sans);font-size:14px}
+.demo-banner{background:#1D4ED8;color:#fff;text-align:center;padding:7px;font-size:12px;font-weight:500;letter-spacing:.02em}
+.demo-banner span{opacity:.7;margin:0 6px}
+
+
+
+/* OFFLINE BANNER */
+#offline-banner{background:#FEF3C7;border-bottom:2px solid #FCD34D;padding:9px 20px;display:none;align-items:center;gap:10px;flex-wrap:wrap}
+.ob-icon{flex-shrink:0;color:#92400E}
+.ob-text{font-size:12px;font-weight:600;color:#92400E;flex:1}
+.ob-flush-btn{background:#D97706;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
+.ob-demo-btn{background:none;border:1px solid #FCD34D;color:#92400E;border-radius:6px;padding:5px 12px;font-size:11px;cursor:pointer;white-space:nowrap}
+
+/* TOPBAR */
+#topbar{background:var(--green);color:#fff;padding:0 14px;display:flex;align-items:center;justify-content:space-between;height:52px;gap:8px}
+.tb-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.tb-logo{width:32px;height:32px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;background:rgba(255,255,255,.15)}
+.tb-logo img{width:32px;height:32px;object-fit:contain;border-radius:6px}
+.tb-info{min-width:0}
+.tb-info h1{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-info p{font-size:10px;opacity:.45;margin-top:1px;white-space:nowrap}
+.tb-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.tb-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:6px 10px;color:#fff;cursor:pointer;font-size:12px;white-space:nowrap;transition:background .15s;display:flex;align-items:center;gap:5px}
+.tb-btn:hover{background:rgba(255,255,255,.2)}
+.tb-icon-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:7px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;color:#fff;flex-shrink:0}
+.tb-icon-btn:hover,.tb-icon-btn.active{background:rgba(255,255,255,.25)}
+
+/* VIEWBAR */
+#viewbar{background:var(--paper);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between}
+.view-tabs{display:flex}
+.view-tab{padding:14px 20px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.view-tab:hover{color:var(--ink)}
+.view-tab.active{color:var(--green);border-bottom-color:var(--green)}
+.vb-right{display:flex;align-items:center;gap:10px}
+.stat-chip{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);background:var(--cream);border:1px solid var(--border);border-radius:20px;padding:4px 10px}
+.stat-chip strong{color:var(--ink);font-weight:600}
+
+/* LOG BAR */
+#logbar{background:var(--green-pale);border-bottom:2px solid rgba(82,183,136,.3);padding:10px 24px;display:none}
+.lb-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.lb-head span{font-size:12px;font-weight:600;color:var(--green)}
+.lb-head-btns{display:flex;gap:10px;align-items:center}
+.lb-head-btns button{background:none;border:none;font-size:12px;color:var(--green);cursor:pointer;text-decoration:underline}
+.lb-head-btns button.danger{color:var(--red)}
+.log-rows{max-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+.log-row{background:var(--paper);border:1px solid var(--border);border-radius:7px;padding:7px 12px;display:grid;grid-template-columns:130px 1fr 1fr auto;gap:8px;align-items:center;font-size:12px}
+.lr-ts{font-family:var(--mono);color:var(--muted);font-size:11px}
+.lr-mat{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lr-batches{display:flex;align-items:center;gap:6px}
+.batch-tag{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:4px;font-weight:500}
+.batch-tag.old{background:var(--red-pale);color:var(--red)}
+.batch-tag.new{background:var(--green-pale);color:var(--green-mid)}
+.lr-op{color:var(--muted);text-align:right;font-size:11px;display:flex;align-items:center;gap:4px;justify-content:flex-end}
+.queued-badge{font-size:10px;background:#FEF3C7;color:#92400E;padding:1px 5px;border-radius:4px;font-weight:600;white-space:nowrap}
+
+/* VIEW 1 */
+#view1{padding:20px 24px;display:none;overflow-x:auto}
+.list-table{width:100%;border-collapse:separate;border-spacing:0 4px}
+.list-table thead th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:6px 12px;text-align:left}
+.list-table tbody tr{background:var(--paper)}
+.list-table tbody tr:hover td{filter:brightness(.98)}
+.list-table tbody td{padding:10px 12px;font-size:13px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);vertical-align:middle}
+.list-table tbody td:first-child{border-left:1px solid var(--border);border-radius:10px 0 0 10px}
+.list-table tbody td:last-child{border-right:1px solid var(--border);border-radius:0 10px 10px 0}
+.mat-nr{font-family:var(--mono);font-size:14px;color:var(--ink);font-weight:600}
+.mat-name{font-size:11px;font-weight:400;color:var(--muted)}
+.loc-chip{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--cream);border:1px solid var(--border);padding:2px 7px;border-radius:4px}
+.loc-chip.prod{background:var(--blue-pale);border-color:#93C5FD;color:var(--blue)}
+.fefo-fix-tag{display:inline-flex;align-items:center;gap:3px;margin-top:4px;background:#FEF3C7;border:1px solid #FCD34D;color:#92400E;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px}
+
+/* VIEW 2 */
+#view2{padding:20px 24px;display:none}
+.board-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.badge-card{background:var(--paper);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.badge-card.completed{border-color:#A7D7B5;box-shadow:0 0 0 2px rgba(82,183,136,.12)}
+.bc-header{padding:12px 14px 8px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.bc-meta{flex:1;min-width:0}
+.bc-nr{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.bc-name{font-size:13px;font-weight:500;line-height:1.3}
+.done-tag{flex-shrink:0;display:inline-flex;align-items:center;gap:4px;background:var(--green-pale);color:var(--green);font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;border:1px solid #A7D7B5}
+.fefo-corrected-tag{display:inline-flex;align-items:center;gap:2px;background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;font-size:9px;font-weight:600;padding:2px 6px;border-radius:20px}
+.bc-labels{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 5px}
+.bc-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:4px}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-prod{background:var(--blue)}
+.dot-next{background:var(--green-lit)}
+.bc-panels{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 14px}
+.bc-panel{border-radius:10px;padding:10px 11px;border:1px solid var(--border)}
+.bc-panel.prod-panel{background:#EFF6FF;border-color:#BFDBFE}
+.bc-panel.next-panel{background:#F0FAF5;border-color:#A7D7B5}
+.bc-panel.done-panel{background:#F4F4F4;border-color:#E0E0E0;opacity:.5}
+.bc-panel.empty-panel{background:var(--cream);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;min-height:86px}
+.empty-panel span{font-size:11px;color:#C8C0B4}
+.check-area{display:flex;align-items:flex-start;gap:7px}
+.check-btn{background:none;border:none;cursor:pointer;padding:1px;flex-shrink:0;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background .15s}
+.check-btn:hover{background:rgba(0,0,0,.07)}
+.pf{display:flex;align-items:center;gap:4px;margin-bottom:4px}
+.pf:last-child{margin-bottom:0}
+.pf-icon{flex-shrink:0;opacity:.4}
+.pf-val{font-family:var(--mono);font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-val.striked{text-decoration:line-through;color:var(--muted)}
+.pf-sub{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-next{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--green-mid)}
+.next-lbl{font-size:10px;font-weight:600;color:var(--green-mid);margin-bottom:5px;display:flex;align-items:center;gap:3px}
+.pf-date{font-size:9px;color:var(--muted);margin-top:3px}
+.bc-expand{width:100%;border:none;background:none;border-top:1px solid var(--border);padding:8px;font-size:11px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:background .15s}
+.bc-expand:hover{background:var(--cream);color:var(--ink)}
+.empty-state{text-align:center;padding:80px 24px;color:var(--muted)}
+.empty-state .es-icon{font-size:40px;margin-bottom:12px}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* MISSING ALERT */
+#missing-bar{background:#FFF7ED;border-bottom:2px solid #FED7AA;padding:12px 20px;display:none}
+.missing-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px}
+.missing-header-left{display:flex;align-items:center;gap:8px}
+.missing-title{font-size:13px;font-weight:600;color:#92400E}
+.missing-count{background:#F97316;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+.missing-notify-btn{display:flex;align-items:center;gap:5px;background:#EA580C;color:#fff;border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background .15s}
+.missing-notify-btn:hover{background:#C2410C}
+.missing-notify-btn.sent{background:#16A34A}
+.missing-rows{display:flex;flex-direction:column;gap:6px}
+.missing-row{background:#fff;border:1px solid #FED7AA;border-radius:9px;padding:10px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.missing-row .mr-badge{background:#FEF3C7;border:1px solid #FCD34D;color:#92400E;font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 9px;border-radius:5px;flex-shrink:0}
+.missing-row .mr-name{font-size:12px;font-weight:500;color:var(--ink);flex:1;min-width:120px}
+.missing-row .mr-info{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.missing-row .mr-batch{font-family:var(--mono);font-size:11px;background:var(--red-pale);color:var(--red);padding:2px 7px;border-radius:4px}
+.missing-row .mr-time{font-size:10px;color:var(--muted)}
+.missing-row .mr-reg-btn{margin-left:auto;background:none;border:1px solid var(--orange);color:var(--orange);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.missing-row .mr-reg-btn:hover{background:var(--orange-pale)}
+.missing-row.resolved{opacity:.45;background:#F0FFF4;border-color:#A7D7B5}
+</style>
+</head>
+<body>
+
+<div class="demo-banner" id="conn-banner" style="background:#1A3A2A">
+  ⚙️ Verbinding testen... <span id="conn-status">flows worden gecontroleerd</span>
+</div>
+
+
+<!-- OFFLINE QUEUE BANNER (FIX 3) -->
+<div id="offline-banner">
+  <svg class="ob-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+  <span class="ob-text"><strong id="offline-count">0</strong> wissel(s) gebufferd in lokale wachtrij — wacht op verbinding</span>
+  <button class="ob-flush-btn" onclick="flushQueue()">↑ Nu versturen</button>
+  <button class="ob-demo-btn" onclick="toggleDemoOffline()" id="demo-offline-btn">📡 Simuleer offline</button>
+</div>
+
+<div id="topbar">
+  <div class="tb-left">
+    <div class="tb-logo" id="logo-wrap" title="Klik om logo te uploaden" onclick="document.getElementById('logo-upload').click()" style="cursor:pointer">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    </div>
+    <input type="file" id="logo-upload" accept="image/*" style="display:none" onchange="loadLogo(this)">
+    <div class="tb-info">
+      <h1 id="dashboard-title">WML Batch Dashboard</h1>
+      <p id="importdate"></p>
+    </div>
+  </div>
+  <div class="tb-right" id="tb-operator-tools" style="display:none">
+    <button class="tb-btn" id="logbtn" onclick="toggleLog()">📋 <span id="logcount">0</span> wissels</button>
+    <div class="tb-icon-btn" id="search-toggle" onclick="toggleSearch()" title="Zoeken">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </div>
+  </div>
+</div>
+
+<div id="viewbar">
+  <div class="view-tabs">
+    <div class="view-tab active" id="tab1" onclick="switchView(1)">📋 FEFO Overzicht</div>
+    <div class="view-tab" id="tab2" onclick="switchView(2)">🏭 Operator Board</div>
+  </div>
+  <div class="vb-right">
+    <div class="stat-chip">📦 <strong id="statprod">0</strong> in PROD</div>
+  </div>
+</div>
+
+<div id="logbar">
+  <div class="lb-head">
+    <span>Wisselslog (sessie + opgeslagen)</span>
+    <div class="lb-head-btns">
+      <button class="danger" onclick="clearSavedLog()">Wis log</button>
+      <button onclick="exportLog()">Exporteer CSV →</button>
+    </div>
+  </div>
+  <div class="log-rows" id="logrows"></div>
+</div>
+
+<!-- MISSING TRANSITIONS ALERT -->
+<div id="missing-bar">
+  <div class="missing-header">
+    <div class="missing-header-left">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400E" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span class="missing-title">Niet-geregistreerde wissels gedetecteerd</span>
+      <span class="missing-count" id="missing-count">0</span>
+    </div>
+    <button class="missing-notify-btn" id="notify-tl-btn" onclick="notifyTeamleider()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>
+      Meld aan teamleider
+    </button>
+  </div>
+  <div class="missing-rows" id="missing-rows"></div>
+</div>
+
+<div id="view1">
+  <table class="list-table">
+    <thead>
+      <tr>
+        <th>Materiaal</th>
+        <th style="text-align:right">Voorraad in PROD</th>
+        <th>Voorraad in stelling</th>
+        <th style="text-align:right">Totaal</th>
+      </tr>
+    </thead>
+    <tbody id="listtbody"></tbody>
+  </table>
+  <div id="listempty" class="empty-state" style="display:none">
+    <div class="es-icon">📦</div><p>Geen materialen gevonden</p>
+  </div>
+</div>
+
+<div id="searchbar-slide" style="display:none;background:var(--paper);border-bottom:1px solid var(--border);padding:10px 16px">
+  <div style="position:relative">
+    <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.4;pointer-events:none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="searchbox" placeholder="Zoek materiaal op naam of nummer..." oninput="renderAll()" style="width:100%;padding:9px 12px 9px 34px;border:1px solid var(--border);border-radius:9px;font-size:14px;background:var(--cream)">
+  </div>
+</div>
+
+<div id="view2">
+  <div class="board-grid" id="grid"></div>
+  <div id="boardempty" class="empty-state" style="display:none">
+    <div class="es-icon">📦</div><p>Geen materialen gevonden</p>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// FIX 1 — parseDate: defensief, DD-MM-YYYY waterdicht
+// ═══════════════════════════════════════════════════════════
+function parseDate(s) {
+  if (!s) return new Date(0);
+  var p = s.split('-');
+  if (p.length === 3 && p[2].length === 4) {
+    var d = new Date(p[2] + '-' + p[1] + '-' + p[0]);
+    return isNaN(d) ? new Date(0) : d;
+  }
+  var d2 = new Date(s);
+  return isNaN(d2) ? new Date(0) : d2;
+}
+
+// ═══════════════════════════════════════════════════════════
+// FIX 1 — normaliseerGroepen: sort volgend + inProd op THT
+// Detecteert ook of volgorde gecorrigeerd werd (demo-badge)
+// ═══════════════════════════════════════════════════════════
+function normaliseerGroepen(grps) {
+  return grps.map(function(g) {
+    var origFirst = g.volgend.length > 0 ? g.volgend[0].batch : null;
+    g.volgend = g.volgend.filter(function(r) { return r.date; })
+      .sort(function(a, b) { return parseDate(a.date) - parseDate(b.date); });
+    g.inProd = g.inProd.filter(function(r) { return r.date; })
+      .sort(function(a, b) { return parseDate(a.date) - parseDate(b.date); });
+    var newFirst = g.volgend.length > 0 ? g.volgend[0].batch : null;
+    g._fefoGecorrigeerd = (origFirst && newFirst && origFirst !== newFirst);
+    return g;
+  });
+}
+
+// ── LIVE DATA ───────────────────────────────────────────────
+// groups wordt geladen via Flow 5 (WML_Voorraad SharePoint lijst)
+// PROD-locaties: alles dat begint met 'PROD'
+var groups = [];
+var _dataLastLoaded = null;
+
+// Parseert SAP hoeveelheid: "10.000,000" → 10000
+function parseSapQty(s) {
+  if (!s) return 0;
+  var clean = String(s).replace(/\./g, '').replace(',', '.');
+  var n = parseFloat(clean);
+  return isNaN(n) ? 0 : n;
+}
+
+// Bepaalt of een locatie PROD is
+function isProdLocatie(bin) {
+  return /^PROD/i.test(String(bin).trim());
+}
+
+// Transformeert SharePoint rijen naar groups-formaat
+function rijen2Groups(items) {
+  var map = {};
+  items.forEach(function(r) {
+    var matNr = String(r.Material || r.Materiaal || '').trim();
+    var desc   = String(r.Material_Description || r.Materiaal_Omschrijving || '').trim();
+    var bin    = String(r.Storage_Bin || '').trim();
+    var pallet = String(r.Pallet_Number || '').trim();
+    var batch  = String(r.Batch || '').trim();
+    var qty    = parseSapQty(r.Quantity || r.TOTAL || 0);
+    var unit   = String(r.Unit || r.BUnit || '').trim();
+    // Gebruik Created_On als tijdelijke FEFO-datum (later THT_Datum)
+    var date   = String(r.THT_Datum || r.Created_On || '').trim();
+
+    if (!matNr) return;
+    if (!map[matNr]) map[matNr] = { matNr:matNr, desc:desc, inProd:[], volgend:[] };
+
+    var rij = { loc:bin, pallet:pallet, batch:batch, unit:unit, qty:qty, date:date };
+    if (isProdLocatie(bin)) {
+      map[matNr].inProd.push(rij);
+    } else {
+      map[matNr].volgend.push(rij);
+    }
+  });
+
+  // Alleen materialen tonen die minstens iets in PROD hebben
+  return Object.values(map).filter(function(g) { return g.inProd.length > 0; });
+}
+
+// Laad data van SharePoint via Flow 5
+function laadVoorraad(callback) {
+  var dataUrl = localStorage.getItem('wml_pa_data_url');
+  if (!dataUrl) {
+    // Geen data-URL → blijf op lege staat
+    toonLaadStatus('⚠ Geen data-URL ingesteld', '#92400E');
+    if (callback) callback();
+    return;
+  }
+
+  toonLaadStatus('⟳ Voorraad laden...', 'rgba(255,255,255,.6)');
+
+  fetch(dataUrl, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({})
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var items = data.value || data || [];
+    if (!Array.isArray(items)) {
+      // SharePoint geeft soms {value:[...]}
+      items = data.value || [];
+    }
+    groups = normaliseerGroepen(rijen2Groups(items));
+    detectMissingTransitions(groups);
+    _dataLastLoaded = new Date();
+    var ts = _dataLastLoaded.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'});
+    toonLaadStatus('✓ Verbonden · ' + groups.length + ' materialen · Bijgewerkt ' + ts, null);
+    renderAll();
+    if (callback) callback();
+  })
+  .catch(function(err) {
+    toonLaadStatus('✗ Data laden mislukt — ' + err.message, '#7F1D1D');
+    if (callback) callback();
+  });
+}
+
+function toonLaadStatus(tekst, kleur) {
+  var el = document.getElementById('conn-status');
+  var banner = document.getElementById('conn-banner');
+  if (el) el.textContent = tekst;
+  if (banner && kleur) banner.style.background = kleur;
+  else if (banner && !kleur) { banner.style.background = '#1A3A2A'; banner.style.borderBottom = '2px solid #52B788'; }
+}
+
+// Auto-refresh elk uur (synchroon met SAP export)
+setInterval(function() { laadVoorraad(); }, 60 * 60 * 1000);
+
+// ═══════════════════════════════════════════════════════════
+// FIX 2 — localStorage persistentie voor completed + log
+// ═══════════════════════════════════════════════════════════
+var completed = JSON.parse(localStorage.getItem('wml_completed') || '{}');
+var logEntries = JSON.parse(localStorage.getItem('wml_log') || '[]');
+var expandedCards = {}, currentView = 1;
+
+function saveCompleted() {
+  try { localStorage.setItem('wml_completed', JSON.stringify(completed)); } catch(e) {}
+}
+function saveLog() {
+  try { localStorage.setItem('wml_log', JSON.stringify(logEntries.slice(0, 200))); } catch(e) {}
+}
+function clearSavedLog() {
+  if (!confirm('Wisselslog leegmaken? Dit kan niet ongedaan worden.')) return;
+  logEntries = [];
+  saveLog();
+  updateLogPanel();
+  document.getElementById('logbar').style.display = 'none';
+}
+
+var savedLogo = localStorage.getItem('wml_logo');
+if (savedLogo) {
+  var wrap = document.getElementById('logo-wrap');
+  if (wrap) { wrap.innerHTML = '<img src="' + savedLogo + '" alt="Logo">'; wrap.style.cursor = 'default'; wrap.onclick = null; }
+}
+document.getElementById('importdate').textContent =
+  new Date().toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'}) + ' · Demo v2';
+
+// ═══════════════════════════════════════════════════════════
+// FIX 3 — IndexedDB offline queue
+// ═══════════════════════════════════════════════════════════
+var IDB_NAME = 'wml_offline_q', IDB_VER = 1;
+var _demoOffline = false;
+
+function openIDB() {
+  return new Promise(function(resolve, reject) {
+    var req = indexedDB.open(IDB_NAME, IDB_VER);
+    req.onupgradeneeded = function(e) { e.target.result.createObjectStore('queue', {autoIncrement:true}); };
+    req.onsuccess = function(e) { resolve(e.target.result); };
+    req.onerror = function(e) { reject(e); };
+  });
+}
+
+function enqueueOffline(entry) {
+  entry._queued = true;
+  return openIDB().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx = db.transaction('queue', 'readwrite');
+      tx.objectStore('queue').add(entry);
+      tx.oncomplete = resolve; tx.onerror = reject;
+    });
+  }).then(updateOfflineBanner);
+}
+
+function flushQueue() {
+  if (_demoOffline) return;
+  openIDB().then(function(db) {
+    var items = [], keys = [];
+    var tx = db.transaction('queue', 'readonly');
+    tx.objectStore('queue').openCursor().onsuccess = function(e) {
+      var cur = e.target.result;
+      if (cur) { items.push(cur.value); keys.push(cur.key); cur.continue(); }
+      else {
+        var next = function(i) {
+          if (i >= items.length) { updateOfflineBanner(); return; }
+          postToPA(items[i]).then(function() {
+            openIDB().then(function(db2) {
+              var dtx = db2.transaction('queue', 'readwrite');
+              dtx.objectStore('queue').delete(keys[i]);
+              next(i + 1);
+            });
+          }).catch(function() { updateOfflineBanner(); });
+        };
+        next(0);
+      }
+    };
+  }).catch(function(){});
+}
+
+function updateOfflineBanner() {
+  openIDB().then(function(db) {
+    var tx = db.transaction('queue', 'readonly');
+    var req = tx.objectStore('queue').count();
+    req.onsuccess = function(e) {
+      var count = e.target.result;
+      var banner = document.getElementById('offline-banner');
+      var countEl = document.getElementById('offline-count');
+      if (count > 0 || _demoOffline) {
+        banner.style.display = 'flex';
+        if (countEl) countEl.textContent = count;
+      } else {
+        banner.style.display = 'none';
+      }
+    };
+  }).catch(function(){});
+}
+
+function toggleDemoOffline() {
+  _demoOffline = !_demoOffline;
+  var btn = document.getElementById('demo-offline-btn');
+  if (btn) btn.textContent = _demoOffline ? '📡 Ga online' : '📡 Simuleer offline';
+  if (_demoOffline) {
+    document.getElementById('offline-banner').style.display = 'flex';
+    showToast('📡 Offline modus actief — wissels worden gebufferd');
+  } else {
+    flushQueue();
+    showToast('✓ Online — queue wordt verstuurd');
+  }
+}
+
+window.addEventListener('online', flushQueue);
+setInterval(flushQueue, 60000);
+
+function postToPA(entry) {
+  var paUrl = localStorage.getItem('wml_pa_url');
+  if (!paUrl) return Promise.resolve();
+  return fetch(paUrl, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      Tijdstip:entry.ts, Materiaal_Nr:entry.matNr, Omschrijving:entry.desc,
+      Van_batch:entry.oldBatch, Van_locatie:entry.oldLoc,
+      Naar_batch:entry.newBatch, Naar_locatie:entry.newLoc,
+      Medewerker:entry.operator, Badge_Nr:entry.badgeNr
+    })
+  });
+}
+
+// ── ICONS ──────────────────────────────────────────────────
+var icoHash='<svg class="pf-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>';
+var icoPin='<svg class="pf-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+var icoWgt='<svg class="pf-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>';
+function icoCircle(){return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C8C0B4" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>';}
+function icoCheck(){return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#D8F3DC" stroke="#52B788" stroke-width="1.5"/><polyline points="8 12 11 15 16 9" stroke="#1A3A2A" stroke-width="2.5" fill="none"/></svg>';}
+
+// ── LOGO ───────────────────────────────────────────────────
+function loadLogo(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var wrap = document.getElementById('logo-wrap');
+    wrap.innerHTML = '<img src="' + e.target.result + '" alt="Logo">';
+    wrap.style.cursor = 'default'; wrap.onclick = null;
+    localStorage.setItem('wml_logo', e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── MISSING TRANSITIONS ────────────────────────────────────
+var missingTransitions = [];
+
+function renderMissingBar() {
+  var open = missingTransitions.filter(function(m){ return !m.resolved; });
+  var bar = document.getElementById('missing-bar');
+  if (!open.length || currentView !== 2) { bar.style.display = 'none'; return; }
+  bar.style.display = 'block';
+  document.getElementById('missing-count').textContent = open.length;
+  document.getElementById('missing-rows').innerHTML = missingTransitions.map(function(m, i) {
+    return '<div class="missing-row' + (m.resolved ? ' resolved' : '') + '">'
+      + '<span class="mr-badge">' + m.matNr + '</span>'
+      + '<span class="mr-name">' + m.desc + '</span>'
+      + '<div class="mr-info"><span>Batch</span><span class="mr-batch">' + m.batch + '</span>'
+      + '<span>verdwenen uit</span><span style="font-family:var(--mono);font-size:11px;background:var(--blue-pale);color:var(--blue);padding:2px 6px;border-radius:4px">' + m.locatie + '</span>'
+      + '<span class="mr-time">Laatste gezien: ' + m.laatstGezien + '</span></div>'
+      + (m.resolved
+          ? '<span style="font-size:11px;color:var(--green-mid);font-weight:500">✓ Geregistreerd</span>'
+          : '<button class="mr-reg-btn" onclick="registerMissing(' + i + ')">+ Registreer</button>')
+      + '</div>';
+  }).join('');
+}
+
+function registerMissing(idx) {
+  var m = missingTransitions[idx];
+  if (!m) return;
+  var g = null;
+  for (var i = 0; i < groups.length; i++) if (groups[i].matNr === m.matNr) { g = groups[i]; break; }
+  if (g && g.inProd.length > 0) { completeRow(g.matNr, g.inProd[0].pallet); }
+  else { m.resolved = true; renderMissingBar(); }
+}
+
+function notifyTeamleider() {
+  var open = missingTransitions.filter(function(m){ return !m.resolved; });
+  if (!open.length) return;
+  var btn = document.getElementById('notify-tl-btn');
+  btn.textContent = 'Versturen...'; btn.disabled = true;
+  var alertUrl = localStorage.getItem('wml_pa_alert_url');
+  var payload = {
+    type:      'missing_wissel_alert',
+    tijdstip:  new Date().toLocaleString('nl-NL'),
+    dashboard: localStorage.getItem('wml_form_naam') || 'WML Batch Dashboard',
+    ontbrekend: open.map(function(m){
+      return {
+        materiaal_nr:   m.matNr,
+        omschrijving:   m.desc,
+        batch:          m.batch,
+        locatie:        m.locatie,
+        laatste_gezien: m.laatstGezien
+      };
+    })
+  };
+  (alertUrl
+    ? fetch(alertUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)})
+    : Promise.resolve()
+  ).then(function(){
+    btn.className='missing-notify-btn sent';
+    btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Teamleider gemeld';
+    btn.disabled=false;
+    setTimeout(function(){ btn.className='missing-notify-btn'; btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg> Meld aan teamleider'; btn.disabled=false; }, 3000);
+  }).catch(function(){ btn.className='missing-notify-btn'; btn.innerHTML='Meld aan teamleider'; btn.disabled=false; });
+}
+
+function detectMissingTransitions(newGroups) {
+  saveProdSnapshot(newGroups); return;
+  var prevProd = JSON.parse(prevJson);
+  var newProdMap = {};
+  newGroups.forEach(function(g){ newProdMap[g.matNr] = g.inProd.map(function(r){ return r.pallet; }); });
+  var found = [];
+  for (var matNr in prevProd) {
+    var prev = prevProd[matNr], curr = newProdMap[matNr] || [];
+    prev.pallets.forEach(function(p, i) {
+      if (curr.indexOf(p) === -1 && !completed[matNr + '-' + p])
+        found.push({matNr:matNr,desc:prev.desc,batch:prev.batches[i]||'—',locatie:prev.locs[i]||'PROD',laatstGezien:prev.timestamp,resolved:false});
+    });
+  }
+  if (found.length) missingTransitions = found.concat(missingTransitions.filter(function(m){ return m.resolved; }));
+  renderMissingBar();
+  saveProdSnapshot(newGroups);
+}
+
+function saveProdSnapshot(grps) {
+  var snap = {}, ts = new Date().toLocaleString('nl-NL');
+  grps.forEach(function(g){
+    snap[g.matNr] = {desc:g.desc,timestamp:ts,pallets:g.inProd.map(function(r){return r.pallet;}),batches:g.inProd.map(function(r){return r.batch;}),locs:g.inProd.map(function(r){return r.loc;})};
+  });
+  localStorage.setItem('wml_prev_prod', JSON.stringify(snap));
+}
+
+// ── SEARCH & VIEWS ─────────────────────────────────────────
+function toggleSearch() {
+  var bar = document.getElementById('searchbar-slide'), btn = document.getElementById('search-toggle');
+  var isOpen = bar.style.display !== 'none';
+  bar.style.display = isOpen ? 'none' : 'block';
+  btn.classList.toggle('active', !isOpen);
+  if (!isOpen) setTimeout(function(){ document.getElementById('searchbox').focus(); }, 50);
+  else { document.getElementById('searchbox').value = ''; renderAll(); }
+}
+
+function switchView(v) {
+  currentView = v;
+  document.getElementById('tab1').className = 'view-tab' + (v === 1 ? ' active' : '');
+  document.getElementById('tab2').className = 'view-tab' + (v === 2 ? ' active' : '');
+  document.getElementById('view1').style.display = v === 1 ? 'block' : 'none';
+  document.getElementById('view2').style.display = v === 2 ? 'block' : 'none';
+  document.getElementById('tb-operator-tools').style.display = v === 2 ? 'flex' : 'none';
+  document.getElementById('searchbar-slide').style.display = 'none';
+  var st = document.getElementById('search-toggle');
+  if (st) st.classList.remove('active');
+  var sb = document.getElementById('searchbox');
+  if (sb) sb.value = '';
+  renderAll();
+}
+
+function renderAll() {
+  renderMissingBar();
+  updateStats();
+  var q = (document.getElementById('searchbox') ? document.getElementById('searchbox').value || '' : '').toLowerCase();
+  var vis = q ? groups.filter(function(g){ return g.desc.toLowerCase().indexOf(q) > -1 || g.matNr.indexOf(q) > -1; }) : groups;
+  if (currentView === 1) renderList(vis);
+  else renderBoard(vis);
+}
+
+// ── VIEW 1 ─────────────────────────────────────────────────
+function renderList(vis) {
+  var tbody = document.getElementById('listtbody');
+  var empty = document.getElementById('listempty');
+  if (!vis.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  var missingHtml = missingTransitions.filter(function(m){ return !m.resolved; }).map(function(m, i) {
+    var q = (document.getElementById('searchbox') ? document.getElementById('searchbox').value || '' : '').toLowerCase();
+    if (q && m.desc.toLowerCase().indexOf(q) === -1 && m.matNr.indexOf(q) === -1) return '';
+    return '<tr style="background:#FFF7ED">'
+      + '<td style="border-left:3px solid #F97316;border-radius:10px 0 0 10px">'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      + '<span style="font-size:10px;font-weight:600;color:#EA580C;text-transform:uppercase;letter-spacing:.05em">Niet geregistreerde wissel</span></div>'
+      + '<div class="mat-nr">' + m.matNr + '</div><div class="mat-name">' + m.desc + '</div></td>'
+      + '<td><span style="font-family:var(--mono);font-size:12px;background:var(--red-pale);color:var(--red);padding:2px 7px;border-radius:4px;text-decoration:line-through">' + m.batch + '</span></td>'
+      + '<td><span class="loc-chip prod">' + m.locatie + '</span></td>'
+      + '<td style="color:#EA580C;font-size:11px">Laatste gezien:<br>' + m.laatstGezien + '</td>'
+      + '<td colspan="3"><button onclick="registerMissing(' + i + ')" style="background:none;border:1px solid #F97316;color:#EA580C;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer">+ Registreer alsnog</button></td>'
+      + '</tr>';
+  }).join('');
+
+  tbody.innerHTML = missingHtml + vis.map(function(g) {
+    var unit = g.inProd.length > 0 ? g.inProd[0].unit : (g.volgend.length > 0 ? g.volgend[0].unit : '');
+    var totalProd = 0; g.inProd.forEach(function(r){ totalProd += r.qty; });
+    var prodPallets = g.inProd.length;
+    var locMap = {};
+    g.volgend.forEach(function(r){ if (!locMap[r.loc]) locMap[r.loc]={qty:0,pallets:0}; locMap[r.loc].qty+=r.qty; locMap[r.loc].pallets+=1; });
+    var totalStel = 0, totalStelPallets = 0;
+    g.volgend.forEach(function(r){ totalStel+=r.qty; totalStelPallets+=1; });
+    var stellingHTML = Object.keys(locMap).length === 0
+      ? '<span style="font-size:11px;color:var(--red);font-weight:500">⚠ Geen voorraad</span>'
+      : Object.keys(locMap).map(function(loc){
+          var l=locMap[loc];
+          return '<div style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid var(--border)">'
+            +'<span class="loc-chip" style="min-width:64px">'+loc+'</span>'
+            +'<span style="font-size:11px;color:var(--muted)">'+l.pallets+' pallet'+(l.pallets!==1?'s':'')+'</span>'
+            +'<span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--green-mid);margin-left:auto">'+l.qty.toLocaleString('nl-NL')+' '+unit+'</span></div>';
+        }).join('')
+        +'<div style="display:flex;align-items:center;gap:8px;padding:4px 0 0">'
+        +'<span style="font-size:11px;color:var(--muted)">Totaal</span>'
+        +'<span style="font-size:11px;color:var(--muted)">'+totalStelPallets+' pallets</span>'
+        +'<span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--green);margin-left:auto">'+totalStel.toLocaleString('nl-NL')+' '+unit+'</span></div>';
+    return '<tr><td>'
+      +'<div class="mat-nr">'+g.matNr+'</div><div class="mat-name">'+g.desc+'</div>'
+      +(g._fefoGecorrigeerd?'<div class="fefo-fix-tag">↕ FEFO volgorde gecorrigeerd</div>':'')
+      +'</td>'
+      +'<td style="text-align:right;vertical-align:top"><span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--blue)">'+totalProd.toLocaleString('nl-NL')+' '+unit+'</span><div style="font-size:11px;color:var(--muted);margin-top:2px">'+prodPallets+' pallet'+(prodPallets!==1?'s':'')+'</div></td>'
+      +'<td style="min-width:240px;vertical-align:top">'+stellingHTML+'</td>'
+      +'<td style="text-align:right;vertical-align:top"><span style="font-family:var(--mono);font-size:13px;font-weight:600">'+(totalProd+totalStel).toLocaleString('nl-NL')+' '+unit+'</span><div style="font-size:11px;color:var(--muted);margin-top:2px">'+(prodPallets+totalStelPallets)+' pallets totaal</div></td>'
+      +'</tr>';
+  }).join('');
+}
+
+// ── VIEW 2 ─────────────────────────────────────────────────
+function renderBoard(vis) {
+  var grid = document.getElementById('grid'), empty = document.getElementById('boardempty');
+  if (!vis.length) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  grid.innerHTML = vis.map(renderBadgeCard).join('');
+}
+
+function renderBadgeCard(g) {
+  var allDone = g.inProd.every(function(r){ return completed[g.matNr+'-'+r.pallet]; });
+  var expanded = expandedCards[g.matNr];
+  var showRows = expanded ? g.inProd : [g.inProd[0]];
+  var next = g.volgend[0];
+  var donePill = allDone ? '<div class="done-tag"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Afgerond</div>' : '';
+  var fefoPill = g._fefoGecorrigeerd ? '<span class="fefo-corrected-tag" title="Volgorde gecorrigeerd op THT">↕ FEFO fix</span>' : '';
+
+  var prodPanels = showRows.map(function(row) {
+    var k = g.matNr+'-'+row.pallet, isDone = !!completed[k];
+    return '<div class="bc-panel '+(isDone?'done-panel':'prod-panel')+'">'
+      +'<div class="check-area">'
+      +'<button class="check-btn" onclick="completeRow(\''+g.matNr+'\',\''+row.pallet+'\')">'+(isDone?icoCheck():icoCircle())+'</button>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div class="pf">'+icoHash+'<span class="pf-val'+(isDone?' striked':'')+'">'+row.batch+'</span></div>'
+      +'<div class="pf">'+icoPin+'<span class="pf-sub">'+row.loc+'</span></div>'
+      +'<div class="pf">'+icoWgt+'<span class="pf-sub">'+row.qty.toLocaleString('nl-NL')+' '+row.unit+'</span></div>'
+      +'<div class="pf-date">'+row.date+'</div>'
+      +'</div></div></div>';
+  }).join('');
+
+  var nextPanel = next
+    ? '<div class="bc-panel next-panel">'
+      +(allDone?'<div class="next-lbl"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg> In gebruik nemen</div>':'')
+      +'<div class="pf">'+icoHash+'<span class="'+(allDone?'pf-next':'pf-val')+'">'+next.batch+'</span></div>'
+      +'<div class="pf">'+icoPin+'<span class="pf-sub">'+next.loc+'</span></div>'
+      +'<div class="pf">'+icoWgt+'<span class="pf-sub">'+next.qty.toLocaleString('nl-NL')+' '+next.unit+'</span></div>'
+      +'<div class="pf-date">'+next.date+'</div></div>'
+    : '<div class="bc-panel empty-panel"><span>Geen voorraad beschikbaar</span></div>';
+
+  var expandBtn = g.inProd.length > 1
+    ? '<button class="bc-expand" onclick="toggleExpand(\''+g.matNr+'\')">'
+      +(expanded
+          ?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg> Minder tonen'
+          :'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg> '+(g.inProd.length-1)+' meer pallet'+(g.inProd.length>2?'s':'')+' in PROD')
+      +'</button>' : '';
+
+  return '<div class="badge-card'+(allDone?' completed':'')+'" id="bc-'+g.matNr+'" tabindex="-1">'
+    +'<div class="bc-header"><div class="bc-meta"><div class="bc-nr">'+g.matNr+fefoPill+'</div><div class="bc-name">'+g.desc+'</div></div>'+donePill+'</div>'
+    +'<div class="bc-labels"><div class="bc-label"><span class="dot dot-prod"></span> In PROD</div><div class="bc-label"><span class="dot dot-next"></span> Volgend (FEFO)</div></div>'
+    +'<div class="bc-panels">'+prodPanels+nextPanel+'</div>'
+    +expandBtn+'</div>';
+}
+
+function toggleExpand(matNr) { expandedCards[matNr] = !expandedCards[matNr]; renderAll(); }
+
+// ── MEDEWERKERS ────────────────────────────────────────────
+var medewerkers = {
+  '1001':'Jan de Vries','1002':'Maria Bakker','1003':'Peter Smit',
+  '1004':'Sandra Jansen','1005':'Tom Willems','1042':'Rob Conijn','1087':'Lisa van den Berg'
+};
+
+// ═══════════════════════════════════════════════════════════
+// FIX 4 — Scanner: lookupPromise, type=text, focus-return
+// ═══════════════════════════════════════════════════════════
+var lookupPromise = Promise.resolve();
+var pendingComplete = {matNr:null,pallet:null,opName:null,badgeNr:null};
+
+function completeRow(matNr, pallet) {
+  var k = matNr+'-'+pallet;
+  if (completed[k]) return;
+  var g = null;
+  for (var i = 0; i < groups.length; i++) if (groups[i].matNr === matNr) { g = groups[i]; break; }
+  if (!g) return;
+  var row = null;
+  for (var j = 0; j < g.inProd.length; j++) if (g.inProd[j].pallet === pallet) { row = g.inProd[j]; break; }
+  if (!row) return;
+  var next = g.volgend[0];
+  pendingComplete = {matNr:matNr,pallet:pallet,opName:null,badgeNr:null};
+  document.getElementById('op-modal-desc').textContent = g.matNr+' — '+g.desc;
+  document.getElementById('op-from-batch').textContent = row.batch||'—';
+  document.getElementById('op-to-batch').textContent = next?(next.batch||'—'):'Geen volgende batch';
+  document.getElementById('op-badge-input').value = '';
+  document.getElementById('op-name-text').textContent = 'Voer badge nummer in...';
+  document.getElementById('op-name-text').style.color = 'var(--muted)';
+  document.getElementById('op-name-result').style.background = 'var(--cream)';
+  document.getElementById('op-name-result').style.border = 'none';
+  var btn = document.getElementById('op-confirm-btn');
+  btn.disabled = true; btn.style.opacity = '.4';
+  lookupPromise = Promise.resolve();
+  document.getElementById('op-modal').style.display = 'flex';
+  setTimeout(function(){ document.getElementById('op-badge-input').focus(); }, 80);
+}
+
+function lookupBadge(val) {
+  // Strip non-digits: verwijdert scanner prefix/suffix automatisch
+  val = String(val).replace(/\D/g, '').trim();
+  var nameEl = document.getElementById('op-name-text');
+  var resultBox = document.getElementById('op-name-result');
+  var btn = document.getElementById('op-confirm-btn');
+  if (!val) {
+    nameEl.textContent = 'Voer badge nummer in...'; nameEl.style.color = 'var(--muted)';
+    resultBox.style.background = 'var(--cream)'; resultBox.style.border = 'none';
+    btn.disabled = true; btn.style.opacity = '.4';
+    pendingComplete.opName = null; lookupPromise = Promise.resolve(); return;
+  }
+  var name = medewerkers[val];
+  if (name) {
+    nameEl.textContent = name; nameEl.style.color = 'var(--green)';
+    resultBox.style.background = 'var(--green-pale)'; resultBox.style.border = '1px solid #A7D7B5';
+    btn.disabled = false; btn.style.opacity = '1';
+    pendingComplete.opName = name; pendingComplete.badgeNr = val;
+    lookupPromise = Promise.resolve(); return;
+  }
+  var paUrl = localStorage.getItem('wml_pa_employee_url');
+  if (paUrl && val.length >= 3) {
+    nameEl.textContent = 'Zoeken...'; nameEl.style.color = 'var(--muted)';
+    lookupPromise = fetch(paUrl, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({badge: val})
+    })
+    .then(function(r) {
+      // Probeer JSON te lezen ongeacht statuscode
+      // SCH flow geeft 502 bij niet-gevonden badge — toch proberen
+      return r.json().catch(function() { return {}; });
+    })
+    .then(function(d) {
+      var n = d.naam || d.name || d.Naam || '';
+      if (n) {
+        medewerkers[val] = n;
+        nameEl.textContent = n; nameEl.style.color = 'var(--green)';
+        resultBox.style.background = 'var(--green-pale)';
+        resultBox.style.border = '1px solid #A7D7B5';
+        btn.disabled = false; btn.style.opacity = '1';
+        pendingComplete.opName = n; pendingComplete.badgeNr = val;
+      } else {
+        showBadgeNotFound();
+      }
+    })
+    .catch(showBadgeNotFound);
+    return;
+  }
+  showBadgeNotFound();
+}
+
+function showBadgeNotFound() {
+  document.getElementById('op-name-text').textContent = 'Badge nummer niet gevonden';
+  document.getElementById('op-name-text').style.color = 'var(--red)';
+  document.getElementById('op-name-result').style.background = 'var(--red-pale)';
+  document.getElementById('op-name-result').style.border = '1px solid #F5C6C3';
+  document.getElementById('op-confirm-btn').disabled = true;
+  document.getElementById('op-confirm-btn').style.opacity = '.4';
+  lookupPromise = Promise.resolve();
+  pendingComplete.opName = null;
+}
+
+function cancelComplete() {
+  var matNr = pendingComplete.matNr;
+  pendingComplete = {matNr:null,pallet:null,opName:null,badgeNr:null};
+  document.getElementById('op-modal').style.display = 'none';
+  // FIX 4: focus terug naar kaart
+  var card = document.getElementById('bc-'+matNr);
+  if (card) { card.setAttribute('tabindex','-1'); card.focus(); }
+}
+
+function confirmComplete() {
+  if (!pendingComplete.opName) return;
+  document.getElementById('op-modal').style.display = 'none';
+  var matNr=pendingComplete.matNr, pallet=pendingComplete.pallet;
+  var opName=pendingComplete.opName, badgeNr=pendingComplete.badgeNr;
+  pendingComplete = {matNr:null,pallet:null,opName:null,badgeNr:null};
+  var g = null;
+  for (var i = 0; i < groups.length; i++) if (groups[i].matNr === matNr) { g = groups[i]; break; }
+  if (!g) return;
+  var row = null;
+  for (var j = 0; j < g.inProd.length; j++) if (g.inProd[j].pallet === pallet) { row = g.inProd[j]; break; }
+  if (!row) return;
+  completed[matNr+'-'+pallet] = true;
+  saveCompleted();
+  var next = g.volgend[0];
+  var entry = {
+    ts: new Date().toLocaleString('nl-NL'), matNr:matNr, desc:g.desc,
+    oldBatch:row.batch||'—', oldLoc:row.loc,
+    newBatch:next?(next.batch||'—'):'—', newLoc:next?next.loc:'—',
+    operator:opName, badgeNr:badgeNr||'—'
+  };
+  logEntries.unshift(entry);
+  saveLog();
+
+  // POST wissel naar SharePoint (met offline fallback)
+  if (_demoOffline) {
+    enqueueOffline(entry).then(function(){ showToast('📶 Offline — wissel gebufferd in wachtrij'); });
+  } else {
+    postToPA(entry).catch(function() {
+      enqueueOffline(entry);
+      showToast('⚠ Verbinding mislukt — wissel gebufferd');
+    });
+  }
+
+  // Teamleider-alert via Flow 3 (type: wissel_geregistreerd)
+  var alertUrl = localStorage.getItem('wml_pa_alert_url');
+  if (alertUrl && !_demoOffline) {
+    fetch(alertUrl, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        type:         'wissel_geregistreerd',
+        tijdstip:     entry.ts,
+        dashboard:    localStorage.getItem('wml_form_naam') || 'WML Batch Dashboard',
+        materiaal_nr: entry.matNr,
+        omschrijving: entry.desc,
+        van_batch:    entry.oldBatch,
+        van_locatie:  entry.oldLoc,
+        naar_batch:   entry.newBatch,
+        naar_locatie: entry.newLoc,
+        medewerker:   entry.operator
+      })
+    }).catch(function(){});
+  }
+
+  updateLogPanel(); updateStats();
+  var card = document.getElementById('bc-'+matNr);
+  if (card) { var tmp=document.createElement('div'); tmp.innerHTML=renderBadgeCard(g); card.parentNode.replaceChild(tmp.firstChild,card); }
+  setTimeout(function(){ var nc=document.getElementById('bc-'+matNr); if(nc){nc.setAttribute('tabindex','-1');nc.focus();} },50);
+}
+
+// ── TOAST ──────────────────────────────────────────────────
+function showToast(msg) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1A3A2A;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.25);pointer-events:none';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(function(){ t.remove(); },400); },2500);
+}
+
+// ── LOG & STATS ────────────────────────────────────────────
+function updateLogPanel() { document.getElementById('logcount').textContent = logEntries.length; }
+
+function toggleLog() {
+  var lb = document.getElementById('logbar');
+  if (lb.style.display === 'block') { lb.style.display='none'; return; }
+  document.getElementById('logrows').innerHTML = logEntries.map(function(e){
+    return '<div class="log-row"><span class="lr-ts">'+e.ts+'</span><span class="lr-mat">'+e.desc+'</span>'
+      +'<div class="lr-batches"><span class="batch-tag old">'+e.oldBatch+'</span><span style="color:var(--muted)">→</span><span class="batch-tag new">'+e.newBatch+'</span></div>'
+      +'<span class="lr-op" title="Badge: '+(e.badgeNr||'—')+'">'+e.operator+(e._queued?'<span class="queued-badge">gebufferd</span>':'')+'</span></div>';
+  }).join('');
+  lb.style.display = 'block';
+}
+
+function exportLog() {
+  var rows = ['Tijdstip;Materiaal_Nr;Omschrijving;Van_batch;Van_locatie;Naar_batch;Naar_locatie;Medewerker;Badge_Nr;Gebufferd'];
+  logEntries.forEach(function(e){ rows.push([e.ts,e.matNr,'"'+e.desc+'"',e.oldBatch,e.oldLoc,e.newBatch,e.newLoc,e.operator,e.badgeNr||'—',e._queued?'ja':'nee'].join(';')); });
+  var blob = new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  var a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='WML_Demo_Wisselslog.csv'; a.click();
+}
+
+function updateStats() {
+  var sp = document.getElementById('statprod');
+  if (sp) sp.textContent = groups.length;
+}
+
+// ── VERBINDINGSTEST ────────────────────────────────────────
+// Test beide flows bij laden — geeft visuele feedback in banner
+function testVerbinding() {
+  var banner = document.getElementById('conn-banner');
+  var status = document.getElementById('conn-status');
+
+  var paUrl  = localStorage.getItem('wml_pa_url');
+  var empUrl = localStorage.getItem('wml_pa_employee_url');
+  if (!paUrl || !empUrl) {
+    banner.style.background = '#92400E';
+    status.textContent = '⚠ Geen PA-URLs ingesteld';
+    return;
+  }
+
+  // Elke HTTP-response (ook 4xx/5xx) = flow-URL bereikbaar
+  // 502 = flow draait maar onbekende badge → dat is normaal gedrag
+  fetch(empUrl, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({badge: '0000'})
+  })
+  .then(function(r) {
+    // 200 = badge gevonden, 4xx/5xx = flow bereikbaar maar badge onbekend
+    // Beide betekenen: URL werkt
+    banner.style.background = '#1A3A2A';
+    banner.style.borderBottom = '2px solid #52B788';
+    status.textContent = '✓ Verbonden · Badge lookup actief · Wissels worden geregistreerd';
+  })
+  .catch(function(err) {
+    // Alleen een network-error (CORS, DNS) = echt onbereikbaar
+    banner.style.background = '#7F1D1D';
+    status.textContent = '✗ Netwerk-fout — controleer CORS of internetverbinding (' + err.message + ')';
+  });
+}
+
+// ── POWER AUTOMATE URLs ────────────────────────────────────
+// URL 1 = SCH Badge Lookup flow (gedeeld met SCH Kiosk)
+// URL 2 = WML Wissel Registreren flow
+localStorage.setItem('wml_pa_employee_url',
+  'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/0960a0a199f24d1799dbc81ab236f555/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Hmt2PPtfCgm27R33OIYUmbl-aw3naJ2QOk4KghTbLVI'
+);
+localStorage.setItem('wml_pa_url',
+  'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/490a78971650456d96ff5b7a69b5076d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=FvFrF339MSckAU8Bj-oaz_rodt3tJiJKkmya9MpaUfc'
+);
+localStorage.setItem('wml_pa_alert_url',
+  'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/08095e4a2bf44c49a9bc4078de1d7b42/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=MO2qIKX8H7RMBisbs5LtKHOlafxal27aXByaOPvPF8M'
+);
+localStorage.setItem('wml_pa_data_url',
+  'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/769e283259fd44a8bf52dad5bf683139/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-sj3WGojPUO-LMEYVH3XR3ZzC-qN3rKRsuWbe1CAc0U'
+);
+if (!localStorage.getItem('wml_form_naam')) {
+  localStorage.setItem('wml_form_naam', 'WML Batch Dashboard');
+}
+
+// ── INIT ───────────────────────────────────────────────────
+updateOfflineBanner();
+updateLogPanel();
+switchView(1);
+renderMissingBar();
+// Laad live data bij opstarten — daarna elk uur automatisch
+laadVoorraad(function() { testVerbinding(); });
+</script>
+
+<!-- OPERATOR MODAL (FIX 4: type=text, inputmode=numeric, lookupPromise) -->
+<div id="op-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:340px;box-shadow:0 24px 64px rgba(0,0,0,.25)">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:15px;font-weight:600;color:var(--ink)">Wissel aftekenen</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px" id="op-modal-desc"></div>
+      </div>
+      <button onclick="cancelComplete()" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:2px;font-size:18px;line-height:1">✕</button>
+    </div>
+    <div style="background:var(--cream);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px">
+      <div style="color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Overgang</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="background:var(--red-pale);border:1px solid #F5C6C3;border-radius:6px;padding:4px 10px">
+          <div style="font-size:10px;color:var(--red);font-weight:600;margin-bottom:1px">HUIDIG IN PROD</div>
+          <div style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--red)" id="op-from-batch">—</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <div style="background:var(--green-pale);border:1px solid #A7D7B5;border-radius:6px;padding:4px 10px">
+          <div style="font-size:10px;color:var(--green);font-weight:600;margin-bottom:1px">VOLGENDE BATCH</div>
+          <div style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--green)" id="op-to-batch">—</div>
+        </div>
+      </div>
+    </div>
+    <label style="font-size:12px;color:var(--muted);font-weight:500;display:block;margin-bottom:6px">
+      Badge nummer
+      <span style="font-size:10px;background:var(--green-pale);color:var(--green-mid);padding:1px 7px;border-radius:10px;margin-left:6px;font-weight:600">Scanner-klaar</span>
+    </label>
+    <div style="position:relative;margin-bottom:10px">
+      <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.4;pointer-events:none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      <input
+        type="text"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        autocomplete="off"
+        autocorrect="off"
+        id="op-badge-input"
+        placeholder="Scan of typ badge nr..."
+        style="width:100%;padding:10px 12px 10px 34px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:var(--mono)"
+        oninput="lookupBadge(this.value)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();lookupPromise.then(function(){if(pendingComplete.opName)confirmComplete();});}">
+    </div>
+    <div id="op-name-result" style="min-height:36px;margin-bottom:16px;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;font-size:13px;background:var(--cream)">
+      <span style="font-size:18px">👤</span>
+      <span id="op-name-text" style="color:var(--muted)">Voer badge nummer in...</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="cancelComplete()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;cursor:pointer;color:var(--muted);font-weight:500">Annuleren</button>
+      <button onclick="confirmComplete()" id="op-confirm-btn" disabled style="flex:2;padding:10px;border:none;border-radius:9px;background:var(--green);color:#fff;font-size:13px;font-weight:600;cursor:pointer;opacity:.4;transition:opacity .2s">✓ Bevestigen</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
