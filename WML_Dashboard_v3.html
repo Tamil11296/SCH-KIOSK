@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WML Batch Dashboard — Demo v2</title>
+<title>WML Voorraad | TRA Registratie Dashboard — Demo v2</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -19,8 +19,8 @@
      ═══════════════════════════════════════════════════════════════ */
 
   /* FEFO Overzicht — Materiaalkolom */
-  --font-mat-nr:        15px;   /* SAP-nummer bv. 1959, 2014 */
-  --font-mat-naam:      14px;   /* Omschrijving bv. "standard grade pure dried..." */
+  --font-mat-nr:        14px;   /* SAP-nummer bv. 1959, 2014 */
+  --font-mat-naam:      13px;   /* Omschrijving bv. "standard grade pure dried..." */
 
   /* FEFO Overzicht — Voorraad kolom */
   --font-hoeveelheid:   14px;   /* Hoeveelheid bv. "950 KG" */
@@ -59,13 +59,14 @@ button,input{font-family:var(--sans);font-size:14px}
 .ob-demo-btn{background:none;border:1px solid #FCD34D;color:#92400E;border-radius:6px;padding:5px 12px;font-size:11px;cursor:pointer;white-space:nowrap}
 
 /* TOPBAR */
-#topbar{background:var(--green);color:#fff;padding:0 14px;display:flex;align-items:center;justify-content:space-between;height:52px;gap:8px}
+#topbar{background:var(--gold);color:#004488;padding:0 12x;display:flex;align-items:center;justify-content:space-between;height:75px;gap:8px}
 .tb-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
-.tb-logo{width:32px;height:32px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;background:rgba(255,255,255,.15)}
-.tb-logo img{width:32px;height:32px;object-fit:contain;border-radius:6px}
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+.tb-logo{width:140px;height:75px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;background:rgba(255,255,255,.1)}
+.tb-logo img{width:100%;height:100%;object-fit:contain;border-radius:9px}
 .tb-info{min-width:0}
-.tb-info h1{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tb-info p{font-size:10px;opacity:.45;margin-top:1px;white-space:nowrap}
+.tb-info h1{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-info p{font-size:12px;opacity:.45;margin-top:1px;white-space:nowrap}
 .tb-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .tb-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:6px 10px;color:#fff;cursor:pointer;font-size:12px;white-space:nowrap;transition:background .15s;display:flex;align-items:center;gap:5px}
 .tb-btn:hover{background:rgba(255,255,255,.2)}
@@ -138,7 +139,7 @@ button,input{font-family:var(--sans);font-size:14px}
 .badge-card.completed{border-color:#A7D7B5;box-shadow:0 0 0 2px rgba(82,183,136,.12)}
 .bc-header{padding:12px 14px 8px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .bc-meta{flex:1;min-width:0}
-.bc-nr{font-family:var(--mono);font-size:14px;color:var(--muted);margin-bottom:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.bc-nr{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .bc-name{font-size:13px;font-weight:500;line-height:1.3}
 .done-tag{flex-shrink:0;display:inline-flex;align-items:center;gap:4px;background:var(--green-pale);color:var(--green);font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;border:1px solid #A7D7B5}
 .fefo-corrected-tag{display:inline-flex;align-items:center;gap:2px;background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;font-size:9px;font-weight:600;padding:2px 6px;border-radius:20px}
@@ -242,7 +243,7 @@ button,input{font-family:var(--sans);font-size:14px}
   <!-- Logo / titel -->
   <div style="text-align:center;margin-bottom:32px">
     <div style="font-size:32px;margin-bottom:8px">🏭</div>
-    <div style="font-size:22px;font-weight:700;color:#fff;letter-spacing:.02em">WML Batch Dashboard</div>
+    <div style="font-size:22px;font-weight:700;color:#fff;letter-spacing:.02em">WML Voorraad Dashboard</div>
     <div style="font-size:13px;color:rgba(255,255,255,.6);margin-top:4px" id="login-datum"></div>
   </div>
 
@@ -276,7 +277,7 @@ button,input{font-family:var(--sans);font-size:14px}
   </div>
 </div>
 
-<div class="demo-banner" id="conn-banner" style="background:#1A3A2A">
+<div class="demo-banner" id="conn-banner" style="background:#1A3A2A;display:none">
   ⚙️ Verbinding testen... <span id="conn-status">flows worden gecontroleerd</span>
 </div>
 
@@ -291,12 +292,27 @@ button,input{font-family:var(--sans);font-size:14px}
 
 <div id="topbar">
   <div class="tb-left">
-    <div class="tb-logo" id="logo-wrap" title="Klik om logo te uploaden" onclick="document.getElementById('logo-upload').click()" style="cursor:pointer">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    <!-- Logo: klik voor verbindingsstatus popup -->
+    <div class="tb-logo" id="logo-wrap" title="Klik voor verbindingsstatus" onclick="toggleStatusPopup()" style="cursor:pointer;position:relative">
+      <svg id="logo-default" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <img id="logo-img" style="display:none;width:180%;height:180%;object-fit:contain;border-radius:6px">
+      <div id="conn-dot" style="position:absolute;bottom:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:#F59E0B;border:2px solid var(--green)" title="Verbindingsstatus"></div>
     </div>
     <input type="file" id="logo-upload" accept="image/*" style="display:none" onchange="loadLogo(this)">
+    <!-- Status popup -->
+    <div id="status-popup" style="display:none;position:absolute;top:56px;left:16px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:99">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:13px;font-weight:600;color:var(--ink)">Verbindingsstatus</span>
+        <button onclick="toggleStatusPopup()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;line-height:1">✕</button>
+      </div>
+      <div id="status-popup-inhoud" style="font-size:12px;color:var(--muted)">Verbinding testen...</div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button onclick="testVerbinding()" style="flex:1;padding:7px;background:var(--cream);border:1px solid var(--border);border-radius:7px;font-size:12px;cursor:pointer;color:var(--ink)">↻ Opnieuw testen</button>
+        <button onclick="document.getElementById('logo-upload').click()" style="flex:1;padding:7px;background:var(--cream);border:1px solid var(--border);border-radius:7px;font-size:12px;cursor:pointer;color:var(--ink)">🖼 Logo uploaden</button>
+      </div>
+    </div>
     <div class="tb-info">
-      <h1 id="dashboard-title">WML Batch Dashboard</h1>
+      <h1 id="dashboard-title">WML Voorraad | TRA Registratie Dashboard</h1>
       <p id="importdate"></p>
     </div>
     <!-- Ingelogde medewerker -->
@@ -322,8 +338,13 @@ button,input{font-family:var(--sans);font-size:14px}
   <div class="view-tabs">
     <div class="view-tab active" id="tab1" onclick="switchView(1)">📋 FEFO Overzicht</div>
     <div class="view-tab" id="tab2" onclick="switchView(2)">🏭 Operator Board</div>
+    <div class="view-tab" id="tab3" onclick="switchView(3)">⚠ Afwijkingen <span id="afwijking-badge" style="display:none;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;margin-left:4px">0</span></div>
   </div>
   <div class="vb-right">
+    <button onclick="verversData()" id="ververs-btn" title="Voorraad ophalen uit SharePoint" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:5px 12px;font-size:12px;font-weight:500;color:rgba(255,255,255,.85);cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">
+      <svg id="ververs-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Ververs
+    </button>
     <div class="stat-chip">📦 <strong id="statprod">0</strong> in PROD</div>
   </div>
 </div>
@@ -331,7 +352,7 @@ button,input{font-family:var(--sans);font-size:14px}
 <!-- AFDELING TABS (alleen zichtbaar in FEFO Overzicht) -->
 <div id="afdeling-bar">
   <button class="afd-tab alle active" onclick="setAfdeling(null)">🏭 Alle afdelingen</button>
-  <button class="afd-tab" onclick="setAfdeling('Deegmakerij')">🍪 Deegmakerij</button>
+  <button class="afd-tab" onclick="setAfdeling('Deegmakerij')">🥐 Deegmakerij</button>
   <button class="afd-tab" onclick="setAfdeling('Ovenruimte')">🔥 Ovenruimte</button>
   <button class="afd-tab" onclick="setAfdeling('Droge grondstoffen')">🌾 Droge grondstoffen</button>
   <button class="afd-tab" onclick="setAfdeling('Palletijzer')">📦 Palletijzer</button>
@@ -430,7 +451,7 @@ button,input{font-family:var(--sans);font-size:14px}
     <div class="es-icon">📋</div><p>Geen materialen gevonden</p>
   </div>
   <!-- KUIP REGISTRATIES — altijd zichtbaar onder kaarten -->
-  <div id="kuip-registraties-sectie" style="display:none;padding:50px 24px 24px"></div>
+  <div id="kuip-registraties-sectie" style="display:none;padding:500px 24px 24px"></div>
   </div>
   <!-- INGEVULDE FORMULIEREN — altijd zichtbaar onder de kaarten -->
   <div id="ingevulde-formulieren" style="display:none;margin:24px;border:1px solid var(--border);border-radius:14px;overflow:hidden">
@@ -439,6 +460,22 @@ button,input{font-family:var(--sans);font-size:14px}
       <span id="ingevulde-titel" style="font-size:14px;font-weight:600">Ingevulde formulieren — vandaag</span>
     </div>
     <div id="ingevulde-inhoud" style="padding:16px;display:flex;flex-direction:column;gap:16px"></div>
+  </div>
+</div>
+
+<div id="view3" style="display:none;padding:20px 24px">
+  <div style="max-width:1100px;margin:0 auto">
+    <div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:12px;padding:14px 18px;margin-bottom:18px">
+      <div style="font-size:14px;font-weight:700;color:#92400E;display:flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Afwijkingen — verwijderde pallets
+      </div>
+      <div style="font-size:12px;color:#92400E;margin-top:6px;line-height:1.5">
+        Deze pallets stonden eerder in voorraad maar zijn uit de laatste export verdwenen, en zijn automatisch op <strong>VERWIJDERD</strong> gezet.
+        Controleer elke pallet en bevestig met de juiste reden. Pas na bevestiging is de verwijdering goedgekeurd.
+      </div>
+    </div>
+    <div id="afwijking-inhoud"></div>
   </div>
 </div>
 
@@ -464,10 +501,15 @@ function parseDate(s) {
 function normaliseerGroepen(grps) {
   return grps.map(function(g) {
     var origFirst = g.volgend.length > 0 ? g.volgend[0].batch : null;
-    g.volgend = g.volgend.filter(function(r) { return r.date; })
-      .sort(function(a, b) { return parseDate(a.date) - parseDate(b.date); });
-    g.inProd = g.inProd.filter(function(r) { return r.date; })
-      .sort(function(a, b) { return parseDate(a.date) - parseDate(b.date); });
+    // FEFO-sortering op THT-datum. Rijen ZONDER datum worden niet langer
+    // verwijderd (dat verborg geldige voorraad), maar achteraan gesorteerd.
+    var fefoSort = function(a, b) {
+      var da = a.date ? parseDate(a.date).getTime() : Infinity;
+      var db = b.date ? parseDate(b.date).getTime() : Infinity;
+      return da - db;
+    };
+    g.volgend = g.volgend.slice().sort(fefoSort);
+    g.inProd = g.inProd.slice().sort(fefoSort);
     var newFirst = g.volgend.length > 0 ? g.volgend[0].batch : null;
     g._fefoGecorrigeerd = (origFirst && newFirst && origFirst !== newFirst);
     return g;
@@ -497,6 +539,12 @@ function isProdLocatie(bin) {
 function rijen2Groups(items) {
   var map = {};
   items.forEach(function(r) {
+// Soft-delete: sla items met Status VERWIJDERD over — pallet is fysiek weg,
+    // mag niet als voorraad getoond worden (historie blijft in SharePoint voor audit)
+    var statusVal = r.Status && typeof r.Status === 'object' ? r.Status.Value : r.Status;
+    var status = String(statusVal || '').trim().toUpperCase();
+    if (status === 'VERWIJDERD') return;
+
     var matNr = String(r.Material || r.Materiaal || '').trim();
     var desc   = String(r.Material_Description || r.Materiaal_Omschrijving || '').trim();
     var bin    = String(r.Storage_Bin || '').trim();
@@ -547,6 +595,11 @@ function laadVoorraad(callback) {
       // SharePoint geeft soms {value:[...]}
       items = data.value || [];
     }
+// Vang verwijderde items apart op voor het Afwijkingen-scherm
+    verwijderdeItems = items.filter(function(r) {
+      var statusVal = r.Status && typeof r.Status === 'object' ? r.Status.Value : r.Status;
+      return String(statusVal || '').trim().toUpperCase() === 'VERWIJDERD';
+    });;
     groups = normaliseerGroepen(rijen2Groups(items));
     detectMissingTransitions(groups);
     _dataLastLoaded = new Date();
@@ -578,6 +631,7 @@ setInterval(function() { laadVoorraad(); }, 60 * 60 * 1000);
 var completed = JSON.parse(localStorage.getItem('wml_completed') || '{}');
 var logEntries = JSON.parse(localStorage.getItem('wml_log') || '[]');
 var expandedCards = {}, currentView = 1;
+var verwijderdeItems = []; // VERWIJDERD items uit SharePoint, voor het Afwijkingen-scherm
 
 function saveCompleted() {
   try { localStorage.setItem('wml_completed', JSON.stringify(completed)); } catch(e) {}
@@ -595,11 +649,13 @@ function clearSavedLog() {
 
 var savedLogo = localStorage.getItem('wml_logo');
 if (savedLogo) {
-  var wrap = document.getElementById('logo-wrap');
-  if (wrap) { wrap.innerHTML = '<img src="' + savedLogo + '" alt="Logo">'; wrap.style.cursor = 'default'; wrap.onclick = null; }
+  var defaultSvg = document.getElementById('logo-default');
+  var logoImg = document.getElementById('logo-img');
+  if (defaultSvg) defaultSvg.style.display = 'none';
+  if (logoImg) { logoImg.src = savedLogo; logoImg.style.display = 'block'; }
 }
 document.getElementById('importdate').textContent =
-  new Date().toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'}) + ' · Demo v2';
+  new Date().toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'}) + ' · WML v2';
 
 // ═══════════════════════════════════════════════════════════
 // FIX 3 — IndexedDB offline queue
@@ -713,9 +769,10 @@ function loadLogo(input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    var wrap = document.getElementById('logo-wrap');
-    wrap.innerHTML = '<img src="' + e.target.result + '" alt="Logo">';
-    wrap.style.cursor = 'default'; wrap.onclick = null;
+    var defaultSvg = document.getElementById('logo-default');
+    var img = document.getElementById('logo-img');
+    if (defaultSvg) defaultSvg.style.display = 'none';
+    if (img) { img.src = e.target.result; img.style.display = 'block'; }
     localStorage.setItem('wml_logo', e.target.result);
   };
   reader.readAsDataURL(file);
@@ -762,7 +819,7 @@ function notifyTeamleider() {
   var payload = {
     type:      'missing_wissel_alert',
     tijdstip:  new Date().toLocaleString('nl-NL'),
-    dashboard: localStorage.getItem('wml_form_naam') || 'WML Batch Dashboard',
+    dashboard: localStorage.getItem('wml_form_naam') || 'WML Voorraad | TRA Registratie Dashboard',
     ontbrekend: open.map(function(m){
       return {
         materiaal_nr:   m.matNr,
@@ -825,8 +882,10 @@ function switchView(v) {
   activeFormFilter = null; // reset formulierfilter bij view-wissel
   document.getElementById('tab1').className = 'view-tab' + (v === 1 ? ' active' : '');
   document.getElementById('tab2').className = 'view-tab' + (v === 2 ? ' active' : '');
+  document.getElementById('tab3').className = 'view-tab' + (v === 3 ? ' active' : '');
   document.getElementById('view1').style.display = v === 1 ? 'block' : 'none';
   document.getElementById('view2').style.display = v === 2 ? 'block' : 'none';
+  document.getElementById('view3').style.display = v === 3 ? 'block' : 'none';
   document.getElementById('tb-operator-tools').style.display = v === 2 ? 'flex' : 'none';
   document.getElementById('afdeling-bar').style.display = v === 1 ? 'flex' : 'none';
   if (v === 1) document.getElementById('form-filter-bar').style.display = 'none';
@@ -838,6 +897,170 @@ function switchView(v) {
   var fsb = document.getElementById('fefo-searchbox');
   if (fsb) fsb.value = '';
   renderAll();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// AFWIJKINGEN — verwijderde pallets inzien + bevestigen (ronde 1: UI)
+// ══════════════════════════════════════════════════════════════════
+
+// Mogelijke redenen voor verwijdering. Pas deze lijst aan naar wens.
+var VERWIJDER_REDENEN = [
+  'Verbruikt in productie',
+  'Afgekeurd / vernietigd',
+  'Verplaatst naar andere locatie',
+  'Retour naar leverancier',
+  'Telfout in vorige export',
+  'Anders (zie opmerking)'
+];
+
+// Bepaalt of een verwijderd item al bevestigd is (leest SP-velden die in ronde 2 gevuld worden)
+function isBevestigd(item) {
+  return !!(item.BevestigdDoor || item.BevestigdOp);
+}
+
+function updateAfwijkingBadge() {
+  var badge = document.getElementById('afwijking-badge');
+  if (!badge) return;
+  var openCount = verwijderdeItems.filter(function(i){ return !isBevestigd(i); }).length;
+  if (openCount > 0) {
+    badge.textContent = openCount;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function renderAfwijkingen() {
+  var container = document.getElementById('afwijking-inhoud');
+  if (!container) return;
+
+  if (!verwijderdeItems.length) {
+    container.innerHTML = '<div style="text-align:center;padding:50px 20px;color:var(--muted)">'
+      + '<div style="font-size:32px;margin-bottom:8px">✓</div>'
+      + '<p style="font-size:14px">Geen verwijderde pallets — alles in orde.</p></div>';
+    return;
+  }
+
+  var pending = verwijderdeItems.filter(function(i){ return !isBevestigd(i); });
+  var bevestigd = verwijderdeItems.filter(isBevestigd);
+
+  var html = '';
+
+  // ── Te bevestigen ──
+  html += '<div style="font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.05em;margin:4px 0 10px">'
+        + 'Te bevestigen (' + pending.length + ')</div>';
+  if (!pending.length) {
+    html += '<div style="color:var(--muted);font-size:13px;padding:0 0 16px">Niets openstaand.</div>';
+  } else {
+    html += pending.map(renderAfwijkingKaart).join('');
+  }
+
+  // ── Bevestigd ──
+  if (bevestigd.length) {
+    html += '<div style="font-size:12px;font-weight:700;color:var(--green-mid);text-transform:uppercase;letter-spacing:.05em;margin:24px 0 10px">'
+          + 'Bevestigd (' + bevestigd.length + ')</div>';
+    html += bevestigd.map(renderAfwijkingKaart).join('');
+  }
+
+  container.innerHTML = html;
+}
+
+function renderAfwijkingKaart(item) {
+  var id      = item.ID || item.Id || '';
+  var pallet  = item.Pallet_Number || '';
+  var matNr   = item.Material || '';
+  var desc    = item.Material_Description || '';
+  var bin     = item.Storage_Bin || '';
+  var batch   = item.Batch || '';
+  var qty      = item.Quantity || item.TOTAL || '';
+  var unit    = item.Unit || item.BUnit || '';
+  var bevestigd = isBevestigd(item);
+
+  var rand = bevestigd ? '#A7D7B5' : '#FCD34D';
+  var head = '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">'
+    + '<div>'
+    + '<div style="font-family:var(--mono);font-size:14px;font-weight:600;color:var(--ink)">Pallet ' + pallet + '</div>'
+    + '<div style="font-size:12px;color:var(--muted);margin-top:2px">' + matNr + ' · ' + desc + '</div>'
+    + '<div style="font-size:11px;color:var(--muted);margin-top:4px">Locatie ' + bin + ' · Batch ' + batch + ' · ' + qty + ' ' + unit + '</div>'
+    + '</div>';
+
+  if (bevestigd) {
+    head += '<div style="text-align:right">'
+      + '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--green-pale);color:var(--green);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid #A7D7B5">✓ Bevestigd</span>'
+      + '<div style="font-size:10px;color:var(--muted);margin-top:4px">' + (item.Reden || '') + '</div>'
+      + '<div style="font-size:10px;color:var(--muted)">' + (item.BevestigdDoor || '') + ' · ' + (item.BevestigdOp || '') + '</div>'
+      + '</div>';
+  }
+  head += '</div>';
+
+  var body = '';
+  if (!bevestigd) {
+    var redenOpts = VERWIJDER_REDENEN.map(function(r){
+      return '<option value="' + r + '">' + r + '</option>';
+    }).join('');
+    body = '<div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">'
+      + '<select id="reden-' + id + '" style="flex:1;min-width:180px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--cream)">'
+      + '<option value="">— Kies reden —</option>' + redenOpts
+      + '</select>'
+      + '<input id="opm-' + id + '" type="text" placeholder="Opmerking (optioneel)" style="flex:1;min-width:180px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--cream)">'
+      + '<button onclick="bevestigVerwijdering(\'' + id + '\')" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">✓ Bevestig</button>'
+      + '</div>';
+  }
+
+  return '<div style="background:var(--paper);border:1px solid ' + rand + ';border-radius:12px;padding:14px 16px;margin-bottom:10px">'
+    + head + body + '</div>';
+}
+
+function bevestigVerwijdering(id) {
+  var redenEl = document.getElementById('reden-' + id);
+  var opmEl   = document.getElementById('opm-' + id);
+  var reden   = redenEl ? redenEl.value : '';
+  var opm     = opmEl ? opmEl.value : '';
+
+  if (!reden) {
+    alert('Kies eerst een reden voordat je bevestigt.');
+    return;
+  }
+
+  var confirmUrl = localStorage.getItem('wml_pa_voorraad_confirm_url');
+  if (!confirmUrl) {
+    // Ronde 2 nog niet ingericht — geef duidelijke melding i.p.v. stil falen
+    alert('De bevestigings-flow is nog niet ingesteld (ronde 2).\n\n'
+        + 'Reden die bevestigd zou worden: "' + reden + '"'
+        + (opm ? '\nOpmerking: ' + opm : '')
+        + '\n\nZodra de Power Automate flow klaar is en de URL is ingesteld als '
+        + 'wml_pa_voorraad_confirm_url, schrijft deze knop direct naar SharePoint.');
+    return;
+  }
+
+  // Ronde 2: schrijf naar SharePoint via de flow
+  var gebruiker = localStorage.getItem('wml_form_naam') || 'Onbekend';
+  fetch(confirmUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: id,
+      reden: reden,
+      opmerking: opm,
+      bevestigdDoor: gebruiker,
+      bevestigdOp: new Date().toLocaleString('nl-NL')
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(){
+    // Lokaal markeren zodat de kaart direct verschuift naar "Bevestigd"
+    var item = verwijderdeItems.find(function(i){ return String(i.ID || i.Id) === String(id); });
+    if (item) {
+      item.Reden = reden;
+      item.BevestigdDoor = gebruiker;
+      item.BevestigdOp = new Date().toLocaleString('nl-NL');
+    }
+    renderAfwijkingen();
+    updateAfwijkingBadge();
+  })
+  .catch(function(e){
+    alert('Bevestigen mislukt: ' + e.message);
+  });
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1154,6 +1377,7 @@ function renderFormFilterBar(visGroups) {
 function renderAll() {
   renderMissingBar();
   updateStats();
+  updateAfwijkingBadge();
   // Zoekbalk: view1 heeft eigen zoekbalk, view2 heeft de slide-in balk
   var fefoQ = document.getElementById('fefo-searchbox') ? (document.getElementById('fefo-searchbox').value || '') : '';
   var boardQ = document.getElementById('searchbox') ? (document.getElementById('searchbox').value || '') : '';
@@ -1165,6 +1389,11 @@ function renderAll() {
     document.getElementById('formulier-acties-bar').style.display = 'none';
     document.getElementById('kuip-registraties-sectie').style.display = 'none';
     renderList(vis);
+  } else if (currentView === 3) {
+    document.getElementById('form-filter-bar').style.display = 'none';
+    document.getElementById('formulier-acties-bar').style.display = 'none';
+    document.getElementById('kuip-registraties-sectie').style.display = 'none';
+    renderAfwijkingen();
   } else {
     renderFormFilterBar(vis);
     renderFormulierActieBalk();
@@ -1358,7 +1587,7 @@ function renderBadgeCard(g) {
     kuipTabelHtml = '<div style="margin:6px 10px 4px;border:1.5px solid #86EFAC;border-radius:9px;overflow:hidden">'
       + '<div style="background:#F0FDF4;padding:5px 10px;font-size:11px;font-weight:700;color:#166534;display:flex;align-items:center;justify-content:space-between">'
       + '<span>🪣 Kuip registraties (' + kuipData.length + ')</span>'
-      + '<button data-ververs-btn onclick="laadKuipRegistraties(function(){renderAll();})" style="background:none;border:none;font-size:10px;color:#166534;cursor:pointer;opacity:.6">↻ Ververs</button>'
+      + '<button onclick="laadKuipRegistraties(function(){renderAll();})" style="background:none;border:none;font-size:10px;color:#166534;cursor:pointer;opacity:.6">↻ Ververs</button>'
       + '</div>'
       + '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">'
       + '<tr><th style="'+thS+'">Product</th><th style="'+thS+'">REC-NR</th><th style="'+thS+'">Kuip</th>'
@@ -2146,25 +2375,11 @@ var kuipRegistraties = {}; // { matNr: [ {product, recNr, kuipNr, ...}, ... ] }
 var activKuipDatum = new Date().toISOString().slice(0, 10);
 
 
-function setVerversknoppen(bezig) {
-  document.querySelectorAll('[data-ververs-btn]').forEach(function(btn) {
-    btn.textContent = bezig ? '⏳ Laden...' : '↻ Ververs';
-    btn.disabled = bezig;
-    btn.style.opacity = bezig ? '.5' : '1';
-  });
-}
-
 function laadKuipRegistraties(callback, datum) {
   var url = localStorage.getItem('wml_pa_kuip_load_url');
-  if (!url) {
-    console.warn('[WML] wml_pa_kuip_load_url niet ingesteld');
-    if (callback) callback();
-    return;
-  }
+  if (!url) { if (callback) callback(); return; }
   var datumStr = datum || activKuipDatum || new Date().toISOString().slice(0, 10);
   activKuipDatum = datumStr;
-
-  setVerversknoppen(true);
 
   fetch(url, {
     method: 'POST',
@@ -2195,13 +2410,11 @@ function laadKuipRegistraties(callback, datum) {
         batch:       r.Batch || ''
       });
     });
-    setVerversknoppen(false);
     if (callback) callback();
     // Altijd renderAll aanroepen na laden
     renderKuipRegistratiesSection();
   })
   .catch(function(e) {
-    setVerversknoppen(false);
     console.warn('[WML] Kuip ophalen mislukt:', e.message);
     if (callback) callback();
     renderKuipRegistratiesSection();
@@ -2300,7 +2513,7 @@ function renderKuipRegistratiesSection() {
   var html = '<div style="background:#fff;border:1.5px solid #86EFAC;border-radius:12px;overflow:hidden">'
     + '<div style="background:#F0FDF4;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'
     + '<span style="font-size:13px;font-weight:700;color:#166534">🪣 Kuip registraties — ' + datumTekst + ' (' + alleRijen.length + ')</span>'
-    + '<button data-ververs-btn onclick="laadKuipRegistraties(function(){renderAll();})" style="background:none;border:1px solid #86EFAC;border-radius:6px;padding:3px 10px;font-size:11px;color:#166534;cursor:pointer">↻ Ververs</button>'
+    + '<button onclick="laadKuipRegistraties(function(){renderAll();})" style="background:none;border:1px solid #86EFAC;border-radius:6px;padding:3px 10px;font-size:11px;color:#166534;cursor:pointer">↻ Ververs</button>'
     + '</div>'
     + datumBalk
     + tabel + '</div>';
@@ -2368,7 +2581,7 @@ function notifyFefoAfwijking() {
   var payload = {
     type: 'fefo_afwijking',
     tijdstip: new Date().toLocaleString('nl-NL'),
-    dashboard: localStorage.getItem('wml_form_naam') || 'WML Batch Dashboard',
+    dashboard: localStorage.getItem('wml_form_naam') || 'WML Voorraad Dashboard',
     afwijkingen: open.map(function(f){
       return { materiaal_nr:f.matNr, omschrijving:f.desc, gepakte_batch:f.gepaktBatch, verwachte_batch:f.verwachtBatch, medewerker:f.operator, tijdstip:f.ts };
     })
@@ -2535,7 +2748,7 @@ function confirmComplete() {
         body: JSON.stringify({
           type: 'fefo_afwijking',
           tijdstip: entry.ts,
-          dashboard: localStorage.getItem('wml_form_naam')||'WML Batch Dashboard',
+          dashboard: localStorage.getItem('wml_form_naam')||'WML Voorraad Dashboard',
           afwijkingen: [{
             materiaal_nr: matNr, omschrijving: g.desc,
             gepakte_batch: row.batch||'—',
@@ -2566,7 +2779,7 @@ function confirmComplete() {
       body: JSON.stringify({
         type:         'wissel_geregistreerd',
         tijdstip:     entry.ts,
-        dashboard:    localStorage.getItem('wml_form_naam') || 'WML Batch Dashboard',
+        dashboard:    localStorage.getItem('wml_form_naam') || 'WML Vooraad Dashboard',
         materiaal_nr: entry.matNr,
         omschrijving: entry.desc,
         van_batch:    entry.oldBatch,
@@ -2622,36 +2835,76 @@ function updateStats() {
 
 // ── VERBINDINGSTEST ────────────────────────────────────────
 // Test beide flows bij laden — geeft visuele feedback in banner
+function toggleStatusPopup() {
+  var popup = document.getElementById('status-popup');
+  if (!popup) return;
+  var open = popup.style.display !== 'none';
+  popup.style.display = open ? 'none' : 'block';
+  if (!open) {
+    testVerbinding();
+    setTimeout(function() {
+      document.addEventListener('click', function sluiten(e) {
+        var p = document.getElementById('status-popup');
+        var l = document.getElementById('logo-wrap');
+        if (p && l && !p.contains(e.target) && !l.contains(e.target)) {
+          p.style.display = 'none';
+          document.removeEventListener('click', sluiten);
+        }
+      });
+    }, 50);
+  }
+}
+
+function setConnDot(status) {
+  var dot = document.getElementById('conn-dot');
+  if (!dot) return;
+  dot.style.background = { ok:'#22C55E', error:'#EF4444', loading:'#F59E0B' }[status] || '#6B7280';
+}
+
+function verversData() {
+  var btn  = document.getElementById('ververs-btn');
+  var icon = document.getElementById('ververs-icon');
+  if (btn)  btn.style.opacity = '.5';
+  if (icon) icon.style.animation = 'spin 1s linear infinite';
+  setConnDot('loading');
+  laadVoorraad(function() {
+    if (btn)  btn.style.opacity = '1';
+    if (icon) icon.style.animation = '';
+    setConnDot('ok');
+    renderAll();
+  });
+}
+
 function testVerbinding() {
-  var banner = document.getElementById('conn-banner');
   var status = document.getElementById('conn-status');
+  var popup  = document.getElementById('status-popup-inhoud');
+  setConnDot('loading');
+  if (popup) popup.innerHTML = '<span style="color:var(--muted)">⏳ Verbinding testen...</span>';
 
   var paUrl  = localStorage.getItem('wml_pa_url');
   var empUrl = localStorage.getItem('wml_pa_employee_url');
   if (!paUrl || !empUrl) {
-    banner.style.background = '#92400E';
-    status.textContent = '⚠ Geen PA-URLs ingesteld';
+    setConnDot('error');
+    if (popup) popup.innerHTML = '<span style="color:#EF4444">⚠ Geen PA-URLs ingesteld</span>';
     return;
   }
 
-  // Elke HTTP-response (ook 4xx/5xx) = flow-URL bereikbaar
-  // 502 = flow draait maar onbekende badge → dat is normaal gedrag
   fetch(empUrl, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({badge: '0000'})
   })
   .then(function(r) {
-    // 200 = badge gevonden, 4xx/5xx = flow bereikbaar maar badge onbekend
-    // Beide betekenen: URL werkt
-    banner.style.background = '#1A3A2A';
-    banner.style.borderBottom = '2px solid #52B788';
-    status.textContent = '✓ Verbonden · Badge lookup actief · Wissels worden geregistreerd';
+    setConnDot('ok');
+    if (status) status.textContent = '✓ Verbonden';
+    if (popup) popup.innerHTML = '<span style="color:#166534">✓ Alle flows bereikbaar</span><br>'
+      + '<span style="color:var(--muted);font-size:11px">Laatste check: ' + new Date().toLocaleTimeString('nl-NL') + '</span>';
   })
   .catch(function(err) {
-    // Alleen een network-error (CORS, DNS) = echt onbereikbaar
-    banner.style.background = '#7F1D1D';
-    status.textContent = '✗ Netwerk-fout — controleer CORS of internetverbinding (' + err.message + ')';
+    setConnDot('error');
+    if (status) status.textContent = '✗ Geen verbinding';
+    if (popup) popup.innerHTML = '<span style="color:#EF4444">✗ Geen verbinding</span><br>'
+      + '<span style="color:var(--muted);font-size:11px">' + err.message + '</span>';
   });
 }
 
