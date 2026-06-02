@@ -470,17 +470,18 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
    ════════════════════════════════════════════════════════════════ */
 
 const FORMULIEREN = {
-  'INK-F-01': {
-    titel:  'INK-F-01 BL \u2014 Ingangscontrole CE-doosjes, folie, etiketten',
-    versie: 'Version number: 1.1  |  Date: 1 Jun 2026',
+  'INK-F-07': {
+    titel:  'INK-F-07 BL \u2014 Ingangscontrole formulier',
+    versie: 'Version number: 1.7  |  Date: 4 Dec 2025',
     flows: {
-      HAAL_ITEMS:    'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/a4abfa7fe9d9499aa295786bb5549cf5/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-P42CGhLhTgqWJP_cnb-IOIWv3c08KhRt0e10rqiUCM',
       HAAL_ITEMS:    'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/21ff6a8d03974c838ebb6bbbe586bd67/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=RzvTnk42zot2kH98pZ-pY6PEjxkygQLdl-b0EDJ5VVk',
+      HAAL_BIJLAGEN: 'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/39017d7c628f442fb7e19c47da6d69be/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=pxl6v55-nattSgO6WuogvL3uUWOqa2D7ltQNah-gqlQ',
       GOEDKEURING:   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/0f022791d3284a979999c7f9a5c62283/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1yh4yebOmScpkSPAzr0NoGpwOeHx-nT_rR12NezHp-c',
       HAAL_ARCHIEF:  'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/39b8c9a05713462f943d6945bb7ac311/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zOFFSrYyTL-eczSyVEHflSy18Ufw0obUIuMLCkYwfU8',
       ZOEK:          'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f5fa638f65a24b70af9163b3dc577e28/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Qe1PMD4pi8Pjj5zn4t-jnD4WUgaQe-UVHrU7pHGzUUY',
       HAAL_PARAAF:   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/bd0cf7bb906144879b94b884d9d01276/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=44TX1bUACpwwDkuhtPP0o4spjlhnhzdsdFvauJwRrGQ',
       GENEREER_RAPPORT:'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2befc1d73a4144f2892785026cbffe70/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=7wTRO4TUKwiS4sPUoJzrheli_w49tVy1eaW0znYI8XE',
+      OPSLAAN:'',   // Update-item flow (alleen nodig voor invulmodus; leeg = uit)
     },
     /* ── Contract-velden: deze namen MOETEN matchen met SharePoint/flows ── */
     statusVeld:         'GoedkeuringStatus',
@@ -489,17 +490,17 @@ const FORMULIEREN = {
     goedkeuringOpmVeld: 'GoedkeuringOpmerking',
     controleurVeld:     'Ontvangendoor_x003a_',
     typeVeld:           'Typeontvangst',
-    paraafVeld:         '',
-    afwijkingTekstVeld: 'Indiennietovereenkomstig_x003b_o',
+    paraafVeld:         'Paraaf_Foto',
+    afwijkingTekstVeld: 'Actiebijafwijkingen_x003a_',
     /* ── Wat tonen we in de generieke "Overige velden"-sectie? ──
        toonOverige:false  -> verbergt de hele catch-all (toon ALLEEN wat in secties staat).
        verberg:[...]      -> verberg specifieke velden; vul het BEGIN van het label
                              of de kolomnaam in zoals je het in de grijze lijst ziet. */
-    toonOverige: false,
+    toonOverige: true,
     verberg: [
       'Version',          // form-metadata, geen controlevraag
-      // 'Isdetemperatuurbinnendenorm',  // dubbele temperatuurvraag
       // 'Purchasenr',    // dubbele PO-kolom (45) — ontmaskeren of mappen i.p.v. verbergen?
+      // 'Isdetemperatuurbinnendenorm',  // dubbele temperatuurvraag
       // 'Meetmeteenschoneengedesinfecteer', // 15 -> liever mappen in 'Gekoelde grondstoffen'
     ],
     /* ── Kop-kaarten boven in de detailweergave (max ~4) ── */
@@ -513,28 +514,83 @@ const FORMULIEREN = {
     secties: [
       { titel:'Algemene controle', head:'Ook invullen bij levering verpakkingsmateriaal',
         velden: [
-                { fieldName:'Datum',         label:'Datum', type:'datum' },
-      { fieldName:'Naam',          label:'Naam' },
-      { fieldName:'Artikelnummer', label:'Artikelnummer' },
-      { fieldName:'Omschrijving',  label:'Omschrijving' },
+          { fieldName:'Ishetjuisteartikelgeleverd_x003f', label:'Is het juiste artikel geleverd?', type:'janee', afwijkingBijNee:true, toonAltijd:true },
+          { fieldName:'Isdejuistehoeveelheidgeleverd_x0', label:'Hoeveelheid binnen de norm?', type:'janee', afwijkingBijNee:true, toonAltijd:true },
+          { fieldName:'Kloppendegegevens_x0028_leveranc', label:'Gegevens op de vrachtbrief correct?', type:'janee', toonAltijd:true },
+          { fieldName:'Transportcondities_x003a_Isdelaa', label:'Transportcondities \u2014 laadruimte schoon?', type:'janee', afwijkingBijNee:true, toonAltijd:true },
+          { fieldName:'Verpakking_x002f_Pallets_x003a_I', label:'Verpakking / Pallets \u2014 schoon en intact?', type:'janee', afwijkingBijNee:true, toonAltijd:true },
+          { fieldName:'IsdepakbongecontroleerdmetSAPvoo', label:'Pakbon gecontroleerd met SAP \u2014 goederen voor locatie BOL?', type:'janee', toonAltijd:true },
         ]},
-
-     { titel:'Drukproefcontrole',
+      { titel:'THT & Lotcodes',
         velden: [
-          { fieldName:'Isgecontroleerd_VERIFIEER', label:'Is gecontroleerd en komt overeen met de drukproef?', type:'janee', afwijkingBijNee:true, toonAltijd:true },
+          { fieldName:'THT_x002f_BBD_x003a_',             label:'THT / BBD', type:'tekst' },
+          { fieldName:'Batchlotcodes_x003a_',             label:'Batch / lot code(s)', type:'tekst' },
+          { fieldName:'KomendeTHTenlotcodeopdeverpakkin', label:'THT en lotcode overeen met pakbon?', type:'janee' },
+          { fieldName:'THTdatumnietverstrekenenvoldoeta', label:'THT datum niet verstreken en voldoet aan norm?', type:'janee', afwijkingBijNee:true },
+          { fieldName:'Grondstoffengeleverdopkunststofp', label:'Geleverd op kunststof pallets?', type:'janee' },
+        ]},
+      { titel:'Silo / tank / IBC grondstoffen',
+        velden: [
+          { fieldName:'Leveringbloem_x003a_',             label:'Bloem: zeef gebruikt en intact?', type:'janee' },
+          { fieldName:'Leveringsuiker_x003a_zeefgebruik', label:'Suiker: zeef gebruikt en intact?', type:'janee' },
+          { fieldName:'Bijleveringbulkvagen_x002f_IBC_x', label:'Bulk wagen: geseald en sealnummers overeen?', type:'janee' },
+          { fieldName:'BijleveringIBC_x003a_',            label:'IBC: geseald en sealnummers overeen?', type:'janee' },
+          { fieldName:'BijleveringJamtanks_x003a_',       label:'Jamtanks: geseald en sealnummers overeen?', type:'janee' },
+          { fieldName:'Bijleveringbulkvagen_x002f_IBC_0', label:'Reinigingscertificaat (bulk wagen)', type:'janee' },
+          { fieldName:'Iserbijdeleveringeenreinigingsce', label:'Reinigingscertificaat + origineel bijgevoegd?', type:'janee' },
+          { fieldName:'Leveringsuiker_x003a_welkesilois', label:'Silo suiker gevuld', type:'tekst' },
+          { fieldName:'LeveringGlucose_x003a_Welkesiloi', label:'Silo glucose gevuld', type:'tekst' },
+          { fieldName:'Bijlevering_x002f_IBCs_x003a_',    label:'Afvuldatum IBC\u2019s', type:'tekst' },
+        ]},
+      { titel:'RSPO grondstoffen',
+        velden: [
+          { fieldName:'RSPO_x0027_enSG_x0027_vermeldingo', label:'\u2018RSPO\u2019 en \u2018SG\u2019 vermelding op pakbon en verpakking?', type:'janee' },
+        ]},
+      { titel:'Gekoelde grondstoffen', head:'Temperatuurcontrole', headClass:'head-teal',
+        velden: [
+          { fieldName:'Isdetemperatuurbinenorm_x003f_',  label:'Temperatuur binnen de norm?', type:'janee', afwijkingBijNee:true },
+          { fieldName:'Watisdegemetentemperatuur_x003f_', label:'Gemeten temperatuur', type:'temp' },
         ]},
     ],
   },
 
-  /* ── VOORBEELD nieuw formulier — verwijder de comment, vul in, zet ACTIEF erop ──
+  /* ── INK-F-01 (INVULMODUS) — verwijder de comment, vul de TODO's in, zet ACTIEF erop ──
+     Nodig: (1) een lees-flow (HAAL_ITEMS) en (2) een Update-item-flow (OPSLAAN).
+     De twee lange kolomnamen (_VERIFIEER) moet je vervangen door de echte interne
+     SharePoint-namen (uit de JSON van HAAL_ITEMS of via kolominstellingen -> Field=).
   'INK-F-01': {
-    titel:'INK-F-01 \u2014 Ingangscontrole verpakking', versie:'v1.0',
-    flows:{ HAAL_ITEMS:'', HAAL_BIJLAGEN:'', GOEDKEURING:'', HAAL_ARCHIEF:'', ZOEK:'', HAAL_PARAAF:'', GENEREER_RAPPORT:'' },
+    titel:'INK-F-01 \u2014 Ingangscontrole CE-doosjes, folie, etiketten', versie:'v1.1',
+    flows:{
+      HAAL_ITEMS:'TODO_LEES_FLOW_URL',
+      OPSLAAN:'TODO_UPDATE_ITEM_FLOW_URL',
+      HAAL_BIJLAGEN:'', GOEDKEURING:'', HAAL_ARCHIEF:'', ZOEK:'', HAAL_PARAAF:'', GENEREER_RAPPORT:'',
+    },
     statusVeld:'GoedkeuringStatus', goedgekeurdOpVeld:'GoedgekeurdOp', goedkeuringRolVeld:'GoedkeuringRol',
-    goedkeuringOpmVeld:'GoedkeuringOpmerking', controleurVeld:'Author', typeVeld:'', paraafVeld:'Paraaf_Foto',
-    afwijkingTekstVeld:'',
-    koppen:[ { fieldName:'Title', label:'Leverancier' } ],
-    secties:[ { titel:'Controle', velden:[ { fieldName:'JouwSharePointKolom', label:'Jouw vraag?', type:'janee', toonAltijd:true } ] } ],
+    goedkeuringOpmVeld:'GoedkeuringOpmerking',
+    controleurVeld:'Naam', typeVeld:'', paraafVeld:'',
+    afwijkingTekstVeld:'Indiennietovereenkomstig_x003b_o',
+    toonOverige:true, verberg:[],
+    // Identificerende kop-kaarten (alleen lezen). Pas aan als je PO/SAP-kolommen toevoegt.
+    koppen:[
+      { fieldName:'Artikelnummer', label:'Artikelnummer' },
+      { fieldName:'Omschrijving',  label:'Omschrijving' },
+    ],
+    // Leesweergave van de controlevraag.
+    secties:[
+      { titel:'Drukproefcontrole', velden:[
+        { fieldName:'Isgecontroleerd_VERIFIEER', label:'Is gecontroleerd en komt overeen met de drukproef?', type:'janee', afwijkingBijNee:true, toonAltijd:true },
+      ]},
+    ],
+    // INVULVELDEN: hierdoor verschijnt de knop "Invullen / bewerken".
+    // type: 'datum' | 'tekst' | 'tekstlang' | 'janee'
+    invulVelden:[
+      { fieldName:'Datum',                        label:'Datum', type:'datum' },
+      { fieldName:'Naam',                         label:'Naam', type:'tekst' },
+      { fieldName:'Artikelnummer',                label:'Artikelnummer', type:'tekst' },
+      { fieldName:'Omschrijving',                 label:'Omschrijving', type:'tekstlang' },
+      { fieldName:'Isgecontroleerd_VERIFIEER',    label:'Komt overeen met de drukproef?', type:'janee' },
+      { fieldName:'Indiennietovereenkomstig_x003b_o', label:'Opmerkingen / genomen acties', type:'tekstlang' },
+    ],
   },
   */
 };
@@ -544,7 +600,7 @@ const ACTIEF = 'INK-F-07';
 
 const CFG   = FORMULIEREN[ACTIEF];
 const FLOWS = CFG.flows;
-const state = { items:[], allItems:[], geselecteerd:null, bijlagen:[], previewIdx:0, tab:'open' };
+const state = { items:[], allItems:[], geselecteerd:null, bijlagen:[], previewIdx:0, tab:'open', bewerken:false };
 
 /* ── BASIS-HELPERS ── */
 function nl(v){ return (v===null||v===undefined||v==='') ? '\u2014' : v; }
@@ -740,6 +796,46 @@ function renderKopWaarde(item,k){
   return nl(choiceVal(item[k.fieldName])||flattenVal(item[k.fieldName]));
 }
 
+/* ── INVUL-/BEWERKMODUS (schrijft terug naar SharePoint via FLOWS.OPSLAAN) ── */
+function escAttr(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function veldInputHTML(item,v){
+  const id='inp-'+v.fieldName, cur=flattenVal(item[v.fieldName]);
+  if(v.type==='datum'){ const d=cur?new Date(cur):null; const val=(d&&!isNaN(d.getTime()))?d.toISOString().slice(0,10):''; return '<input id="'+id+'" type="date" class="popup-input" style="margin:0;" value="'+val+'">'; }
+  if(v.type==='janee'){ const c=cur.toLowerCase(); return '<select id="'+id+'" class="popup-input" style="margin:0;"><option value="">\u2014 kies \u2014</option><option value="Ja"'+(c==='ja'?' selected':'')+'>Ja</option><option value="Nee"'+(c==='nee'?' selected':'')+'>Nee</option></select>'; }
+  if(v.type==='tekstlang'){ return '<textarea id="'+id+'" class="popup-textarea" style="margin:0;">'+escHtml(cur)+'</textarea>'; }
+  return '<input id="'+id+'" type="text" class="popup-input" style="margin:0;" value="'+escAttr(cur)+'">';
+}
+function renderInvulCard(item){
+  const rows=(CFG.invulVelden||[]).map(v=>
+    '<div class="check-rij" style="align-items:flex-start;gap:14px;"><div class="check-lbl" style="padding-top:9px;">'+v.label+'</div><div style="flex:0 0 52%;max-width:52%;">'+veldInputHTML(item,v)+'</div></div>'
+  ).join('');
+  return '<div><div class="sec-title">QC invullen</div><div class="dcard">'
+    +'<div class="dcard-head head-navy"><span>Velden invullen / bijwerken</span><span style="font-size:.65rem;opacity:.7;">rij #'+item.ID+'</span></div>'
+    +rows
+    +'<div id="invul-status" class="popup-status" style="padding:8px 14px 0;height:auto;"></div>'
+    +'<div style="padding:12px 14px;display:flex;gap:10px;"><button class="popup-bevestig groen" style="flex:1;" onclick="slaInvulOp()">\u2713 Opslaan in SharePoint</button><button class="popup-annul" onclick="annuleerInvul()">Annuleren</button></div>'
+    +'</div></div>';
+}
+function startInvul(){ state.bewerken=true; renderDetail(); }
+function annuleerInvul(){ state.bewerken=false; renderDetail(); }
+async function slaInvulOp(){
+  if(!state.geselecteerd) return;
+  const st=document.getElementById('invul-status');
+  if(!FLOWS.OPSLAAN){ st.textContent='\u26a0 Geen OPSLAAN-flow ingesteld (FLOWS.OPSLAAN is leeg)'; st.className='popup-status nok'; return; }
+  const payload={ itemId: state.geselecteerd.ID };
+  (CFG.invulVelden||[]).forEach(v=>{ const el=document.getElementById('inp-'+v.fieldName); if(el) payload[v.fieldName]=el.value; });
+  st.textContent='Opslaan\u2026'; st.className='popup-status';
+  try{
+    await flowPost(FLOWS.OPSLAAN, payload);
+    showToast('\u2713 Opgeslagen in SharePoint','success');
+    state.bewerken=false;
+    await laadAlles();
+    const b=(state.allItems||[]).find(i=>i.ID===state.geselecteerd.ID); if(b) state.geselecteerd=b;
+    renderDetail();
+  }catch(e){ st.textContent='\u26a0 Fout: '+e.message; st.className='popup-status nok'; }
+}
+
 /* ── DETAILWEERGAVE ── */
 function renderDetail(){
   const item=state.geselecteerd;
@@ -789,6 +885,11 @@ function renderDetail(){
 
   const sectiesHTML = (CFG.secties||[]).map(sec=>renderSectie(item,sec)).join('') + renderOverige(item);
 
+  const heeftInvul = Array.isArray(CFG.invulVelden) && CFG.invulVelden.length>0;
+  const invulBlok = !heeftInvul ? '' : (state.bewerken
+    ? renderInvulCard(item)
+    : '<div style="margin:-4px 0 6px;"><button onclick="startInvul()" style="background:var(--bi-navy);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:var(--sans);font-size:.82rem;font-weight:700;cursor:pointer;">\u270e Invullen / bewerken</button></div>');
+
   const paraafMeta = (()=>{
     let html='';
     try{
@@ -816,6 +917,7 @@ function renderDetail(){
         <div class="kop-grid">${kopHTML}</div>
       </div>
     </div>
+    ${invulBlok}
     ${sectiesHTML}
     ${afwijkBlok}
     <div>
