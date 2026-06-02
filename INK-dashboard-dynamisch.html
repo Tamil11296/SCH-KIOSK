@@ -491,6 +491,17 @@ const FORMULIEREN = {
     typeVeld:           'Typeontvangst',
     paraafVeld:         'Paraaf_Foto',
     afwijkingTekstVeld: 'Actiebijafwijkingen_x003a_',
+    /* ── Wat tonen we in de generieke "Overige velden"-sectie? ──
+       toonOverige:false  -> verbergt de hele catch-all (toon ALLEEN wat in secties staat).
+       verberg:[...]      -> verberg specifieke velden; vul het BEGIN van het label
+                             of de kolomnaam in zoals je het in de grijze lijst ziet. */
+    toonOverige: true,
+    verberg: [
+      'Version',          // form-metadata, geen controlevraag
+      // 'Purchasenr',    // dubbele PO-kolom (45) — ontmaskeren of mappen i.p.v. verbergen?
+      // 'Isdetemperatuurbinnendenorm',  // dubbele temperatuurvraag
+      // 'Meetmeteenschoneengedesinfecteer', // 15 -> liever mappen in 'Gekoelde grondstoffen'
+    ],
     /* ── Kop-kaarten boven in de detailweergave (max ~4) ── */
     koppen: [
       { fieldName:'Purchasenr_x003a_',    label:'Purchase Order' },
@@ -577,10 +588,17 @@ function controleurNaam(item){ return choiceVal(item[CFG.controleurVeld]) || (it
 const SYS_FIELDS = new Set(['ID','Id','Created','Modified','Author','Editor','ContentType','ContentTypeId','odata.metadata','odata.id','odata.etag','odata.type','GUID','Attachments','Title']);
 function isSysField(k){
   if(SYS_FIELDS.has(k)) return true;
-  if(k.startsWith('_') || k.startsWith('OData_') || k.startsWith('FileSystem')) return true;
-  if(k.indexOf('@') !== -1) return true;
+  if(k.startsWith('_') || k.startsWith('{') || k.startsWith('OData_') || k.startsWith('FileSystem')) return true;
+  if(k.indexOf('@') !== -1 || k.indexOf('#') !== -1) return true;   // Author#Claims, Editor#Claims
   if(k.endsWith('Id') || k.endsWith('StringId')) return true;
   return false;
+}
+/* Door jou handmatig verborgen velden (zie CFG.verberg). Matcht op het begin
+   van het zichtbare label OF de ruwe SharePoint-kolomnaam, niet hoofdlettergevoelig. */
+function isVerborgen(key,label){
+  const lijst=(CFG.verberg||[]); if(!lijst.length) return false;
+  const k=key.toLowerCase(), l=label.toLowerCase();
+  return lijst.some(e=>{ e=String(e).toLowerCase().trim(); return e && (k.startsWith(e)||l.startsWith(e)); });
 }
 /* velden die elders al getoond worden -> niet nogmaals generiek tonen */
 function geconsumeerdeVelden(){
@@ -725,17 +743,21 @@ function renderSectie(item,sec){
   return '<div><div class="sec-title">'+sec.titel+'</div><div class="dcard">'+head+rows+'</div></div>';
 }
 /* generieke fallback voor velden die niet in het schema staan */
-function renderGenericVeld(key,raw){
+function renderGenericVeld(key,label,raw){
   const v=flattenVal(raw); if(v==='') return '';
-  const label=decodeLabel(key); const l=v.toLowerCase();
+  const l=v.toLowerCase();
   if(l==='ja'||l==='nee') return '<div class="check-rij"><div class="check-lbl">'+label+'</div>'+badgeJaNee(v)+'</div>';
   if(/temperatuur|temp/i.test(key+' '+label)) return '<div class="check-rij"><div class="check-lbl">'+label+'</div><div style="font-size:1.2rem;font-weight:800;color:var(--bi-navy);font-family:var(--mono);">'+v+'</div></div>';
   const disp=looksLikeDate(v)?datumFmt(v):v;
   return '<div class="check-rij"><div class="check-lbl">'+label+'</div><div class="check-val">'+disp+'</div></div>';
 }
 function renderOverige(item){
+  if(CFG.toonOverige===false) return '';                 // catch-all volledig uit
   const consumed=geconsumeerdeVelden();
-  const rows=Object.keys(item).filter(k=>!isSysField(k)&&!consumed.has(k)).map(k=>renderGenericVeld(k,item[k])).filter(Boolean).join('');
+  const rows=Object.keys(item)
+    .filter(k=>!isSysField(k)&&!consumed.has(k))
+    .map(k=>{ const label=decodeLabel(k); return isVerborgen(k,label)?'':renderGenericVeld(k,label,item[k]); })
+    .filter(Boolean).join('');
   if(!rows) return '';
   return '<div><div class="sec-title">Overige velden</div><div class="dcard">'+rows+'</div></div>';
 }
