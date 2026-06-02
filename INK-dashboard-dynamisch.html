@@ -470,9 +470,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14p
    ════════════════════════════════════════════════════════════════ */
 
 const FORMULIEREN = {
-  'INK-F-07': {
-    titel:  'INK-F-07 BL \u2014 Ingangscontrole formulier',
-    versie: 'Version number: 1.7  |  Date: 4 Dec 2025',
+  'INK-F-01': {
+    titel:  'INK-F-01 BL \u2014 Ingangscontrole CE-doosjes, folie, etiketten',
+    versie: 'Version number: 1.1  |  Date: 1 Jun 2026',
     flows: {
       HAAL_ITEMS:    'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/a4abfa7fe9d9499aa295786bb5549cf5/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-P42CGhLhTgqWJP_cnb-IOIWv3c08KhRt0e10rqiUCM',
       HAAL_ITEMS:    'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/21ff6a8d03974c838ebb6bbbe586bd67/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=RzvTnk42zot2kH98pZ-pY6PEjxkygQLdl-b0EDJ5VVk',
@@ -489,8 +489,8 @@ const FORMULIEREN = {
     goedkeuringOpmVeld: 'GoedkeuringOpmerking',
     controleurVeld:     'Ontvangendoor_x003a_',
     typeVeld:           'Typeontvangst',
-    paraafVeld:         'Paraaf_Foto',
-    afwijkingTekstVeld: 'Actiebijafwijkingen_x003a_',
+    paraafVeld:         '',
+    afwijkingTekstVeld: 'Indiennietovereenkomstig_x003b_o',
     /* ── Wat tonen we in de generieke "Overige velden"-sectie? ──
        toonOverige:false  -> verbergt de hele catch-all (toon ALLEEN wat in secties staat).
        verberg:[...]      -> verberg specifieke velden; vul het BEGIN van het label
@@ -513,41 +513,15 @@ const FORMULIEREN = {
     secties: [
       { titel:'Algemene controle', head:'Ook invullen bij levering verpakkingsmateriaal',
         velden: [
-          { fieldName:'Ishetjuisteartikelgeleverd_x003f', label:'Is het juiste artikel geleverd?', type:'janee', afwijkingBijNee:true, toonAltijd:true },
-          { fieldName:'Isdejuistehoeveelheidgeleverd_x0', label:'Hoeveelheid binnen de norm?', type:'janee', afwijkingBijNee:true, toonAltijd:true },
-          { fieldName:'Kloppendegegevens_x0028_leveranc', label:'Gegevens op de vrachtbrief correct?', type:'janee', toonAltijd:true },
-          { fieldName:'Transportcondities_x003a_Isdelaa', label:'Transportcondities \u2014 laadruimte schoon?', type:'janee', afwijkingBijNee:true, toonAltijd:true },
-          { fieldName:'Verpakking_x002f_Pallets_x003a_I', label:'Verpakking / Pallets \u2014 schoon en intact?', type:'janee', afwijkingBijNee:true, toonAltijd:true },
-          { fieldName:'IsdepakbongecontroleerdmetSAPvoo', label:'Pakbon gecontroleerd met SAP \u2014 goederen voor locatie BOL?', type:'janee', toonAltijd:true },
+                { fieldName:'Datum',         label:'Datum', type:'datum' },
+      { fieldName:'Naam',          label:'Naam' },
+      { fieldName:'Artikelnummer', label:'Artikelnummer' },
+      { fieldName:'Omschrijving',  label:'Omschrijving' },
         ]},
-      { titel:'THT & Lotcodes',
+
+     { titel:'Drukproefcontrole',
         velden: [
-          { fieldName:'THT_x002f_BBD_x003a_',             label:'THT / BBD', type:'tekst' },
-          { fieldName:'KomendeTHTenlotcodeopdeverpakkin', label:'THT en lotcode overeen met pakbon?', type:'janee' },
-          { fieldName:'THTdatumnietverstrekenenvoldoeta', label:'THT datum niet verstreken en voldoet aan norm?', type:'janee', afwijkingBijNee:true },
-          { fieldName:'Grondstoffengeleverdopkunststofp', label:'Geleverd op kunststof pallets?', type:'janee' },
-        ]},
-      { titel:'Silo / tank / IBC grondstoffen',
-        velden: [
-          { fieldName:'Leveringbloem_x003a_',             label:'Bloem: zeef gebruikt en intact?', type:'janee' },
-          { fieldName:'Leveringsuiker_x003a_zeefgebruik', label:'Suiker: zeef gebruikt en intact?', type:'janee' },
-          { fieldName:'Bijleveringbulkvagen_x002f_IBC_x', label:'Bulk wagen: geseald en sealnummers overeen?', type:'janee' },
-          { fieldName:'BijleveringIBC_x003a_',            label:'IBC: geseald en sealnummers overeen?', type:'janee' },
-          { fieldName:'BijleveringJamtanks_x003a_',       label:'Jamtanks: geseald en sealnummers overeen?', type:'janee' },
-          { fieldName:'Bijleveringbulkvagen_x002f_IBC_0', label:'Reinigingscertificaat (bulk wagen)', type:'janee' },
-          { fieldName:'Iserbijdeleveringeenreinigingsce', label:'Reinigingscertificaat + origineel bijgevoegd?', type:'janee' },
-          { fieldName:'Leveringsuiker_x003a_welkesilois', label:'Silo suiker gevuld', type:'tekst' },
-          { fieldName:'LeveringGlucose_x003a_Welkesiloi', label:'Silo glucose gevuld', type:'tekst' },
-          { fieldName:'Bijlevering_x002f_IBCs_x003a_',    label:'Afvuldatum IBC\u2019s', type:'tekst' },
-        ]},
-      { titel:'RSPO grondstoffen',
-        velden: [
-          { fieldName:'RSPO_x0027_enSG_x0027_vermeldingo', label:'\u2018RSPO\u2019 en \u2018SG\u2019 vermelding op pakbon en verpakking?', type:'janee' },
-        ]},
-      { titel:'Gekoelde grondstoffen', head:'Temperatuurcontrole', headClass:'head-teal',
-        velden: [
-          { fieldName:'Isdetemperatuurbinenorm_x003f_',  label:'Temperatuur binnen de norm?', type:'janee', afwijkingBijNee:true },
-          { fieldName:'Watisdegemetentemperatuur_x003f_', label:'Gemeten temperatuur', type:'temp' },
+          { fieldName:'Isgecontroleerd_VERIFIEER', label:'Is gecontroleerd en komt overeen met de drukproef?', type:'janee', afwijkingBijNee:true, toonAltijd:true },
         ]},
     ],
   },
