@@ -495,10 +495,11 @@ const FORMULIEREN = {
        toonOverige:false  -> verbergt de hele catch-all (toon ALLEEN wat in secties staat).
        verberg:[...]      -> verberg specifieke velden; vul het BEGIN van het label
                              of de kolomnaam in zoals je het in de grijze lijst ziet. */
-    toonOverige: true,
+    toonOverige: false,
     verberg: [
       'Version',          // form-metadata, geen controlevraag
       // 'Isdetemperatuurbinnendenorm',  // dubbele temperatuurvraag
+      // 'Purchasenr',    // dubbele PO-kolom (45) — ontmaskeren of mappen i.p.v. verbergen?
       // 'Meetmeteenschoneengedesinfecteer', // 15 -> liever mappen in 'Gekoelde grondstoffen'
     ],
     /* ── Kop-kaarten boven in de detailweergave (max ~4) ── */
@@ -522,7 +523,6 @@ const FORMULIEREN = {
       { titel:'THT & Lotcodes',
         velden: [
           { fieldName:'THT_x002f_BBD_x003a_',             label:'THT / BBD', type:'tekst' },
-          { fieldName:'Batchlotcodes_x003a_',             label:'Batch / lot code(s)', type:'tekst' },
           { fieldName:'KomendeTHTenlotcodeopdeverpakkin', label:'THT en lotcode overeen met pakbon?', type:'janee' },
           { fieldName:'THTdatumnietverstrekenenvoldoeta', label:'THT datum niet verstreken en voldoet aan norm?', type:'janee', afwijkingBijNee:true },
           { fieldName:'Grondstoffengeleverdopkunststofp', label:'Geleverd op kunststof pallets?', type:'janee' },
