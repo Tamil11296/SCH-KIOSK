@@ -474,7 +474,7 @@ const FORMULIEREN = {
     titel:  'INK-F-07 BL \u2014 Ingangscontrole formulier',
     versie: 'Version number: 1.7  |  Date: 4 Dec 2025',
     flows: {
-      HAAL_ITEMS:    'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/a4abfa7fe9d9499aa295786bb5549cf5/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-P42CGhLhTgqWJP_cnb-IOIWv3c08KhRt0e10rqiUCM',
+      HAAL_ITEMS:    'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/21ff6a8d03974c838ebb6bbbe586bd67/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=RzvTnk42zot2kH98pZ-pY6PEjxkygQLdl-b0EDJ5VVk',
       HAAL_BIJLAGEN: 'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/39017d7c628f442fb7e19c47da6d69be/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=pxl6v55-nattSgO6WuogvL3uUWOqa2D7ltQNah-gqlQ',
       GOEDKEURING:   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/0f022791d3284a979999c7f9a5c62283/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1yh4yebOmScpkSPAzr0NoGpwOeHx-nT_rR12NezHp-c',
       HAAL_ARCHIEF:  'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/39b8c9a05713462f943d6945bb7ac311/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zOFFSrYyTL-eczSyVEHflSy18Ufw0obUIuMLCkYwfU8',
@@ -505,7 +505,7 @@ const FORMULIEREN = {
     ],
     /* ── Kop-kaarten boven in de detailweergave (max ~4) ── */
     koppen: [
-      { fieldName:'Title',    label:'Purchase Order' },
+      { fieldName:'Purchasenr_x003a_',    label:'Purchase Order' },
       { fieldName:'SAPnr',                label:'SAP nummer' },
       { fieldName:'Ontvangendoor_x003a_', label:'Gecontroleerd door', type:'controleur' },
       { fieldName:'Ontvangenop_x003a_',   label:'Ontvangstdatum',     type:'datum' },
@@ -554,15 +554,17 @@ const FORMULIEREN = {
     ],
   },
 
-  /* ── INK-F-01 (INVULMODUS) — verwijder de comment, vul de TODO's in, zet ACTIEF erop ──
-     Nodig: (1) een lees-flow (HAAL_ITEMS) en (2) een Update-item-flow (OPSLAAN).
-     De twee lange kolomnamen (_VERIFIEER) moet je vervangen door de echte interne
-     SharePoint-namen (uit de JSON van HAAL_ITEMS of via kolominstellingen -> Field=).
+  /* ── INK-F-01 — INVULMODUS (actief) ───────────────────────────────
+     NOG INVULLEN OM LIVE TE GAAN:
+       1. flows.HAAL_ITEMS  -> jouw lees-flow-URL (anders blijft de wachtrij leeg).
+       2. flows.OPSLAAN     -> Update-item-flow-URL (komt hierna; nu nog leeg = Opslaan uit).
+       3. Controleer de interne naam van de keuzekolom (zie *_drukproef hieronder)
+          tegen de JSON van HAAL_ITEMS; pas hem op BEIDE plekken aan als hij afwijkt. */
   'INK-F-01': {
     titel:'INK-F-01 \u2014 Ingangscontrole CE-doosjes, folie, etiketten', versie:'v1.1',
     flows:{
-      HAAL_ITEMS:'TODO_LEES_FLOW_URL',
-      OPSLAAN:'TODO_UPDATE_ITEM_FLOW_URL',
+      HAAL_ITEMS:'PLAK_HIER_JE_LEES_FLOW_URL',
+      OPSLAAN:'',                 // <- Update-item-flow-URL hierna invullen
       HAAL_BIJLAGEN:'', GOEDKEURING:'', HAAL_ARCHIEF:'', ZOEK:'', HAAL_PARAAF:'', GENEREER_RAPPORT:'',
     },
     statusVeld:'GoedkeuringStatus', goedgekeurdOpVeld:'GoedgekeurdOp', goedkeuringRolVeld:'GoedkeuringRol',
@@ -570,33 +572,31 @@ const FORMULIEREN = {
     controleurVeld:'Naam', typeVeld:'', paraafVeld:'',
     afwijkingTekstVeld:'Indiennietovereenkomstig_x003b_o',
     toonOverige:true, verberg:[],
-    // Identificerende kop-kaarten (alleen lezen). Pas aan als je PO/SAP-kolommen toevoegt.
+    toonGoedkeuring:false,        // dit formulier heeft geen manager-goedkeuring
     koppen:[
       { fieldName:'Artikelnummer', label:'Artikelnummer' },
       { fieldName:'Omschrijving',  label:'Omschrijving' },
     ],
-    // Leesweergave van de controlevraag.
     secties:[
       { titel:'Drukproefcontrole', velden:[
-        { fieldName:'Isgecontroleerd_VERIFIEER', label:'Is gecontroleerd en komt overeen met de drukproef?', type:'janee', afwijkingBijNee:true, toonAltijd:true },
+        // Beste gok voor de interne naam (32-tekens, spaties verwijderd) — VERIFIEER tegen je JSON:
+        { fieldName:'Isgecontroleerdenkomtovereenmetd', label:'Is gecontroleerd en komt overeen met de drukproef?', type:'janee', afwijkingBijNee:true, toonAltijd:true },
       ]},
     ],
-    // INVULVELDEN: hierdoor verschijnt de knop "Invullen / bewerken".
-    // type: 'datum' | 'tekst' | 'tekstlang' | 'janee'
+    // Invulvelden -> tonen de knop "Invullen / bewerken". type: datum | tekst | tekstlang | janee
     invulVelden:[
-      { fieldName:'Datum',                        label:'Datum', type:'datum' },
-      { fieldName:'Naam',                         label:'Naam', type:'tekst' },
-      { fieldName:'Artikelnummer',                label:'Artikelnummer', type:'tekst' },
-      { fieldName:'Omschrijving',                 label:'Omschrijving', type:'tekstlang' },
-      { fieldName:'Isgecontroleerd_VERIFIEER',    label:'Komt overeen met de drukproef?', type:'janee' },
+      { fieldName:'Datum',                            label:'Datum', type:'datum' },
+      { fieldName:'Naam',                             label:'Naam', type:'tekst' },
+      { fieldName:'Artikelnummer',                    label:'Artikelnummer', type:'tekst' },
+      { fieldName:'Omschrijving',                     label:'Omschrijving', type:'tekstlang' },
+      { fieldName:'Isgecontroleerdenkomtovereenmetd', label:'Komt overeen met de drukproef?', type:'janee' },
       { fieldName:'Indiennietovereenkomstig_x003b_o', label:'Opmerkingen / genomen acties', type:'tekstlang' },
     ],
   },
-  */
 };
 
 /* >>> Zet hier het actieve formulier <<< */
-const ACTIEF = 'INK-F-07';
+const ACTIEF = 'INK-F-01';
 
 const CFG   = FORMULIEREN[ACTIEF];
 const FLOWS = CFG.flows;
@@ -904,29 +904,8 @@ function renderDetail(){
     ? '<div><div class="sec-title">Actie bij afwijkingen</div><div class="dcard"><div class="dcard-head head-rood">\u26a0 Afwijking geregistreerd</div><div class="afwijking-blok">'+nl(flattenVal(item[CFG.afwijkingTekstVeld])||'Afwijking vastgesteld bij de controle.')+'</div></div></div>'
     : '';
 
-  document.getElementById('main').innerHTML=`
-    <button class="mobile-terug" onclick="sluitDetail()">\u2190 Terug naar wachtrij</button>
-    <div>
-      <div class="sec-title">${CFG.titel}${CFG.versie?'  |  '+CFG.versie:''}</div>
-      <div class="dcard">
-        <div class="dcard-head head-navy"><span>${CFG.titel}</span><span style="font-size:.65rem;opacity:.7;">${datumFmt(item.Created)}</span></div>
-        <div class="meta-strip">
-          <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">${paraafMeta}<span>Controleur: <b>${nl(controleurNaam(item))}</b> &nbsp;\u00b7&nbsp; Type: <b>${typeVal(item)||'\u2014'}</b></span></span>
-          ${afwijk?'<span class="q-pill pill-rood">\u26a0 Afwijking</span>':'<span class="q-pill pill-groen">\u2713 Geen afwijkingen</span>'}
-        </div>
-        <div class="kop-grid">${kopHTML}</div>
-      </div>
-    </div>
-    ${invulBlok}
-    ${sectiesHTML}
-    ${afwijkBlok}
-    <div>
-      <div class="sec-title">Bijlagen (${bijl.length})</div>
-      <div class="dcard">
-        <div class="dcard-head head-amber"><span>Toegevoegde documenten & foto's</span><span style="font-size:.65rem;">Klik om te openen</span></div>
-        <div class="bijlagen-grid">${bijlHTML}<div class="upload-slot">+ Bijlage</div></div>
-      </div>
-    </div>
+  /* Goedkeuring-blok: verbergen met CFG.toonGoedkeuring:false (formulier zonder goedkeur-backend) */
+  const goedkeuringBlok = (CFG.toonGoedkeuring===false) ? '' : `
     <div>
       <div class="sec-title">Goedkeuring</div>
       <div class="dcard">
@@ -958,10 +937,38 @@ function renderDetail(){
             </div>`}
         </div>
       </div>
-    </div>
+    </div>`;
+  /* PDF-knop alleen tonen als er een rapport-flow is */
+  const downloadBlok = !FLOWS.GENEREER_RAPPORT ? '' : `
     <div style="margin-top:4px;">
       <button id="btn-rapport" onclick="downloadRapport()" style="width:100%;padding:12px 0;background:var(--bi-navy);color:#fff;border:none;border-radius:8px;font-family:var(--sans);font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.15s;">\u2193 Download PDF rapport</button>
     </div>`;
+
+  document.getElementById('main').innerHTML=`
+    <button class="mobile-terug" onclick="sluitDetail()">\u2190 Terug naar wachtrij</button>
+    <div>
+      <div class="sec-title">${CFG.titel}${CFG.versie?'  |  '+CFG.versie:''}</div>
+      <div class="dcard">
+        <div class="dcard-head head-navy"><span>${CFG.titel}</span><span style="font-size:.65rem;opacity:.7;">${datumFmt(item.Created)}</span></div>
+        <div class="meta-strip">
+          <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">${paraafMeta}<span>Controleur: <b>${nl(controleurNaam(item))}</b> &nbsp;\u00b7&nbsp; Type: <b>${typeVal(item)||'\u2014'}</b></span></span>
+          ${afwijk?'<span class="q-pill pill-rood">\u26a0 Afwijking</span>':'<span class="q-pill pill-groen">\u2713 Geen afwijkingen</span>'}
+        </div>
+        <div class="kop-grid">${kopHTML}</div>
+      </div>
+    </div>
+    ${invulBlok}
+    ${sectiesHTML}
+    ${afwijkBlok}
+    <div>
+      <div class="sec-title">Bijlagen (${bijl.length})</div>
+      <div class="dcard">
+        <div class="dcard-head head-amber"><span>Toegevoegde documenten & foto's</span><span style="font-size:.65rem;">Klik om te openen</span></div>
+        <div class="bijlagen-grid">${bijlHTML}<div class="upload-slot">+ Bijlage</div></div>
+      </div>
+    </div>
+    ${goedkeuringBlok}
+    ${downloadBlok}`;
 }
 
 /* ── BIJLAGE-PREVIEW ── */
