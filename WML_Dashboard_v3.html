@@ -2763,11 +2763,16 @@ var entry = {
   // POST wissel naar SharePoint (met offline fallback)
   if (_demoOffline) {
     enqueueOffline(entry).then(function(){ showToast('📶 Offline — wissel gebufferd in wachtrij'); });
-  } else {
-    postToPA(entry).catch(function() {
-      enqueueOffline(entry);
-      showToast('⚠ Verbinding mislukt — wissel gebufferd');
-    });
+} else {
+    postToPA(entry)
+      .then(function() {
+        showToast('✓ Wissel opgeslagen — voorraad wordt bijgewerkt...');
+        setTimeout(laadVoorraad, 2000);
+      })
+      .catch(function() {
+        enqueueOffline(entry);
+        showToast('⚠ Verbinding mislukt — wissel gebufferd');
+      });
   }
 
   // Teamleider-alert via Flow 3 (type: wissel_geregistreerd)
