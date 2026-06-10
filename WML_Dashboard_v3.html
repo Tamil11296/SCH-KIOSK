@@ -747,10 +747,10 @@ function postToPA(entry) {
   if (!paUrl) return Promise.resolve();
   return fetch(paUrl, {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({
+body: JSON.stringify({
       Tijdstip:entry.ts, Materiaal_Nr:entry.matNr, Omschrijving:entry.desc,
-      Van_batch:entry.oldBatch, Van_locatie:entry.oldLoc,
-      Naar_batch:entry.newBatch, Naar_locatie:entry.newLoc,
+      Van_batch:entry.oldBatch, Van_locatie:entry.oldLoc, Van_pallet_nr:entry.oldPallet,
+      Naar_batch:entry.newBatch, Naar_locatie:entry.newLoc, Naar_pallet_nr:entry.newPallet,
       Medewerker:entry.operator, Badge_Nr:entry.badgeNr
     })
   });
@@ -2720,10 +2720,10 @@ function confirmComplete() {
   completed[matNr+'-'+pallet] = true;
   saveCompleted();
   var next = g.volgend[0];
-  var entry = {
+var entry = {
     ts: new Date().toLocaleString('nl-NL'), matNr:matNr, desc:g.desc,
-    oldBatch:row.batch||'—', oldLoc:row.loc,
-    newBatch:next?(next.batch||'—'):'—', newLoc:next?next.loc:'—',
+    oldBatch:row.batch||'—', oldLoc:row.loc, oldPallet:row.pallet||'—',
+    newBatch:next?(next.batch||'—'):'—', newLoc:next?next.loc:'—', newPallet:next?(next.pallet||'—'):'—',
     operator:opName, badgeNr:badgeNr||'—',
     fefoAfwijking: isFefoAfwijking ? 'JA' : 'NEE'
   };
