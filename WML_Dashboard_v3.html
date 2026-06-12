@@ -1968,10 +1968,64 @@ function toggleExpand(matNr) { expandedCards[matNr] = !expandedCards[matNr]; ren
 var kuipConfig = { Product:[], RecNr:[], AantalZakken:[], WaterL:[] }; // gevuld door laadFormVragen
 var kuipVerplicht = {}; // bijhoudt welke kuip-velden verplicht zijn
 
-var pendingKuip = { matNr: null, batch: null, desc: null, lijn: null };
+// ══════════════════════════════════════════════════════════════════
+// RECEPTEN DATA — geladen vanuit TRA-F-05 Recepten SharePoint lijst
+// via Flow 12 (wml_pa_recepten_url). Wordt bij init asynchroon
+// opgehaald; bevat per product: titel, recNr, aantalZakken, waterL
+// ══════════════════════════════════════════════════════════════════
+var receptenData    = [];    // [{titel, recNr, aantalZakken, waterL, pmsSap}]
+var receptenGeladen = false;
+
+function laadRecepten(callback) {
+  if (receptenGeladen) { if (callback) callback(); return; }
+  var url = localStorage.getItem('wml_pa_recepten_url');
+  if (!url) { if (callback) callback(); return; }
+
+  fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      // Verwerk beide flow-varianten:
+      // body('Select') → data.recepten = [...] (array direct)
+      // outputs('Select') → data.recepten = { body: [...] } (array genest in body)
+      var rawRecepten = data.recepten || data.value;
+      var items = Array.isArray(rawRecepten) ? rawRecepten
+                : (rawRecepten && Array.isArray(rawRecepten.body) ? rawRecepten.body : []);
+      if (Array.isArray(items) && items.length) {
+        receptenData = items.map(function(r) {
+          return {
+            titel:        String(r.Titel || r.titel || '').trim(),
+            recNr:        String(r.RecNr || r.recNr || '').trim(),
+            aantalZakken: String(r.AantalZakken || r.aantalZakken || '').trim(),
+            waterL:       String(r.WaterL || r.waterL || '').trim(),
+            pmsSap:       String(r.PMS_SAP || r.pmsSap || '').trim()
+          };
+        }).filter(function(r){ return r.titel; });
+        // Vul product-dropdown opties vanuit recepten
+        kuipConfig.Product = receptenData.map(function(r){ return r.titel; });
+        receptenGeladen = true;
+      }
+      if (callback) callback();
+    })
+    .catch(function(){ if (callback) callback(); });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CONFIGURATIE — Redenen voor afwijking zakken of water
+// ══════════════════════════════════════════════════════════════════
+// Hardcoded fallback — wordt overschreven door WML_FormVragen (Soort = kuip_afwijking)
+var KUIP_AFWIJKING_REDENEN = [
+  'Recept gewijzigd — productie instructie',
+  'Klantspecificatie afwijkend',
+  'Batch kleiner dan standaard',
+  'Grondstof beperking',
+  'Eerder geregistreerd onjuist',
+  'Anders'
+];
+
+var pendingKuip = { matNr: null, batch: null, desc: null, lijn: null, receptRegel: null };
 
 function openKuipModal(matNr) {
-  pendingKuip = { matNr: null, batch: null, desc: null, lijn: null };
+  pendingKuip = { matNr: null, batch: null, desc: null, lijn: null, receptRegel: null };
 
   // Vul artikel dropdown
   var f05groups = groups.filter(function(g) {
@@ -2039,60 +2093,82 @@ function kuipDoorgaan() {
   var sel = document.getElementById('kuip-matnr-select');
   if (sel) { sel.value = laatste.matNr; kuipArtikelGekozen(); }
 
-  // Direct naar stap 3
-  kuipGaNaarStap(3);
+  // Direct naar stap 4 (formulier) — product al bekend uit vorige registratie
+  kuipGaNaarStap(4);
 }
 
 function kuipGaNaarStap(stap) {
-  [0,1,2,3].forEach(function(n){
+  [0,1,2,3,4].forEach(function(n){
     var el = document.getElementById('kuip-stap-' + n);
     if (el) el.style.display = n === stap ? 'block' : 'none';
   });
 
-  // Modal breedte: stap 3 is breder
+  // Modal breedte: stap 4 (formulier) is breder
   var inner = document.getElementById('kuip-modal-inner');
-  if (inner) inner.style.maxWidth = stap === 3 ? '780px' : '420px';
+  if (inner) inner.style.maxWidth = stap === 4 ? '780px' : '420px';
 
-  var titels = { 0:'Kuip registratie', 1:'Artikel kiezen', 2:'Lijn kiezen', 3:'Formulier invullen' };
+  var titels = { 0:'Kuip registratie', 1:'Artikel kiezen', 2:'Lijn kiezen', 3:'Product kiezen', 4:'Formulier invullen' };
   var titelEl = document.getElementById('kuip-modal-titel');
   if (titelEl) titelEl.textContent = titels[stap] || 'Kuip registratie';
 
-  // Stap indicator (alleen stap 1-3)
+  // Stap indicator (stap 1-4)
   var ind = document.getElementById('kuip-stap-indicator');
   if (ind) {
     if (stap === 0) { ind.innerHTML = ''; return; }
-    ind.innerHTML = [1,2,3].map(function(n) {
+    ind.innerHTML = [1,2,3,4].map(function(n) {
       var actief = n === stap, klaar = n < stap;
       return '<span style="display:flex;align-items:center;gap:4px">'
         + '<span style="width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;'
         + (actief?'background:#166534;color:#fff':klaar?'background:#D1FAE5;color:#166534':'background:var(--border);color:var(--muted)') + '">'
-        + (klaar?'✓':n) + '</span>'
-        + (n<3?'<span style="width:20px;height:2px;background:'+(n<stap?'#D1FAE5':'var(--border)')+'"></span>':'')
+        + (klaar?'\u2713':n) + '</span>'
+        + (n<4?'<span style="width:16px;height:2px;background:'+(n<stap?'#D1FAE5':'var(--border)')+'"></span>':'')
         + '</span>';
     }).join('');
   }
 
-  // Stap 3: bouw formulierrijen
+  // Stap 3: product picker — render recepten als kaarten
   if (stap === 3) {
+    var zoek = document.getElementById('kuip-recept-zoek');
+    if (zoek) { zoek.value = ''; }
+    pendingKuip.receptRegel = null;
+    renderReceptGrid('');
+    return;
+  }
+
+  // Stap 4: bouw formulierrijen (was stap 3)
+  if (stap === 4) {
     var g = null;
     for (var i=0; i<groups.length; i++) if(groups[i].matNr===pendingKuip.matNr){g=groups[i];break;}
     var batch = g&&g.inProd[0] ? g.inProd[0].batch||'' : (pendingKuip.batch||'');
     var tht   = g&&g.inProd[0] ? g.inProd[0].date||''  : '';
     if (!pendingKuip.batch) pendingKuip.batch = batch;
 
+    var rec = pendingKuip.receptRegel;
     var info3 = document.getElementById('kuip-stap3-info');
     if (info3) info3.innerHTML = '<strong>' + (pendingKuip.matNr||'?') + '</strong>'
-      + ' &nbsp;·&nbsp; Batch: <strong style="font-family:var(--mono)">' + (batch||'—') + '</strong>'
-      + ' &nbsp;·&nbsp; THT: <strong style="font-family:var(--mono)">' + (tht||'—') + '</strong>'
-      + ' &nbsp;·&nbsp; Lijn: <strong>' + (pendingKuip.lijn||'—') + '</strong>';
+      + ' &nbsp;&middot;&nbsp; Lijn: <strong>' + (pendingKuip.lijn||'&mdash;') + '</strong>'
+      + (rec ? ' &nbsp;&middot;&nbsp; Product: <strong>' + rec.titel + '</strong>'
+              + ' &nbsp;&middot;&nbsp; Rec: <strong style="font-family:var(--mono)">' + rec.recNr + '</strong>' : '')
+      + ' &nbsp;&middot;&nbsp; Batch: <strong style="font-family:var(--mono)">' + (batch||'&mdash;') + '</strong>'
+      + ' &nbsp;&middot;&nbsp; THT: <strong style="font-family:var(--mono)">' + (tht||'&mdash;') + '</strong>';
 
-    var producten = kuipConfig.Product.length ? kuipConfig.Product : ['Kano','Carree'];
     kuipRijTeller = 0;
     var tbody = document.getElementById('kuip-tabel-body');
     if (tbody) {
-      // Start altijd met 1 lege rij — product leeg, auto kuip-NR ingevuld
-      tbody.innerHTML = kuipMaakRij(0, '', batch, tht, null);
+      var preProduct = rec ? rec.titel : '';
+      tbody.innerHTML = kuipMaakRij(0, preProduct, batch, tht, null);
       kuipRijTeller = 0;
+      // Auto-fill zakken/water/recNr vanuit gekozen recept
+      if (rec) {
+        setTimeout(function() {
+          var zakkenEl = document.getElementById('kuip-zakken-0');
+          var waterEl  = document.getElementById('kuip-water-0');
+          var recnrEl  = document.getElementById('kuip-recnr-0');
+          if (zakkenEl) { zakkenEl.value = rec.aantalZakken; zakkenEl.setAttribute('data-auto', rec.aantalZakken); }
+          if (waterEl)  { waterEl.value  = rec.waterL;       waterEl.setAttribute('data-auto',  rec.waterL); }
+          if (recnrEl && recnrEl.tagName.toLowerCase() !== 'select') { recnrEl.value = rec.recNr; }
+        }, 50);
+      }
     }
   }
 }
@@ -2128,6 +2204,66 @@ function kuipKiesLijn(lijn) {
   if (btn3) { btn3.disabled=false; btn3.style.opacity='1'; }
 }
 
+// ── PRODUCT PICKER — RECEPTEN GRID ──────────────────────────
+function renderReceptGrid(filter) {
+  var grid = document.getElementById('kuip-recept-grid');
+  if (!grid) return;
+  filter = (filter || '').toLowerCase().trim();
+
+  if (!receptenData.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:28px;text-align:center;color:var(--muted);font-size:12px">'
+      + 'Recepten worden geladen\u2026 configureer wml_pa_recepten_url in instellingen.</div>';
+    return;
+  }
+
+  var items = filter
+    ? receptenData.filter(function(r){
+        return r.titel.toLowerCase().indexOf(filter) >= 0
+            || r.recNr.toLowerCase().indexOf(filter) >= 0;
+      })
+    : receptenData;
+
+  if (!items.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:20px;text-align:center;color:var(--muted);font-size:12px">Geen recepten gevonden</div>';
+    return;
+  }
+
+  // Gebruik index in receptenData als ID — vermijdt string-escaping in onclick
+  grid.innerHTML = items.map(function(r) {
+    var idx = receptenData.indexOf(r);
+    return '<button data-ridx="' + idx + '" onclick="kuipKiesReceptIdx(this)" '
+      + 'style="padding:10px 12px;border:2px solid var(--border);border-radius:10px;background:#fff;'
+      + 'font-size:12px;cursor:pointer;text-align:left;transition:all .15s;color:var(--ink);width:100%">'
+      + '<div style="font-size:12px;font-weight:600;line-height:1.3;margin-bottom:4px">' + r.titel + '</div>'
+      + '<div style="font-size:10px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap">'
+      + '<span>Rec <strong style="color:var(--ink);font-family:var(--mono)">' + r.recNr + '</strong></span>'
+      + '<span>' + r.aantalZakken + '\u00a0zakken</span>'
+      + '<span>' + r.waterL + '\u00a0L</span>'
+      + '</div>'
+      + '</button>';
+  }).join('');
+}
+
+function kuipKiesReceptIdx(btn) {
+  var idx = btn ? parseInt(btn.getAttribute('data-ridx'), 10) : -1;
+  var rec = (idx >= 0) ? receptenData[idx] : null;
+  if (!rec) return;
+  pendingKuip.receptRegel = rec;
+
+  // Highlight gekozen kaart, reset alle anderen
+  var allCards = document.querySelectorAll('#kuip-recept-grid button');
+  for (var j = 0; j < allCards.length; j++) {
+    var isActive = allCards[j] === btn;
+    allCards[j].style.background  = isActive ? '#D1FAE5' : '#fff';
+    allCards[j].style.borderColor = isActive ? '#166534' : 'var(--border)';
+    allCards[j].style.color       = isActive ? '#166534' : 'var(--ink)';
+    allCards[j].style.fontWeight  = isActive ? '700'     : '500';
+  }
+
+  // Korte pauze zodat highlight zichtbaar is, dan naar formulier
+  setTimeout(function(){ kuipGaNaarStap(4); }, 280);
+}
+
 // ── KUIP-NR HELPERS ─────────────────────────────────────────
 // Kuip-NR 1-20 per lijn, dan terug naar 1
 function getVolgendKuipNr(matNr, lijn) {
@@ -2153,6 +2289,64 @@ function getVolgendKuipNr(matNr, lijn) {
   return prefix + (vanSharePoint + inModal + 1);
 }
 
+// ── PRODUCT GEKOZEN — auto-fill zakken + water ──────────────
+function kuipProductGekozen(idx) {
+  var productSel = document.getElementById('kuip-product-' + idx);
+  var product    = productSel ? productSel.value : '';
+  var zakkenEl   = document.getElementById('kuip-zakken-' + idx);
+  var waterEl    = document.getElementById('kuip-water-'  + idx);
+  var recNrEl    = document.getElementById('kuip-recnr-'  + idx);
+
+  // Zoek recept op naam (exact match in receptenData)
+  var rec = null;
+  for (var i = 0; i < receptenData.length; i++) {
+    if (receptenData[i].titel === product) { rec = receptenData[i]; break; }
+  }
+
+  if (rec) {
+    // Auto-fill zakken + water met standaard recept-waarden
+    if (zakkenEl) { zakkenEl.value = rec.aantalZakken; zakkenEl.setAttribute('data-auto', rec.aantalZakken); }
+    if (waterEl)  { waterEl.value  = rec.waterL;       waterEl.setAttribute('data-auto',  rec.waterL); }
+    // RecNr automatisch ingevuld vanuit recept (editeerbaar, geen reden-check)
+    if (recNrEl)  { recNrEl.value  = rec.recNr; }
+  } else {
+    // Onbekend product of recepten niet geladen — wis auto-tracking
+    if (zakkenEl) zakkenEl.setAttribute('data-auto', '');
+    if (waterEl)  waterEl.setAttribute('data-auto', '');
+  }
+
+  // Verberg afwijking-rij en reset redenen
+  ['kuip-afwijking-row-', 'kuip-zakken-reden-wrap-', 'kuip-water-reden-wrap-'].forEach(function(pfx) {
+    var el = document.getElementById(pfx + idx);
+    if (el) el.style.display = 'none';
+  });
+  var zr = document.getElementById('kuip-zakken-reden-' + idx);
+  var wr = document.getElementById('kuip-water-reden-' + idx);
+  if (zr) zr.value = '';
+  if (wr) wr.value = '';
+}
+
+// ── AFWIJKING DETECTIE ───────────────────────────────────────
+function isKuipVeldAfwijkend(veld, idx) {
+  var el = document.getElementById('kuip-' + veld + '-' + idx);
+  if (!el) return false;
+  var auto = el.getAttribute('data-auto') || '';
+  return auto !== '' && el.value.trim() !== '' && el.value.trim() !== String(auto);
+}
+
+function kuipWaardeGewijzigd(veld, idx) {
+  var zAfwijkt = isKuipVeldAfwijkend('zakken', idx);
+  var wAfwijkt = isKuipVeldAfwijkend('water',  idx);
+
+  var zWrap = document.getElementById('kuip-zakken-reden-wrap-' + idx);
+  var wWrap = document.getElementById('kuip-water-reden-wrap-'  + idx);
+  var afRow = document.getElementById('kuip-afwijking-row-'     + idx);
+
+  if (zWrap) zWrap.style.display = zAfwijkt ? 'block' : 'none';
+  if (wWrap) wWrap.style.display = wAfwijkt ? 'block' : 'none';
+  if (afRow) afRow.style.display = (zAfwijkt || wAfwijkt) ? 'table-row' : 'none';
+}
+
 // ── KUIP INPUT STIJL ────────────────────────────────────────
 var kuipInputStijl = 'width:100%;padding:5px 4px;border:1px solid var(--border);border-radius:5px;font-size:11px;box-sizing:border-box;min-width:58px;';
 
@@ -2165,22 +2359,20 @@ function kuipNrGewijzigd(idx) {
 }
 
 function kuipMaakRij(idx, product, preBatch, preTHT, kopieerVan) {
-  var producten = kuipConfig.Product.length   ? kuipConfig.Product   : ['Kano','Carree'];
-  var recnrs    = kuipConfig.RecNr.length     ? kuipConfig.RecNr     : [];
-  var zakken    = kuipConfig.AantalZakken.length ? kuipConfig.AantalZakken : ['1','2','3','4','5','6','7','8','9','10'];
-  var waterOpt  = kuipConfig.WaterL.length    ? kuipConfig.WaterL    : ['100','150','200','250','300','400','500'];
+  var recnrs    = kuipConfig.RecNr.length   ? kuipConfig.RecNr   : [];
 
   // Auto kuip-NR
   var autoKuipNr = String(getVolgendKuipNr(pendingKuip.matNr, pendingKuip.lijn || ''));
 
   // Kopieer waarden van vorige rij indien meegegeven
-  var kopieerProduct = kopieerVan ? (kopieerVan.product || '') : (product || '');
-  var kopieerRecNr   = kopieerVan ? (kopieerVan.recNr   || '') : '';
-  var kopieerWater   = kopieerVan ? (kopieerVan.water   || '') : '';
+  var kopieerProduct = kopieerVan ? (kopieerVan.product     || '') : (product || '');
+  var kopieerRecNr   = kopieerVan ? (kopieerVan.recNr       || '') : '';
+  var kopieerZakken  = kopieerVan ? (kopieerVan.zakken      || '') : '';
+  var kopieerWater   = kopieerVan ? (kopieerVan.water       || '') : '';
   var kopieerLev     = kopieerVan ? (kopieerVan.leverancier || '') : '';
 
-  function selEl(id, opts, ph, val) {
-    return '<select id="'+id+'" style="'+kuipInputStijl+'">'
+  function selEl(id, opts, ph, val, extra) {
+    return '<select id="'+id+'"'+(extra||'')+' style="'+kuipInputStijl+'">'
       +'<option value="">'+ph+'</option>'
       +opts.map(function(o){ return '<option'+(String(o)===String(val)?' selected':'')+'>'+o+'</option>'; }).join('')
       +'</select>';
@@ -2190,26 +2382,55 @@ function kuipMaakRij(idx, product, preBatch, preTHT, kopieerVan) {
       +(extra||'')
       +(ro?' readonly style="'+kuipInputStijl+'background:#F3F4F6;color:var(--muted)"':' style="'+kuipInputStijl+'"')+' >';
   }
+  function redenSel(id) {
+    return '<select id="'+id+'" style="'+kuipInputStijl+'min-width:160px">'
+      +'<option value="">-- Kies reden --</option>'
+      + KUIP_AFWIJKING_REDENEN.map(function(r){ return '<option>'+r+'</option>'; }).join('')
+      +'</select>';
+  }
 
-  var rijHtml = '<tr id="kuip-rij-'+idx+'">'
-    +'<td>'+selEl('kuip-product-'+idx, producten, 'Product', kopieerProduct)+'</td>'
-    +'<td>'+(recnrs.length ? selEl('kuip-recnr-'+idx,recnrs,'Kies...',kopieerRecNr) : inpEl('kuip-recnr-'+idx,kopieerRecNr,'REC-NR',false))+'</td>'
+  var rijHtml = '<tr id="kuip-rij-'+idx+'" data-auto-kuip="'+autoKuipNr+'">'
+    // Product — read-only, gevuld vanuit stap 3 (pendingKuip.receptRegel)
+    +'<td><input type="text" id="kuip-product-'+idx+'" value="'+(kopieerProduct||'')+'" readonly '
+    +'style="'+kuipInputStijl+'background:#F0FDF4;color:#166534;font-weight:600;border-color:#BBF7D0;min-width:90px" /></td>'
+    +'<td>'+inpEl('kuip-recnr-'+idx, kopieerRecNr, 'REC-NR', false)+'</td>'
     +'<td>'+inpEl('kuip-kuipnr-'+idx, autoKuipNr, 'Kuip-NR', false,
         ' data-auto="'+autoKuipNr+'" oninput="kuipNrGewijzigd('+idx+')"')+'</td>'
-    +'<td>'+selEl('kuip-zakken-'+idx,zakken,'Kies...')+'</td>'
+    // Zakken — invulveld, auto-gevuld na productkeuze, afwijking triggert reden dropdown
+    +'<td>'+inpEl('kuip-zakken-'+idx, kopieerZakken, 'Zakken', false,
+        ' inputmode="numeric" data-auto="" oninput="kuipWaardeGewijzigd(\'zakken\','+idx+')"')+'</td>'
     +'<td>'+inpEl('kuip-tht-'+idx,preTHT||'','THT',false)+'</td>'
     +'<td>'+inpEl('kuip-sap-'+idx,preBatch||'','SAP batch',true)+'</td>'
-    +'<td>'+selEl('kuip-water-'+idx,waterOpt,'Kies L',kopieerWater)+'</td>'
+    // Water L — invulveld, auto-gevuld na productkeuze, afwijking triggert reden dropdown
+    +'<td>'+inpEl('kuip-water-'+idx, kopieerWater, 'Water L', false,
+        ' inputmode="numeric" data-auto="" oninput="kuipWaardeGewijzigd(\'water\','+idx+')"')+'</td>'
     +'<td>'+inpEl('kuip-lev-'+idx,kopieerLev,'Leverancier',false)+'</td>'
     +'<td><button onclick="kuipVerwijderRij('+idx+')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px" title="Verwijder">✕</button></td>'
     +'</tr>'
-    // Opmerkingen rij — verschijnt als kuip-NR afwijkt
+    // ── Kuip-NR afwijking rij ──────────────────────────────────
     +'<tr id="kuip-remark-row-'+idx+'" style="display:none">'
-    +'<td colspan="9" style="padding:2px 4px 8px">'
+    +'<td colspan="9" style="padding:2px 4px 6px">'
     +'<div style="display:flex;align-items:center;gap:6px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:7px;padding:6px 10px">'
     +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#92400E" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
     +'<span style="font-size:11px;color:#92400E;font-weight:500">Afwijkend kuip-NR — reden:</span>'
     +'<input type="text" id="kuip-opmerking-'+idx+'" placeholder="Bijv: Kuip 3 beschadigd" style="flex:1;padding:4px 8px;border:1px solid #FCD34D;border-radius:5px;font-size:11px;background:#fff">'
+    +'</div></td></tr>'
+    // ── Zakken / Water afwijking rij ───────────────────────────
+    +'<tr id="kuip-afwijking-row-'+idx+'" style="display:none">'
+    +'<td colspan="9" style="padding:2px 4px 8px">'
+    +'<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:8px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start">'
+    +'<div style="display:flex;align-items:center;gap:6px;flex-basis:100%;margin-bottom:2px">'
+    +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+    +'<span style="font-size:11px;font-weight:600;color:#B45309">Waarom wordt de standaard waarde gewijzigd?</span>'
+    +'</div>'
+    +'<div id="kuip-zakken-reden-wrap-'+idx+'" style="display:none;flex:1;min-width:200px">'
+    +'<div style="font-size:10px;color:#92400E;font-weight:600;margin-bottom:4px">Zakken — reden afwijking:</div>'
+    +redenSel('kuip-zakken-reden-'+idx)
+    +'</div>'
+    +'<div id="kuip-water-reden-wrap-'+idx+'" style="display:none;flex:1;min-width:200px">'
+    +'<div style="font-size:10px;color:#92400E;font-weight:600;margin-bottom:4px">Water L — reden afwijking:</div>'
+    +redenSel('kuip-water-reden-'+idx)
+    +'</div>'
     +'</div></td></tr>';
 
   return rijHtml;
@@ -2239,6 +2460,7 @@ function kuipVoegRijToe() {
     var kopieer = {
       product:     (document.getElementById('kuip-product-'+lastIdx)||{}).value||'',
       recNr:       (document.getElementById('kuip-recnr-'+lastIdx)||{}).value||'',
+      zakken:      (document.getElementById('kuip-zakken-'+lastIdx)||{}).value||'',
       water:       (document.getElementById('kuip-water-'+lastIdx)||{}).value||'',
       leverancier: (document.getElementById('kuip-lev-'+lastIdx)||{}).value||''
     };
@@ -2276,32 +2498,42 @@ function kuipBevestigRijKeuze(kopieer, idx, batch, tht) {
 
 function closeKuipModal() {
   document.getElementById('kuip-modal').style.display = 'none';
-  pendingKuip = { matNr: null, batch: null, desc: null, lijn: null };
+  pendingKuip = { matNr: null, batch: null, desc: null, lijn: null, receptRegel: null };
 }
 
 function saveKuipRegistratie() {
   var matNr = pendingKuip.matNr || (document.getElementById('kuip-matnr-select')||{}).value || '';
   if (!matNr) { alert('Kies eerst een artikel.'); return; }
 
-  // Lees alle huidige rijen uit de tabel
+  // Lees alle datarijen uit de tabel (exclusief remark- en afwijking-rijen)
   var tbody = document.getElementById('kuip-tabel-body');
-  var rijen = tbody ? Array.from(tbody.querySelectorAll('tr')) : [];
+  var rijen = tbody ? Array.from(tbody.querySelectorAll('tr[id^="kuip-rij-"]')) : [];
   var registraties = rijen.map(function(tr) {
-    var idx = tr.id.replace('kuip-rij-','');
-    var kuipNr = (document.getElementById('kuip-kuipnr-'+idx)||{}).value||'';
-    var tr = document.getElementById('kuip-rij-'+idx);
-    var autoNr = tr ? (tr.getAttribute('data-auto-kuip') || '') : '';
+    var idx      = tr.id.replace('kuip-rij-','');
+    var kuipNr   = (document.getElementById('kuip-kuipnr-'+idx)||{}).value||'';
+    var autoNr   = tr.getAttribute('data-auto-kuip') || '';
+    var zakkenEl = document.getElementById('kuip-zakken-'+idx);
+    var waterEl  = document.getElementById('kuip-water-'+idx);
+    var zakken   = zakkenEl ? (zakkenEl.value||'') : '';
+    var water    = waterEl  ? (waterEl.value||'')  : '';
+    var zakkenAuto = zakkenEl ? (zakkenEl.getAttribute('data-auto')||'') : '';
+    var waterAuto  = waterEl  ? (waterEl.getAttribute('data-auto') ||'') : '';
     return {
+      _idx:        idx,
       product:     (document.getElementById('kuip-product-'+idx)||{}).value||'',
       recNr:       (document.getElementById('kuip-recnr-'+idx)||{}).value||'',
       kuipNr:      kuipNr,
-      aantalZak:   (document.getElementById('kuip-zakken-'+idx)||{}).value||'',
+      aantalZak:   zakken,
       tht:         (document.getElementById('kuip-tht-'+idx)||{}).value||'',
       sapCode:     (document.getElementById('kuip-sap-'+idx)||{}).value||'',
-      water:       (document.getElementById('kuip-water-'+idx)||{}).value||'',
+      water:       water,
       leverancier: (document.getElementById('kuip-lev-'+idx)||{}).value||'',
       opmerking:   (document.getElementById('kuip-opmerking-'+idx)||{}).value||'',
-      afwijking:   (kuipNr && autoNr && kuipNr !== autoNr) ? 'JA' : 'NEE'
+      afwijking:   (kuipNr && autoNr && kuipNr !== autoNr) ? 'JA' : 'NEE',
+      zakkenReden: (zakkenAuto && zakken && zakken !== zakkenAuto)
+                     ? ((document.getElementById('kuip-zakken-reden-'+idx)||{}).value||'') : '',
+      waterReden:  (waterAuto && water && water !== waterAuto)
+                     ? ((document.getElementById('kuip-water-reden-'+idx)||{}).value||'') : ''
     };
   }).filter(function(r){ return r.product || r.recNr || r.kuipNr || r.aantalZak; });
 
@@ -2322,6 +2554,22 @@ function saveKuipRegistratie() {
       }
     });
   });
+  // Reden verplicht als zakken of water afwijkt van auto-standaard
+  registraties.forEach(function(r, ri) {
+    var zakkenEl = document.getElementById('kuip-zakken-' + r._idx);
+    if (zakkenEl) {
+      var autoZ = zakkenEl.getAttribute('data-auto') || '';
+      if (autoZ && r.aantalZak && r.aantalZak !== autoZ && !r.zakkenReden)
+        ontbrekend.push('Rij ' + (ri+1) + ': reden voor gewijzigd zakken-aantal is verplicht');
+    }
+    var waterEl = document.getElementById('kuip-water-' + r._idx);
+    if (waterEl) {
+      var autoW = waterEl.getAttribute('data-auto') || '';
+      if (autoW && r.water && r.water !== autoW && !r.waterReden)
+        ontbrekend.push('Rij ' + (ri+1) + ': reden voor gewijzigd water-volume is verplicht');
+    }
+  });
+
   if (ontbrekend.length) {
     alert('Niet alle verplichte velden zijn ingevuld:\n\n' + ontbrekend.join('\n'));
     return;
@@ -2353,6 +2601,8 @@ function saveKuipRegistratie() {
       SAPCode:     r.sapCode || '',
       WaterL:      String(r.water || r.waterL || ''),
       Leverancier: r.leverancier || '',
+      ZakkenReden: r.zakkenReden || '',
+      WaterReden:  r.waterReden  || '',
       Tijdstip:    new Date().toLocaleString('nl-NL'),
       FormCode:    'TRA-F-05',
       Datum:       vandaagStr
@@ -2952,6 +3202,10 @@ localStorage.setItem('wml_pa_kuip_save_url',
 localStorage.setItem('wml_pa_kuip_load_url',
   'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b43b6fc96df7461cbc2b026d9bc285f5/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=OTrtnQ7qVn3zUWFTXRv1u6P3EMoLuKbt6NASBU3mk_I'
 );
+// Flow 12 — TRA-F-05 Recepten Ophalen (← TRA-F-05 Recepten SharePoint lijst)
+// Vervang '' hieronder door de trigger-URL na het aanmaken van de flow
+localStorage.setItem('wml_pa_recepten_url', 'https://default4789560000864d9cb51e4e9372fda1.a9.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/7237d65f47b447f39448412fc62c953a/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=uR_K5IIwdqenA32PTh0uDDWXS-gXjh_BEsBCmS8TcHI');
+
 // ══════════════════════════════════════════════════════════════════
 // INLOGSCHERM LOGICA
 // Sessie wordt opgeslagen in localStorage per dag + ploeg
@@ -3101,12 +3355,24 @@ function laadFormVragen(callback) {
       formVragen = {};
       kuipConfig = { Product:[], RecNr:[], AantalZakken:[], WaterL:[] };
       kuipVerplicht = {};
+      var _afwijkingBuffer = [];
       items.forEach(function(r) {
         var code     = String(r.FormNaam || r.FormCode || '').trim();
         var soortRaw = r.Soort && r.Soort.Value ? r.Soort.Value : (r.Soort || r.Type || '');
         var type     = String(soortRaw).trim().toLowerCase();
         var volgorde = parseInt(r.Volgorde || 99);
         if (!code || !type) return;
+
+        // kuip_afwijking: afwijkingsredenen voor zakken/water (Soort = kuip_afwijking)
+        // Title-kolom = tekst van de reden, Volgorde = sorteervolgorde
+        if (type === 'kuip_afwijking') {
+          var redenTekst = String(r.Title || r.Vraag || '').trim();
+          if (redenTekst) {
+            if (!_afwijkingBuffer) _afwijkingBuffer = [];
+            _afwijkingBuffer.push({ volgorde: volgorde, tekst: redenTekst });
+          }
+          return;
+        }
 
         // kuip_config: opties via "Opties" kolom, gesplitst op ";"
         if (type === 'kuip_config') {
@@ -3128,7 +3394,12 @@ function laadFormVragen(callback) {
           volgorde:      volgorde
         });
       });
-      // Sorteer op volgorde
+      // Verwerk afwijkingsredenen vanuit SP
+      if (_afwijkingBuffer.length) {
+        _afwijkingBuffer.sort(function(a, b){ return a.volgorde - b.volgorde; });
+        KUIP_AFWIJKING_REDENEN = _afwijkingBuffer.map(function(r){ return r.tekst; });
+      }
+      // Sorteer vragen op volgorde
       Object.keys(formVragen).forEach(function(code) {
         Object.keys(formVragen[code]).forEach(function(type) {
           formVragen[code][type].sort(function(a,b){ return a.volgorde - b.volgorde; });
@@ -3540,6 +3811,8 @@ laadKuipRegistraties(function() {
   _kuipKlaar = true;
   _checkBeideLaad();
 });
+// Flow 12 — recepten laden bij init (fire-and-forget, blokkeert renderAll niet)
+laadRecepten();
 </script>
 
 <!-- OPERATOR MODAL (FIX 4: type=text, inputmode=numeric, lookupPromise) -->
@@ -3836,6 +4109,17 @@ laadKuipRegistraties(function() {
       </div>
     </div>
     <div id="kuip-stap-3" style="display:none">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Kies het product:</div>
+      <input id="kuip-recept-zoek" type="search" placeholder="Zoeken op naam of recept-nummer&hellip;"
+        oninput="renderReceptGrid(this.value)"
+        autocomplete="off"
+        style="width:100%;padding:9px 12px;border:2px solid var(--border);border-radius:9px;font-size:13px;margin-bottom:12px;box-sizing:border-box;background:var(--cream)">
+      <div id="kuip-recept-grid"
+        style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:340px;overflow-y:auto;margin-bottom:16px;padding-right:2px">
+      </div>
+      <button onclick="kuipGaNaarStap(2)" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;cursor:pointer;color:var(--muted)">← Terug naar lijn</button>
+    </div>
+    <div id="kuip-stap-4" style="display:none">
       <div id="kuip-stap3-info" style="font-size:11px;color:var(--muted);margin-bottom:8px;padding:7px 10px;background:var(--cream);border-radius:7px"></div>
       <div style="overflow-x:auto;margin-bottom:8px;-webkit-overflow-scrolling:touch">
         <table style="border-collapse:collapse;font-size:11px;min-width:600px;width:100%">
@@ -3858,7 +4142,7 @@ laadKuipRegistraties(function() {
         Rij toevoegen
       </button>
       <div style="display:flex;gap:8px">
-        <button onclick="kuipGaNaarStap(2)" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;cursor:pointer;color:var(--muted)">← Terug</button>
+        <button onclick="kuipGaNaarStap(3)" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;cursor:pointer;color:var(--muted)">← Terug</button>
         <button onclick="saveKuipRegistratie()" style="flex:2;padding:10px;border:none;border-radius:9px;background:#166534;color:#fff;font-size:13px;font-weight:600;cursor:pointer">✓ Opslaan</button>
       </div>
     </div>
