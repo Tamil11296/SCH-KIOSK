@@ -1224,11 +1224,11 @@ var FORM_CATALOG = []; // wordt gevuld door laadFormulieren()
 
 // Vaste kleur per formuliercode (optioneel — onbekende codes krijgen grijs)
 var FORM_KLEUREN = {
-  'Grondstoffen Deeg': { kleur: '#1D4ED8', achtergrond: '#DBEAFE' }, // blauw
-  'Silo Grondstoffen': { kleur: '#065F46', achtergrond: '#D1FAE5' }, // groen
-  'Spijs': { kleur: '#92400E', achtergrond: '#FEF3C7' }, // oranje
+  'TRA-F-03': { kleur: '#1D4ED8', achtergrond: '#DBEAFE' }, // blauw
+  'TRA-F-04': { kleur: '#065F46', achtergrond: '#D1FAE5' }, // groen
+  'TRA-F-05': { kleur: '#92400E', achtergrond: '#FEF3C7' }, // oranje
   'TRA-F-06': { kleur: '#6B21A8', achtergrond: '#F3E8FF' }, // paars
-  'Vullingen Jam': { kleur: '#6B7280', achtergrond: '#F3F4F6' }, // grijs
+  'TRA-F-07': { kleur: '#6B7280', achtergrond: '#F3F4F6' }, // grijs
   // Voeg hier extra formuliercodes toe indien nodig
 };
 
@@ -2116,9 +2116,9 @@ function openKuipModal(matNr) {
     var laatste = vorigeReg[0];
     doorgaanOptie.innerHTML = '<button onclick="kuipDoorgaan()" '
       + 'style="width:100%;padding:14px;border:2px solid #166534;border-radius:10px;background:#F0FDF4;font-size:13px;font-weight:600;cursor:pointer;color:#166534;text-align:left;box-sizing:border-box">'
-      + '↩ Doorgaan met<br><span style="font-family:var(--mono);font-size:12px">' + laatste.matNr + '</span>'
-      + ' · <span style="font-size:12px">' + (laatste.lijn||'?') + '</span>'
-      + '<div style="font-size:10px;color:#166534;opacity:.7;margin-top:2px">' + laatste.ts + '</div>'
+      + '↩ Doorgaan met<br><span style="font-family:var(--mono);font-size:12px">' + (laatste.matNr||'?') + '</span>'
+      + ' · <span style="font-size:12px">' + (laatste.lijn||'—') + '</span>'
+      + '<div style="font-size:10px;color:#166534;opacity:.7;margin-top:2px">' + (laatste.tijdstip||'') + '</div>'
       + '</button>';
     kuipGaNaarStap(0);
   } else {
@@ -2135,9 +2135,9 @@ function kuipDoorgaan() {
   var laatste = vorigeReg[0];
 
   // Pre-select artikel
-  pendingKuip.matNr = laatste.matNr;
-  pendingKuip.batch = laatste.batch;
-  pendingKuip.desc  = laatste.desc || '';
+  pendingKuip.matNr = laatste.matNr || '';
+  pendingKuip.batch = laatste.batch || '';
+  pendingKuip.desc  = laatste.omschrijving || '';
   pendingKuip.lijn  = laatste.lijn || '';
 
   // Pre-select lijn visueel
@@ -2548,6 +2548,23 @@ function kuipBevestigRijKeuze(kopieer, idx, batch, tht) {
   if (keuzeRij) keuzeRij.remove();
   var tbody = document.getElementById('kuip-tabel-body');
   if (tbody) tbody.insertAdjacentHTML('beforeend', kuipMaakRij(idx, '', batch, tht, kopieerData));
+
+  // Stel data-auto in voor zakken + water zodat afwijkingsdetectie werkt
+  // Voor gekopieerde rijen: defaults ophalen uit receptenData o.b.v. product
+  if (kopieerData && kopieerData.product) {
+    setTimeout(function() {
+      var rec = null;
+      for (var i = 0; i < receptenData.length; i++) {
+        if (receptenData[i].titel === kopieerData.product) { rec = receptenData[i]; break; }
+      }
+      if (!rec) return;
+      var zakkenEl = document.getElementById('kuip-zakken-' + idx);
+      var waterEl  = document.getElementById('kuip-water-'  + idx);
+      // Stel data-auto in op de standaardwaarden — actual value blijft de gekopieerde waarde
+      if (zakkenEl) zakkenEl.setAttribute('data-auto', rec.aantalZakken);
+      if (waterEl)  waterEl.setAttribute('data-auto',  rec.waterL);
+    }, 30);
+  }
 }
 
 function closeKuipModal() {
@@ -2701,6 +2718,7 @@ function laadKuipRegistraties(callback, datum) {
       if (!matNr || matNr === '0') return;
       if (!kuipRegistraties[matNr]) kuipRegistraties[matNr] = [];
       kuipRegistraties[matNr].push({
+        matNr:       matNr,
         id:          r.ID || '',
         product:     r.Product || '',
         recNr:       r.RecNr || '',
@@ -2710,6 +2728,8 @@ function laadKuipRegistraties(callback, datum) {
         sapCode:     r.SAPCode || '',
         waterL:      r.WaterL || '',
         leverancier: r.Leverancier || '',
+        lijn:        r.Lijn || '',
+        omschrijving:r.Omschrijving || '',
         tijdstip:    r.Tijdstip || '',
         batch:       r.Batch || ''
       });
@@ -4133,7 +4153,7 @@ laadRecepten();
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
       <div>
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
-          <span id="ctrl-modal-form" style="font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:#F3E8FF;color:#6B21A8">Spijs-Strijksel</span>
+          <span id="ctrl-modal-form" style="font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:#F3E8FF;color:#6B21A8">TRA-F-05</span>
           <div id="ctrl-modal-title" style="font-size:15px;font-weight:600;color:var(--ink)">Opstartcontrole</div>
         </div>
         <div style="font-size:11px;color:var(--muted)" id="ctrl-modal-ts"></div>
