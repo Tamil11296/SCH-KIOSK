@@ -1287,11 +1287,11 @@ function bouwFormCatalog(items) {
         kleurDef = FORM_KLEUREN_AUTO[autoKleurIndex % FORM_KLEUREN_AUTO.length];
         autoKleurIndex++;
       }
-
-// HUIDIGE CODE
+// NIEUW
 formMap[title] = {
   code:        code,
   naam:        title,
+  knopnaam:    String(r.KnopNaam || '').trim() || code,
   kleur:       kleurDef.kleur,
   achtergrond: kleurDef.achtergrond,
   matnrs:      [],
