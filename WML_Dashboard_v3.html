@@ -1287,14 +1287,16 @@ function bouwFormCatalog(items) {
         kleurDef = FORM_KLEUREN_AUTO[autoKleurIndex % FORM_KLEUREN_AUTO.length];
         autoKleurIndex++;
       }
-      formMap[title] = {
-        code:        code,
-        naam:        title,
-        kleur:       kleurDef.kleur,
-        achtergrond: kleurDef.achtergrond,
-        matnrs:      [],
-        kuipMatnrs:  []  // matnrs met kuip registratie knop (KuipRegistratie = Ja in SharePoint)
-      };
+
+formMap[title] = {
+  code:        code,
+  naam:        title,
+  knopnaam:    String(r.KnopNaam || '').trim() || code,
+  kleur:       kleurDef.kleur,
+  achtergrond: kleurDef.achtergrond,
+  matnrs:      [],
+  kuipMatnrs:  []
+};
     }
 
     if (formMap[title].matnrs.indexOf(matnr) === -1) {
