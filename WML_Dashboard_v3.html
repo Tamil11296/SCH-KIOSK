@@ -509,8 +509,15 @@ function normaliseerGroepen(grps) {
       return da - db;
     };
     g.volgend = g.volgend.slice().sort(fefoSort);
-    g.inProd = g.inProd.slice().sort(fefoSort);
-    var newFirst = g.volgend.length > 0 ? g.volgend[0].batch : null;
+    g.inProd  = g.inProd.slice().sort(fefoSort);
+
+    // Tag extern pallets en maak aparte beschikbaar / extern arrays
+    g.volgend.forEach(function(r){ r.extern = isExternLocatie(r.loc); });
+    g._volgendBeschikbaar = g.volgend.filter(function(r){ return !r.extern; });
+    g._volgendExtern      = g.volgend.filter(function(r){ return  r.extern; });
+
+    var newFirst = g._volgendBeschikbaar.length > 0 ? g._volgendBeschikbaar[0].batch
+                 : (g.volgend.length > 0 ? g.volgend[0].batch : null);
     g._fefoGecorrigeerd = (origFirst && newFirst && origFirst !== newFirst);
     return g;
   });
@@ -533,6 +540,21 @@ function parseSapQty(s) {
 // Bepaalt of een locatie PROD is
 function isProdLocatie(bin) {
   return /^PROD/i.test(String(bin).trim());
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CONFIGURATIE — Externe / niet-bereikbare locaties
+// Pallets op deze locaties zijn fysiek niet direct beschikbaar.
+// Voeg exacte locatiecodes of prefixen toe (hoofdletter-onafhankelijk).
+// ══════════════════════════════════════════════════════════════════
+var EXTERN_LOCATIES = ['VRIEZERVL'];
+
+function isExternLocatie(bin) {
+  var b = String(bin).trim().toUpperCase();
+  return EXTERN_LOCATIES.some(function(ext) {
+    var e = ext.toUpperCase();
+    return b === e || b.indexOf(e) === 0;
+  });
 }
 
 // Transformeert SharePoint rijen naar groups-formaat
@@ -1478,10 +1500,14 @@ function renderListRij(g) {
     ? '<span style="font-size:11px;color:var(--red);font-weight:500">⚠ Geen voorraad</span>'
     : Object.keys(locMap).map(function(loc){
         var l = locMap[loc];
-        return '<div style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid var(--border)">'
-          + '<span class="loc-chip" style="min-width:64px">' + loc + '</span>'
+        var isExt = isExternLocatie(loc);
+        return '<div style="display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid var(--border);'+(isExt?'opacity:.6;':'')+ '">'
+          + (isExt
+              ? '<span class="loc-chip" style="min-width:64px;background:#F3F4F6;border-color:#D1D5DB;color:#6B7280">⛔ ' + loc + '</span>'
+              : '<span class="loc-chip" style="min-width:64px">' + loc + '</span>')
           + '<span style="font-size:var(--font-pallets);color:var(--muted)">' + l.pallets + ' pallet' + (l.pallets!==1?'s':'') + '</span>'
-          + '<span class="cel-stel-qty" style="margin-left:auto">' + l.qty.toLocaleString('nl-NL') + ' ' + unit + '</span></div>';
+          + (isExt ? '<span style="font-size:9px;color:#9CA3AF;font-weight:600">extern</span>' : '')
+          + '<span class="cel-stel-qty" style="margin-left:auto;color:'+(isExt?'#9CA3AF':'var(--green-mid)')+'">' + l.qty.toLocaleString('nl-NL') + ' ' + unit + '</span></div>';
       }).join('')
       + '<div style="display:flex;align-items:center;gap:8px;padding:4px 0 0">'
       + '<span style="font-size:var(--font-pallets);color:var(--muted)">Totaal</span>'
@@ -1531,7 +1557,9 @@ function renderBadgeCard(g) {
   var allDone = g.inProd.every(function(r){ return completed[g.matNr+'-'+r.pallet]; });
   var expanded = expandedCards[g.matNr];
   var showRows = expanded ? g.inProd : [g.inProd[0]];
-  var next = g.volgend[0];
+  // Gebruik eerste BESCHIKBARE (niet-externe) pallet als FEFO-voorstel
+  var next          = g._volgendBeschikbaar ? g._volgendBeschikbaar[0] : g.volgend[0];
+  var externPallets = g._volgendExtern || [];
   var donePill = allDone ? '<div class="done-tag"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Afgerond</div>' : '';
   var fefoPill = g._fefoGecorrigeerd ? '<span class="fefo-corrected-tag" title="Volgorde gecorrigeerd op THT">↕ FEFO fix</span>' : '';
 
@@ -1562,6 +1590,20 @@ function renderBadgeCard(g) {
       +'<div class="pf">'+icoWgt+'<span class="pf-sub">'+next.qty.toLocaleString('nl-NL')+' '+next.unit+'</span></div>'
       +'<div class="pf-date">'+next.date+'</div></div>'
     : '<div class="bc-panel empty-panel"><span>Geen voorraad beschikbaar</span></div>';
+
+  // Extern pallets tonen — gestyled als 'niet bereikbaar'
+  var externPanel = externPallets.length === 0 ? '' : externPallets.map(function(r) {
+    return '<div class="bc-panel" style="opacity:.6;background:#F9FAFB;border:1.5px dashed #D1D5DB;position:relative;overflow:hidden">'
+      +'<div style="position:absolute;top:0;left:0;right:0;padding:2px 6px;background:#F3F4F6;border-bottom:1px dashed #D1D5DB;display:flex;align-items:center;gap:4px">'
+      +'<span style="font-size:9px;font-weight:700;color:#6B7280;letter-spacing:.04em">⛔ EXTERN — NIET BEREIKBAAR</span>'
+      +'<span style="margin-left:auto;font-size:9px;color:#9CA3AF;font-family:var(--mono)">'+r.loc+'</span>'
+      +'</div>'
+      +'<div style="padding-top:20px">'
+      +'<div class="pf">'+icoHash+'<span class="pf-val" style="color:#9CA3AF;text-decoration:line-through">'+r.batch+'</span></div>'
+      +'<div class="pf">'+icoWgt+'<span class="pf-sub">'+r.qty.toLocaleString('nl-NL')+' '+r.unit+'</span></div>'
+      +'<div class="pf-date" style="color:#9CA3AF">'+r.date+'</div>'
+      +'</div></div>';
+  }).join('');
 
   var expandBtn = g.inProd.length > 1
     ? '<button class="bc-expand" onclick="toggleExpand(\''+g.matNr+'\')">'
@@ -1649,7 +1691,7 @@ function renderBadgeCard(g) {
     +'<div class="bc-name">'+g.desc+'</div>'
     +'</div>'+donePill+'</div>'
     +'<div class="bc-labels"><div class="bc-label"><span class="dot dot-prod"></span> In PROD</div><div class="bc-label"><span class="dot dot-next"></span> Volgend (FEFO)</div></div>'
-    +'<div class="bc-panels">'+prodPanels+nextPanel+'</div>'
+    +'<div class="bc-panels">'+prodPanels+nextPanel+externPanel+'</div>'
     +expandBtn
     +kuipBtn
     +(verwerkingBtn ? '<div style="padding:4px 10px 8px">'+verwerkingBtn+'</div>' : '')
@@ -1805,6 +1847,12 @@ function openVerwerkingModal(matNr) {
   // Toon details van eerste rij
   vwBatchGekozen();
 
+  // Vul lijn opties dynamisch vanuit VERWERKING_LIJNEN
+  var vwLijnSel = document.getElementById('vw-lijn');
+  if (vwLijnSel) {
+    vwLijnSel.innerHTML = '<option value="">-- Kies een lijn --</option>'
+      + VERWERKING_LIJNEN.map(function(l){ return '<option>'+l+'</option>'; }).join('');
+  }
   document.getElementById('vw-lijn').value = '';
   document.getElementById('vw-badge').value = '';
   document.getElementById('vw-naam-display').textContent = '';
@@ -1886,6 +1934,12 @@ function openHandmatigVerwerkingModal() {
   ['vwh-matnr','vwh-batch','vwh-loc','vwh-badge'].forEach(function(id){
     document.getElementById(id).value = '';
   });
+  // Vul lijn opties dynamisch vanuit VERWERKING_LIJNEN
+  var vwhLijnSel = document.getElementById('vwh-lijn');
+  if (vwhLijnSel) {
+    vwhLijnSel.innerHTML = '<option value="">-- Kies een lijn --</option>'
+      + VERWERKING_LIJNEN.map(function(l){ return '<option>'+l+'</option>'; }).join('');
+  }
   document.getElementById('vwh-lijn').value = '';
   document.getElementById('vwh-naam-display').textContent = '';
   document.getElementById('vwh-confirm-btn').disabled = true;
@@ -2856,7 +2910,7 @@ function completeRow(matNr, pallet) {
   var row = null;
   for (var j = 0; j < g.inProd.length; j++) if (g.inProd[j].pallet === pallet) { row = g.inProd[j]; break; }
   if (!row) return;
-  var next = g.volgend[0];
+  var next = (g._volgendBeschikbaar && g._volgendBeschikbaar[0]) || g.volgend[0];
   pendingComplete = {matNr:matNr,pallet:pallet,opName:null,badgeNr:null,fefoAfwijking:isFEFOAfwijking(g,pallet)};
   document.getElementById('op-modal-desc').textContent = g.matNr+' — '+g.desc;
   document.getElementById('op-from-batch').textContent = row.batch||'—';
@@ -2969,7 +3023,7 @@ function confirmComplete() {
   if (!row) return;
   completed[matNr+'-'+pallet] = true;
   saveCompleted();
-  var next = g.volgend[0];
+  var next = (g._volgendBeschikbaar && g._volgendBeschikbaar[0]) || g.volgend[0];
 var entry = {
     ts: new Date().toLocaleString('nl-NL'), matNr:matNr, desc:g.desc,
     oldBatch:row.batch||'—', oldLoc:row.loc, oldPallet:row.pallet||'—',
@@ -3355,13 +3409,61 @@ function laadFormVragen(callback) {
       formVragen = {};
       kuipConfig = { Product:[], RecNr:[], AantalZakken:[], WaterL:[] };
       kuipVerplicht = {};
-      var _afwijkingBuffer = [];
+      var _afwijkingBuffer  = [];
+      var _locatieBuffer    = {};
+      var _lijnBuffer       = [];
+      var _externBuffer     = [];
+      var _ploegBuffer      = {};
+      var _medewerkerBuffer = {};
       items.forEach(function(r) {
         var code     = String(r.FormNaam || r.FormCode || '').trim();
         var soortRaw = r.Soort && r.Soort.Value ? r.Soort.Value : (r.Soort || r.Type || '');
         var type     = String(soortRaw).trim().toLowerCase();
         var volgorde = parseInt(r.Volgorde || 99);
         if (!code || !type) return;
+
+        // ── LOCATIE PREFIX → AFDELING (Soort = locatie_prefix) ─────────────
+        // Title = locatieprefix (bv. 'B21'), Opties = afdelingnaam (bv. 'Deegmakerij')
+        if (type === 'locatie_prefix') {
+          var prefix = String(r.Title || '').trim();
+          var afd    = String((r.Opties || '').split(';')[0] || '').trim();
+          if (prefix && afd) _locatieBuffer[prefix] = afd;
+          return;
+        }
+
+        // ── VERWERKING / KUIP LIJNEN (Soort = verwerking_lijn) ──────────────
+        // Title = lijnnaam (bv. 'Lijn 1'), Volgorde = sorteervolgorde
+        if (type === 'verwerking_lijn') {
+          var lijn = String(r.Title || '').trim();
+          if (lijn) _lijnBuffer.push({ volgorde: volgorde, naam: lijn });
+          return;
+        }
+
+        // ── EXTERNE LOCATIES (Soort = extern_locatie) ────────────────────────
+        // Title = locatiecode of prefix (bv. 'VRIEZERVL')
+        if (type === 'extern_locatie') {
+          var extLoc = String(r.Title || '').trim();
+          if (extLoc) _externBuffer.push(extLoc);
+          return;
+        }
+
+        // ── PLOEG CONFIGURATIE (Soort = ploeg_config) ───────────────────────
+        // Title = config-sleutel (bv. 'ochtend_start'), Opties = waarde (bv. '06:00')
+        if (type === 'ploeg_config') {
+          var pKey = String(r.Title || '').trim();
+          var pVal = String((r.Opties || '').split(';')[0] || '').trim();
+          if (pKey && pVal) _ploegBuffer[pKey] = pVal;
+          return;
+        }
+
+        // ── MEDEWERKERS (Soort = medewerker) ─────────────────────────────────
+        // Title = badgenummer (bv. '1042'), Opties = volledige naam (bv. 'Rob Conijn')
+        if (type === 'medewerker') {
+          var badge = String(r.Title || '').trim();
+          var naam  = String((r.Opties || '').split(';')[0] || '').trim();
+          if (badge && naam) _medewerkerBuffer[badge] = naam;
+          return;
+        }
 
         // kuip_afwijking: afwijkingsredenen voor zakken/water (Soort = kuip_afwijking)
         // Title-kolom = tekst van de reden, Volgorde = sorteervolgorde
@@ -3394,10 +3496,36 @@ function laadFormVragen(callback) {
           volgorde:      volgorde
         });
       });
-      // Verwerk afwijkingsredenen vanuit SP
+      // ── Verwerk alle config-buffers ──────────────────────────────────────
       if (_afwijkingBuffer.length) {
         _afwijkingBuffer.sort(function(a, b){ return a.volgorde - b.volgorde; });
         KUIP_AFWIJKING_REDENEN = _afwijkingBuffer.map(function(r){ return r.tekst; });
+      }
+      if (Object.keys(_locatieBuffer).length) {
+        // Overschrijf hardcoded binToAfdeling volledig vanuit SP
+        binToAfdeling = _locatieBuffer;
+      }
+      if (_lijnBuffer.length) {
+        _lijnBuffer.sort(function(a, b){ return a.volgorde - b.volgorde; });
+        VERWERKING_LIJNEN = _lijnBuffer.map(function(l){ return l.naam; });
+      }
+      if (_externBuffer.length) {
+        EXTERN_LOCATIES = _externBuffer;
+      }
+      if (Object.keys(_ploegBuffer).length) {
+        var pc = _ploegBuffer;
+        if (pc['ochtend_start'])          PLOEG_CONFIG.ochtend.start          = pc['ochtend_start'];
+        if (pc['ochtend_einde'])          PLOEG_CONFIG.ochtend.einde          = pc['ochtend_einde'];
+        if (pc['middag_start'])           PLOEG_CONFIG.middag.start           = pc['middag_start'];
+        if (pc['middag_einde'])           PLOEG_CONFIG.middag.einde           = pc['middag_einde'];
+        if (pc['nacht_start'])            PLOEG_CONFIG.nacht  = PLOEG_CONFIG.nacht  || {}; PLOEG_CONFIG.nacht.start  = pc['nacht_start'];
+        if (pc['nacht_einde'])            PLOEG_CONFIG.nacht  = PLOEG_CONFIG.nacht  || {}; PLOEG_CONFIG.nacht.einde  = pc['nacht_einde'];
+        if (pc['opstart_deadline_min'])   PLOEG_CONFIG.opstart_deadline_min   = parseInt(pc['opstart_deadline_min'],  10);
+        if (pc['wissel_deadline_min'])    PLOEG_CONFIG.wissel_deadline_min    = parseInt(pc['wissel_deadline_min'],   10);
+        if (pc['eindedag_deadline_min'])  PLOEG_CONFIG.eindedag_deadline_min  = parseInt(pc['eindedag_deadline_min'], 10);
+      }
+      if (Object.keys(_medewerkerBuffer).length) {
+        medewerkers = _medewerkerBuffer;
       }
       // Sorteer vragen op volgorde
       Object.keys(formVragen).forEach(function(code) {
@@ -3916,10 +4044,6 @@ laadRecepten();
     <label style="font-size:12px;color:var(--muted);font-weight:500;display:block;margin-bottom:6px">Selecteer lijn</label>
     <select id="vw-lijn" onchange="vwCheckReady()" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:9px;font-size:14px;background:var(--cream);margin-bottom:14px;appearance:none">
       <option value="">-- Kies een lijn --</option>
-      <option>Lijn 1</option>
-      <option>Lijn 2</option>
-      <option>Lijn 3</option>
-      <option>Lijn 4</option>
     </select>
 
     <!-- Badge -->
@@ -3977,7 +4101,6 @@ laadRecepten();
     <label style="font-size:12px;color:var(--muted);font-weight:500;display:block;margin-bottom:4px">Selecteer lijn</label>
     <select id="vwh-lijn" onchange="vwhCheckReady()" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:9px;font-size:14px;background:var(--cream);margin-bottom:12px;appearance:none">
       <option value="">-- Kies een lijn --</option>
-      <option>Lijn 1</option><option>Lijn 2</option><option>Lijn 3</option><option>Lijn 4</option>
     </select>
 
     <label style="font-size:12px;color:var(--muted);font-weight:500;display:block;margin-bottom:4px">Badge nummer</label>
