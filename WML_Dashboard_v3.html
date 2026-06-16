@@ -230,6 +230,163 @@ button,input{font-family:var(--sans);font-size:14px}
 .missing-row .mr-reg-btn{margin-left:auto;background:none;border:1px solid var(--orange);color:var(--orange);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;white-space:nowrap;transition:all .15s}
 .missing-row .mr-reg-btn:hover{background:var(--orange-pale)}
 .missing-row.resolved{opacity:.45;background:#F0FFF4;border-color:#A7D7B5}
+
+/* ═══════════════════════════════════════════════════════════════════
+   KUIP PER-LIJN KAARTEN
+   ═══════════════════════════════════════════════════════════════════ */
+.kuip-sectie-wrap{background:#fff;border:1.5px solid #86EFAC;border-radius:14px;overflow:hidden}
+.kuip-sectie-header{background:#F0FDF4;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid #DCFCE7}
+.kuip-lijn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;padding:12px}
+.kuip-lijn-kaart{background:#fff;border:1px solid #86EFAC;border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.kuip-lijn-kaart-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#F0FDF4;border-bottom:1px solid #DCFCE7}
+.kuip-lijn-naam{font-size:13px;font-weight:700;color:#166534}
+.kuip-lijn-count{font-size:10px;background:#166534;color:#fff;padding:1px 8px;border-radius:20px;font-weight:600}
+.kuip-lijn-body{flex:1;padding:2px 0}
+.kuip-lijn-leeg{font-size:11px;color:var(--muted);padding:14px 12px;text-align:center;font-style:italic}
+.kuip-lijn-rij{display:grid;grid-template-columns:58px 1fr auto 20px;align-items:center;gap:4px 6px;padding:5px 10px;border-bottom:1px solid #F0FDF4}
+.kuip-edit-btn{background:none;border:none;cursor:pointer;color:#D1D5DB;font-size:12px;padding:2px;border-radius:4px;line-height:1;transition:color .15s;flex-shrink:0;width:20px;text-align:center}
+.kuip-edit-btn:hover,.kuip-edit-btn:active{color:#166534;background:#DCFCE7}
+/* Scanner input slide */
+#scanbar-slide{background:var(--paper);border-bottom:2px solid #A7D7B5;padding:10px 16px;display:none}
+.scan-actief{background:#F0FDF4 !important}
+.kuip-lijn-rij:last-child{border-bottom:none}
+.kuip-nr{font-family:var(--mono);font-size:11px;font-weight:700;color:#166534;white-space:nowrap}
+.kuip-product{font-size:11px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kuip-meta{display:flex;flex-direction:column;align-items:flex-end;gap:1px;font-size:10px;color:var(--muted);font-family:var(--mono);white-space:nowrap}
+.kuip-tijd{color:#9CA3AF;font-size:9px}
+.kuip-lijn-add-btn{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:8px;border:none;border-top:1px solid #DCFCE7;background:#F0FDF4;color:#166534;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:background .15s}
+.kuip-lijn-add-btn:hover,.kuip-lijn-add-btn:active{background:#DCFCE7}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE — hulpklassen (schermgrootte-onafhankelijk)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Verbergt tekst in knoppen op mobiel (emoji/icoon blijft) */
+.btn-tekst{}
+
+/* Tab-labels: lang op desktop, kort op mobiel */
+.tab-kort{display:none}
+.tab-lang{}
+
+/* Afdeling bar: tabs wrapper en select wrapper */
+#afd-tabs-wrapper{display:flex;align-items:center;gap:0}
+#afd-select-wrapper{display:none;padding:8px 12px;width:100%}
+#afd-select-wrapper select{
+  width:100%;padding:10px 36px 10px 12px;
+  border:1px solid var(--border);border-radius:9px;
+  font-size:14px;font-family:var(--sans);
+  background:var(--cream);color:var(--ink);
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+}
+
+/* FEFO kaarten (mobiel alternatief voor tabel) */
+#fefo-kaarten{display:none;flex-direction:column;gap:8px;padding:10px 12px 16px}
+.fk-card{background:var(--paper);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.fk-head{padding:10px 12px 8px;border-bottom:1px solid var(--border)}
+.fk-matnr{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.fk-naam{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.35}
+.fk-body{padding:8px 12px 4px}
+.fk-sectie{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px;margin-top:10px}
+.fk-sectie:first-child{margin-top:0}
+.fk-prod{display:flex;align-items:baseline;gap:8px}
+.fk-prod-qty{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--blue)}
+.fk-prod-pallets{font-size:11px;color:var(--muted)}
+.fk-loc-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #F3F0EB}
+.fk-loc-row:last-child{border-bottom:none}
+.fk-totaal{display:flex;align-items:baseline;justify-content:space-between;padding:7px 12px;background:var(--cream);border-top:1px solid var(--border)}
+.fk-totaal-qty{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink)}
+.fk-totaal-pallets{font-size:11px;color:var(--muted)}
+.mobiel-afd-header{padding:10px 0 4px;font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:4px}
+.mobiel-afd-header:first-child{padding-top:0}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE — MOBIEL (≤640px)
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width:640px){
+
+  /* Topbar */
+  #topbar{height:auto;min-height:54px;padding:7px 10px;gap:6px}
+  .tb-logo{width:46px;height:46px}
+  .tb-info h1{font-size:12px;white-space:normal;line-height:1.2}
+  #importdate{display:none}
+  #sessie-info{padding:3px 7px;gap:4px;margin-left:4px}
+  #sessie-naam{font-size:10px}
+  .tb-right{gap:3px}
+  .tb-btn{font-size:11px;padding:5px 7px}
+  .btn-tekst{display:none}
+  .tb-icon-btn{width:30px;height:30px}
+  #conn-banner{font-size:10px;padding:5px 10px}
+
+  /* Viewbar */
+  #viewbar{padding:0 6px}
+  .view-tab{padding:12px 8px;font-size:11px;border-bottom-width:3px}
+  .tab-lang{display:none}
+  .tab-kort{display:inline}
+  .vb-right{gap:4px}
+  .stat-chip{display:none}
+
+  /* Afdeling bar */
+  #afdeling-bar{padding:0;flex-direction:column}
+  #afd-tabs-wrapper{display:none}
+  #afd-select-wrapper{display:block}
+
+  /* View 1 */
+  #view1{padding:0;overflow-x:hidden}
+  .list-table{display:none}
+  #fefo-kaarten{display:flex}
+  #fefo-searchbox-wrap{padding:10px 12px 0 !important;max-width:100% !important}
+
+  /* View 2 */
+  #view2{padding:10px 12px}
+  .board-grid{grid-template-columns:1fr}
+  .bc-panels{grid-template-columns:1fr}
+  #form-filter-bar{padding:8px 12px;gap:6px;overflow-x:auto;flex-wrap:nowrap}
+  .f07-notice{display:none}
+  .form-tab-btn + span{display:none}
+
+  /* Log bar */
+  .log-row{grid-template-columns:auto 1fr;grid-template-rows:auto auto;gap:3px 8px;padding:6px 10px}
+  .lr-ts{grid-column:1;grid-row:1;font-size:10px}
+  .lr-mat{grid-column:1/-1;grid-row:2;font-size:11px}
+  .lr-batches{grid-column:2;grid-row:1;justify-content:flex-end}
+  .lr-op{display:none}
+  .log-rows{max-height:180px}
+
+  /* Alert banners */
+  .missing-header,.fefo-warn-header{flex-wrap:wrap;gap:6px}
+  .fefo-warn-row{gap:6px}
+  .fefo-warn-row .fw-name{min-width:100%;order:-1}
+
+  /* View 3 */
+  #view3{padding:12px}
+  #view3 .max-width\:1100px{margin:0}
+
+  /* Kuip per-lijn kaarten: 1 kolom op telefoon */
+  .kuip-lijn-grid{grid-template-columns:1fr;padding:8px}
+  .kuip-sectie-header{padding:8px 10px;gap:6px}
+  .kuip-lijn-rij{grid-template-columns:52px 1fr auto 20px}
+
+  /* Formulier-acties bar */
+  #formulier-acties-bar{padding:8px 12px}
+
+  /* Searchbar slide */
+  #searchbar-slide{padding:8px 12px}
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET (641–1024px)
+   ═══════════════════════════════════════════════════════════════════ */
+@media (min-width:641px) and (max-width:1024px){
+  .tb-info h1{font-size:13px}
+  .view-tab{padding:14px 14px;font-size:12px}
+  .board-grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+  #view2{padding:14px 18px}
+  #view1{padding:14px 18px}
+  #afdeling-bar{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .afd-tab{padding:10px 14px;font-size:12px}
+}
 </style>
 </head>
 <body>
@@ -323,10 +480,17 @@ button,input{font-family:var(--sans);font-size:14px}
     </div>
   </div>
   <div class="tb-right" id="tb-operator-tools" style="display:none">
-    <button class="tb-btn" id="logbtn" onclick="toggleLog()">📋 <span id="logcount">0</span> wissels</button>
+    <button class="tb-btn" id="logbtn" onclick="toggleLog()">📋 <span id="logcount">0</span><span class="btn-tekst"> wissels</span></button>
+    <div class="tb-icon-btn" id="scanner-toggle" onclick="toggleScannerInput()" title="Pallet scannen">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="5" width="2" height="14"/><rect x="6" y="5" width="1" height="14"/>
+        <rect x="9" y="5" width="2" height="14"/><rect x="13" y="5" width="1" height="14"/>
+        <rect x="16" y="5" width="2" height="14"/><rect x="20" y="5" width="2" height="14"/>
+      </svg>
+    </div>
     <button class="tb-btn" onclick="openHandmatigVerwerkingModal()"
       style="background:#F3E8FF;color:#6B21A8;border-color:#C084FC;font-weight:600">
-      ✏ Handmatige verwerking
+      ✏<span class="btn-tekst"> Handmatige verwerking</span>
     </button>
     <div class="tb-icon-btn" id="search-toggle" onclick="toggleSearch()" title="Zoeken">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -336,14 +500,14 @@ button,input{font-family:var(--sans);font-size:14px}
 
 <div id="viewbar">
   <div class="view-tabs">
-    <div class="view-tab active" id="tab1" onclick="switchView(1)">📋 FEFO Overzicht</div>
-    <div class="view-tab" id="tab2" onclick="switchView(2)">🏭 Operator Board</div>
+    <div class="view-tab active" id="tab1" onclick="switchView(1)">📋 <span class="tab-lang">FEFO Overzicht</span><span class="tab-kort">FEFO</span></div>
+    <div class="view-tab" id="tab2" onclick="switchView(2)">🏭 <span class="tab-lang">Operator Board</span><span class="tab-kort">Board</span></div>
     <div class="view-tab" id="tab3" onclick="switchView(3)">⚠ Afwijkingen <span id="afwijking-badge" style="display:none;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;margin-left:4px">0</span></div>
   </div>
   <div class="vb-right">
     <button onclick="verversData()" id="ververs-btn" title="Voorraad ophalen uit SharePoint" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:5px 12px;font-size:12px;font-weight:500;color:rgba(255,255,255,.85);cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">
       <svg id="ververs-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-      Ververs
+      <span class="btn-tekst">Ververs</span>
     </button>
     <div class="stat-chip">📦 <strong id="statprod">0</strong> in PROD</div>
   </div>
@@ -351,13 +515,28 @@ button,input{font-family:var(--sans);font-size:14px}
 
 <!-- AFDELING TABS (alleen zichtbaar in FEFO Overzicht) -->
 <div id="afdeling-bar">
-  <button class="afd-tab alle active" onclick="setAfdeling(null)">🏭 Alle afdelingen</button>
-  <button class="afd-tab" onclick="setAfdeling('Deegmakerij')">🥐 Deegmakerij</button>
-  <button class="afd-tab" onclick="setAfdeling('Ovenruimte')">🔥 Ovenruimte</button>
-  <button class="afd-tab" onclick="setAfdeling('Droge grondstoffen')">🌾 Droge grondstoffen</button>
-  <button class="afd-tab" onclick="setAfdeling('Palletijzer')">📦 Palletijzer</button>
-  <button class="afd-tab" onclick="setAfdeling('Shuttle')">🚌 Shuttle</button>
-  <button class="afd-tab" onclick="setAfdeling('Blokkades')">⛔ Blokkades</button>
+  <!-- Desktop/tablet: horizontale tabs -->
+  <div id="afd-tabs-wrapper">
+    <button class="afd-tab alle active" onclick="setAfdeling(null)">🏭 Alle afdelingen</button>
+    <button class="afd-tab" onclick="setAfdeling('Deegmakerij')">🥐 Deegmakerij</button>
+    <button class="afd-tab" onclick="setAfdeling('Ovenruimte')">🔥 Ovenruimte</button>
+    <button class="afd-tab" onclick="setAfdeling('Droge grondstoffen')">🌾 Droge grondstoffen</button>
+    <button class="afd-tab" onclick="setAfdeling('Palletijzer')">📦 Palletijzer</button>
+    <button class="afd-tab" onclick="setAfdeling('Shuttle')">🚌 Shuttle</button>
+    <button class="afd-tab" onclick="setAfdeling('Blokkades')">⛔ Blokkades</button>
+  </div>
+  <!-- Mobiel: dropdown select -->
+  <div id="afd-select-wrapper">
+    <select id="afdeling-select" onchange="setAfdeling(this.value || null)">
+      <option value="">🏭 Alle afdelingen</option>
+      <option value="Deegmakerij">🥐 Deegmakerij</option>
+      <option value="Ovenruimte">🔥 Ovenruimte</option>
+      <option value="Droge grondstoffen">🌾 Droge grondstoffen</option>
+      <option value="Palletijzer">📦 Palletijzer</option>
+      <option value="Shuttle">🚌 Shuttle</option>
+      <option value="Blokkades">⛔ Blokkades</option>
+    </select>
+  </div>
 </div>
 
 <!-- FORMULIER FILTER BAR (alleen zichtbaar in Operator Board) -->
@@ -423,6 +602,7 @@ button,input{font-family:var(--sans);font-size:14px}
       <input type="text" id="fefo-searchbox" placeholder="Zoek materiaal op naam of nummer..." oninput="renderAll()" style="width:100%;padding:9px 12px 9px 34px;border:1px solid var(--border);border-radius:9px;font-size:13px;background:var(--cream)">
     </div>
   </div>
+  <!-- Desktop/tablet: tabel -->
   <table class="list-table">
     <thead>
       <tr>
@@ -434,9 +614,28 @@ button,input{font-family:var(--sans);font-size:14px}
     </thead>
     <tbody id="listtbody"></tbody>
   </table>
+  <!-- Mobiel: kaarten -->
+  <div id="fefo-kaarten"></div>
   <div id="listempty" class="empty-state" style="display:none">
     <div class="es-icon">📦</div><p>Geen materialen gevonden</p>
   </div>
+</div>
+
+<div id="scanbar-slide" style="display:none">
+  <div style="padding:10px 16px;display:flex;align-items:center;gap:10px">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2" style="flex-shrink:0">
+      <rect x="2" y="5" width="2" height="14"/><rect x="6" y="5" width="1" height="14"/>
+      <rect x="9" y="5" width="2" height="14"/><rect x="13" y="5" width="1" height="14"/>
+      <rect x="16" y="5" width="2" height="14"/><rect x="20" y="5" width="2" height="14"/>
+    </svg>
+    <input type="text" id="scan-input" inputmode="numeric"
+      placeholder="Scan pallet barcode of voer palletnummer in..."
+      style="flex:1;padding:10px 12px;border:2px solid #86EFAC;border-radius:9px;font-size:15px;font-family:var(--mono);background:#F0FDF4;outline:none"
+      oninput="scanInputChanged()"
+      onkeydown="if(event.key==='Enter'){verwerkPalletScan(this.value);this.value='';}">
+    <button onclick="sluitScannerInput()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:18px">✕</button>
+  </div>
+  <div id="scan-status" style="font-size:11px;color:var(--muted);padding:0 16px 8px"></div>
 </div>
 
 <div id="searchbar-slide" style="display:none;background:var(--paper);border-bottom:1px solid var(--border);padding:10px 16px">
@@ -1184,6 +1383,7 @@ var actieveAfdeling = null; // null = alle afdelingen
 
 function setAfdeling(naam) {
   actieveAfdeling = naam;
+  // Sync desktop tabs
   document.querySelectorAll('.afd-tab').forEach(function(btn) {
     btn.classList.remove('active');
   });
@@ -1192,6 +1392,9 @@ function setAfdeling(naam) {
     var isMatch = naam && btn.textContent.indexOf(naam) > -1;
     if ((!naam && isAlle) || isMatch) btn.classList.add('active');
   });
+  // Sync mobiele select
+  var sel = document.getElementById('afdeling-select');
+  if (sel) sel.value = naam || '';
   // Zoekbalk alleen tonen bij "Alle afdelingen"
   var fsb = document.getElementById('fefo-searchbox');
   var fsbWrap = document.getElementById('fefo-searchbox-wrap');
@@ -1287,16 +1490,15 @@ function bouwFormCatalog(items) {
         kleurDef = FORM_KLEUREN_AUTO[autoKleurIndex % FORM_KLEUREN_AUTO.length];
         autoKleurIndex++;
       }
-// NIEUW
-formMap[title] = {
-  code:        code,
-  naam:        title,
-  knopnaam:    String(r.KnopNaam || '').trim() || code,
-  kleur:       kleurDef.kleur,
-  achtergrond: kleurDef.achtergrond,
-  matnrs:      [],
-  kuipMatnrs:  []
-};
+      formMap[title] = {
+        code:        code,
+        naam:        title,
+        knopnaam:    String(r.KnopNaam || '').trim() || code,  // SP-kolom KnopNaam → vrij te kiezen knoptekst
+        kleur:       kleurDef.kleur,
+        achtergrond: kleurDef.achtergrond,
+        matnrs:      [],
+        kuipMatnrs:  []  // matnrs met kuip registratie knop (KuipRegistratie = Ja in SharePoint)
+      };
     }
 
     if (formMap[title].matnrs.indexOf(matnr) === -1) {
@@ -1368,6 +1570,39 @@ function renderFormFilterBar(visGroups) {
     }
   });
 
+  var mobiel = window.innerWidth <= 640;
+
+  if (mobiel) {
+    // ── MOBIEL: dropdown select ──────────────────────────────
+    var selectStyle = 'width:100%;padding:10px 36px 10px 12px;border:1px solid var(--border);'
+      + 'border-radius:9px;font-size:14px;font-family:var(--sans);background:var(--cream);'
+      + 'color:var(--ink);appearance:none;-webkit-appearance:none;'
+      + 'background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236B7280\' stroke-width=\'2.5\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'/%3E%3C/svg%3E");'
+      + 'background-repeat:no-repeat;background-position:right 12px center';
+
+    var sel = '<select style="' + selectStyle + '" onchange="setFormFilter(this.value || null)">';
+    sel += '<option value="' + (!activeFormFilter ? '" selected' : '"') + '>Alle formulieren</option>';
+
+    FORM_CATALOG.forEach(function(f) {
+      var count = counts[f.code] || 0;
+      if (count === 0) return;
+      sel += '<option value="' + f.code + '"' + (activeFormFilter === f.code ? ' selected' : '') + '>'
+        + f.knopnaam + ' (' + count + ')</option>';
+    });
+
+    if (overigCount > 0) {
+      sel += '<option value="OVERIG"' + (activeFormFilter === 'OVERIG' ? ' selected' : '') + '>'
+        + 'Overig (' + overigCount + ')</option>';
+    }
+
+    sel += '</select>';
+    bar.innerHTML = sel;
+    bar.style.display = 'block';
+    bar.style.padding = '8px 12px';
+    return;
+  }
+
+  // ── DESKTOP/TABLET: knoppen ──────────────────────────────
   var html = '';
 
   // "Alle" knop
@@ -1382,7 +1617,7 @@ function renderFormFilterBar(visGroups) {
       + '<button class="form-tab-btn' + (isActive ? ' active' : '') + '" '
       + 'style="background:' + f.achtergrond + ';color:' + f.kleur + ';border:1px solid ' + f.kleur + '33" '
       + 'onclick="setFormFilter(\'' + f.code + '\')">'
-+ f.knopnaam + ' <span style="opacity:.6">(' + count + ')</span>'
+      + f.knopnaam + ' <span style="opacity:.6">(' + count + ')</span>'
       + '</button>'
       + '<span style="font-size:10px;color:var(--muted);padding:0 4px;max-width:200px;line-height:1.3">' + f.naam + '</span>'
       + '</div>';
@@ -1397,6 +1632,7 @@ function renderFormFilterBar(visGroups) {
 
   bar.innerHTML = html;
   bar.style.display = 'flex';
+  bar.style.padding = '';
 }
 
 function renderAll() {
@@ -1429,8 +1665,22 @@ function renderAll() {
 
 // ── VIEW 1 ─────────────────────────────────────────────────
 function renderList(vis) {
+  var mobiel = window.innerWidth <= 640;
+  var kaarten = document.getElementById('fefo-kaarten');
   var tbody = document.getElementById('listtbody');
   var empty = document.getElementById('listempty');
+
+  if (mobiel) {
+    if (kaarten) kaarten.style.display = 'flex';
+    if (tbody) tbody.innerHTML = '';
+    if (!vis.length) { if (kaarten) kaarten.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    renderListMobiel(vis);
+    return;
+  }
+
+  // Desktop/tablet: tabelweergave
+  if (kaarten) kaarten.style.display = 'none';
   if (!vis.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
 
@@ -1531,6 +1781,98 @@ function renderListRij(g) {
     + '<span class="cel-totaal">' + totaalQty + '</span>'
     + '<div class="cel-pallets">' + totaalPallets + '</div>'
     + '</td></tr>';
+}
+
+// ── VIEW 1 MOBIEL — kaartweergave ──────────────────────────
+function renderListMobiel(vis) {
+  var container = document.getElementById('fefo-kaarten');
+  if (!container) return;
+  var html = '';
+
+  if (!actieveAfdeling) {
+    var afdelingNamen = ['Deegmakerij', 'Ovenruimte', 'Droge grondstoffen', 'Palletijzer'];
+    var afdelingIcons = { 'Deegmakerij':'🥐', 'Ovenruimte':'🔥', 'Droge grondstoffen':'🌾', 'Palletijzer':'📦' };
+    var afdelingGroepen = {};
+    var overige = [];
+    afdelingNamen.forEach(function(afd){ afdelingGroepen[afd] = []; });
+    vis.forEach(function(g) {
+      var afd = getAfdelingVanGroep(g);
+      if (afd && afdelingGroepen[afd]) afdelingGroepen[afd].push(g);
+      else overige.push(g);
+    });
+    afdelingNamen.forEach(function(afd) {
+      if (!afdelingGroepen[afd].length) return;
+      html += '<div class="mobiel-afd-header">' + (afdelingIcons[afd] || '') + ' ' + afd
+        + ' <span style="font-weight:400;color:var(--muted);font-size:10px">(' + afdelingGroepen[afd].length + ')</span></div>';
+      html += afdelingGroepen[afd].map(renderFKCard).join('');
+    });
+    if (overige.length) {
+      html += '<div class="mobiel-afd-header">📋 Overige <span style="font-weight:400;color:var(--muted);font-size:10px">(' + overige.length + ')</span></div>';
+      html += overige.map(renderFKCard).join('');
+    }
+  } else {
+    html = vis.map(renderFKCard).join('');
+  }
+
+  container.innerHTML = html;
+}
+
+function renderFKCard(g) {
+  var unit = g.inProd.length > 0 ? g.inProd[0].unit : (g.volgend.length > 0 ? g.volgend[0].unit : '');
+  var totalProd = 0; g.inProd.forEach(function(r){ totalProd += r.qty; });
+  var prodPallets = g.inProd.length;
+  var locMap = {};
+  g.volgend.forEach(function(r){
+    if (!locMap[r.loc]) locMap[r.loc] = { qty:0, pallets:0 };
+    locMap[r.loc].qty += r.qty; locMap[r.loc].pallets += 1;
+  });
+  var totalStel = 0, totalStelPallets = 0;
+  g.volgend.forEach(function(r){ totalStel += r.qty; totalStelPallets += 1; });
+
+  // PROD sectie
+  var prodSection = '';
+  if (prodPallets > 0) {
+    prodSection = '<div class="fk-sectie">In PROD</div>'
+      + '<div class="fk-prod">'
+      + '<span class="fk-prod-qty">' + totalProd.toLocaleString('nl-NL') + ' ' + unit + '</span>'
+      + '<span class="fk-prod-pallets">' + prodPallets + ' pallet' + (prodPallets !== 1 ? 's' : '') + '</span>'
+      + '</div>';
+  }
+
+  // Stelling sectie
+  var locKeys = Object.keys(locMap);
+  var stellingSection = '<div class="fk-sectie">In stelling</div>';
+  if (locKeys.length === 0) {
+    stellingSection += '<span style="font-size:12px;color:var(--red);font-weight:500">⚠ Geen voorraad</span>';
+  } else {
+    stellingSection += locKeys.map(function(loc) {
+      var l = locMap[loc];
+      var isExt = isExternLocatie(loc);
+      return '<div class="fk-loc-row" style="' + (isExt ? 'opacity:.6' : '') + '">'
+        + '<span class="loc-chip" style="min-width:54px;' + (isExt ? 'color:#9CA3AF' : '') + '">' + (isExt ? '⛔ ' : '') + loc + '</span>'
+        + '<span style="font-size:11px;color:var(--muted)">' + l.pallets + 'x</span>'
+        + (isExt ? '<span style="font-size:9px;color:#9CA3AF;font-weight:600">extern</span>' : '')
+        + '<span style="font-family:var(--mono);font-size:12px;font-weight:600;color:' + (isExt ? '#9CA3AF' : 'var(--green-mid)') + ';margin-left:auto">' + l.qty.toLocaleString('nl-NL') + ' ' + unit + '</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  var totaalQty = (totalProd + totalStel).toLocaleString('nl-NL') + ' ' + unit;
+  var totaalPallets = (prodPallets + totalStelPallets) + ' pallets';
+
+  return '<div class="fk-card">'
+    + '<div class="fk-head">'
+    + '<div class="fk-matnr">' + g.matNr
+    + (g._fefoGecorrigeerd ? ' <span class="fefo-fix-tag" style="font-size:9px">↕ FEFO</span>' : '')
+    + '</div>'
+    + '<div class="fk-naam">' + g.desc + '</div>'
+    + '</div>'
+    + '<div class="fk-body">' + prodSection + stellingSection + '</div>'
+    + '<div class="fk-totaal">'
+    + '<span class="fk-totaal-qty">Totaal: ' + totaalQty + '</span>'
+    + '<span class="fk-totaal-pallets">' + totaalPallets + '</span>'
+    + '</div>'
+    + '</div>';
 }
 
 // ── VIEW 2 ─────────────────────────────────────────────────
@@ -2070,6 +2412,22 @@ function laadRecepten(callback) {
 // CONFIGURATIE — Redenen voor afwijking zakken of water
 // ══════════════════════════════════════════════════════════════════
 // Hardcoded fallback — wordt overschreven door WML_FormVragen (Soort = kuip_afwijking)
+var KUIP_AANPASSING_REDENEN = [
+  'Extra zakken toegevoegd',
+  'Waterverbruik gecorrigeerd',
+  'Telfout vorige registratie',
+  'Productiewijziging',
+  'Anders'
+]; // overschreven door WML_FormVragen Soort = kuip_aanpassing
+
+var PALLET_NAAR_PROD_REDENEN = [
+  'Aanvulling productie',
+  'Terugplaatsing na controle',
+  'Correctie locatie',
+  'Vervroegd benodigd',
+  'Handmatige correctie'
+];
+
 var KUIP_AFWIJKING_REDENEN = [
   'Recept gewijzigd — productie instructie',
   'Klantspecificatie afwijkend',
@@ -2080,9 +2438,18 @@ var KUIP_AFWIJKING_REDENEN = [
 ];
 
 var pendingKuip = { matNr: null, batch: null, desc: null, lijn: null, receptRegel: null };
+var pendingKuipAanpassing = null;
+var pendingPalletScan = null;
+var _kuipEditLookup = {};
 
-function openKuipModal(matNr) {
+function openKuipModal(matNr, lijn) {
   pendingKuip = { matNr: null, batch: null, desc: null, lijn: null, receptRegel: null };
+
+  // Pre-set lijn als meegegeven vanuit per-lijn kaart
+  if (lijn) {
+    pendingKuip.lijn = lijn;
+    kuipKiesLijn(lijn);
+  }
 
   // Vul artikel dropdown
   var f05groups = groups.filter(function(g) {
@@ -2155,6 +2522,9 @@ function kuipDoorgaan() {
 }
 
 function kuipGaNaarStap(stap) {
+  // Als lijn al pre-gezet → skip stap 2 bij forward navigatie
+  if (stap === 2 && pendingKuip.lijn) stap = 3;
+
   [0,1,2,3,4].forEach(function(n){
     var el = document.getElementById('kuip-stap-' + n);
     if (el) el.style.display = n === stap ? 'block' : 'none';
@@ -2324,9 +2694,10 @@ function kuipKiesReceptIdx(btn) {
 // ── KUIP-NR HELPERS ─────────────────────────────────────────
 // Kuip-NR 1-20 per lijn, dan terug naar 1
 function getVolgendKuipNr(matNr, lijn) {
-  // Lijn nummer: "Lijn 1" → "1", "Lijn 3" → "3"
-  var lijnNr = String(lijn || '').replace(/[^0-9]/g, '') || '?';
-  var prefix = 'L' + lijnNr + 'K';
+  // Strip "Lijn " prefix (hoofdletter-onafhankelijk), gebruik de rest als ID
+  // "Lijn 1" → "1", "Lijn B" → "B", "Lijn AB" → "AB", "3" → "3"
+  var lijnId = String(lijn || '').replace(/^lijn\s*/i, '').trim().replace(/\s+/g, '') || '?';
+  var prefix = 'L' + lijnId + 'K';
 
   // Tel bestaande kuips vanuit SharePoint
   var vanSharePoint = (kuipRegistraties[matNr] || []).filter(function(r) {
@@ -2570,9 +2941,341 @@ function kuipBevestigRijKeuze(kopieer, idx, batch, tht) {
   }
 }
 
+
+// ══════════════════════════════════════════════════════════════════
+// KUIP AANPASSING — wijzigen bestaande kuip registratie
+// ══════════════════════════════════════════════════════════════════
+
+function openKuipAanpassingModal(editKey) {
+  var data = _kuipEditLookup[editKey];
+  if (!data) return;
+  pendingKuipAanpassing = data;
+
+  // Info balk
+  var info = document.getElementById('kuip-aanp-info');
+  if (info) info.innerHTML = '<strong>' + data.kuipNr + '</strong>'
+    + ' &middot; ' + (data.product || '—')
+    + ' &middot; <span style="color:var(--muted)">' + data.lijn + '</span>';
+
+  // Vul huidige waarden
+  var zEl = document.getElementById('kuip-aanp-zakken');
+  var wEl = document.getElementById('kuip-aanp-water');
+  if (zEl) zEl.value = data.aantalZakken || '';
+  if (wEl) wEl.value = data.waterL || '';
+
+  // Vul reden dropdown vanuit SharePoint (of fallback)
+  var sel = document.getElementById('kuip-aanp-reden');
+  if (sel) {
+    sel.innerHTML = '<option value="">— Kies reden —</option>'
+      + KUIP_AANPASSING_REDENEN.map(function(r){
+          return '<option value="' + r + '">' + r + '</option>';
+        }).join('');
+  }
+
+  // Reset badge
+  var badgeEl = document.getElementById('kuip-aanp-badge');
+  var naamEl  = document.getElementById('kuip-aanp-naam');
+  if (badgeEl) badgeEl.value = '';
+  if (naamEl) { naamEl.textContent = ''; naamEl.style.color = 'var(--muted)'; }
+
+  var btn = document.getElementById('kuip-aanp-opslaan');
+  if (btn) { btn.disabled = true; btn.style.opacity = '.4'; }
+
+  document.getElementById('kuip-aanp-modal').style.display = 'flex';
+  setTimeout(function(){ if (zEl) zEl.focus(); }, 80);
+}
+
+function closeKuipAanpassingModal() {
+  document.getElementById('kuip-aanp-modal').style.display = 'none';
+  pendingKuipAanpassing = null;
+}
+
+function kuipAanpBadgeLookup() {
+  var val = String((document.getElementById('kuip-aanp-badge')||{}).value || '').replace(/\D/g,'').trim();
+  var naamEl = document.getElementById('kuip-aanp-naam');
+  var btn = document.getElementById('kuip-aanp-opslaan');
+  if (!val) { if (naamEl) { naamEl.textContent = ''; } if (btn) { btn.disabled = true; btn.style.opacity = '.4'; } return; }
+  var naam = medewerkers[val];
+  if (naam) {
+    if (naamEl) { naamEl.textContent = '✓ ' + naam; naamEl.style.color = 'var(--green-mid)'; }
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    pendingKuipAanpassing._badgeNaam = naam; pendingKuipAanpassing._badgeNr = val;
+    return;
+  }
+  var empUrl = localStorage.getItem('wml_pa_employee_url');
+  if (empUrl && val.length >= 3) {
+    if (naamEl) { naamEl.textContent = 'Zoeken...'; naamEl.style.color = 'var(--muted)'; }
+    fetch(empUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ badge: val }) })
+      .then(function(r){ return r.json().catch(function(){ return {}; }); })
+      .then(function(d) {
+        var n = d.naam || d.name || d.Naam || '';
+        if (n) {
+          medewerkers[val] = n;
+          if (naamEl) { naamEl.textContent = '✓ ' + n; naamEl.style.color = 'var(--green-mid)'; }
+          if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+          pendingKuipAanpassing._badgeNaam = n; pendingKuipAanpassing._badgeNr = val;
+        } else {
+          if (naamEl) { naamEl.textContent = 'Badge niet gevonden'; naamEl.style.color = 'var(--red)'; }
+          if (btn) { btn.disabled = true; btn.style.opacity = '.4'; }
+        }
+      }).catch(function(){
+        if (naamEl) { naamEl.textContent = 'Badge: ' + val; naamEl.style.color = 'var(--muted)'; }
+        if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+        pendingKuipAanpassing._badgeNaam = val; pendingKuipAanpassing._badgeNr = val;
+      });
+  }
+}
+
+function saveKuipAanpassing() {
+  if (!pendingKuipAanpassing) return;
+  var nieuwZakken = (document.getElementById('kuip-aanp-zakken')||{}).value || '';
+  var nieuwWater  = (document.getElementById('kuip-aanp-water')||{}).value  || '';
+  var reden = (document.getElementById('kuip-aanp-reden')||{}).value || '';
+  var badge = pendingKuipAanpassing._badgeNr || '';
+  var naam  = pendingKuipAanpassing._badgeNaam || badge;
+
+  if (!reden) { alert('Kies eerst een reden voor de aanpassing.'); return; }
+  if (!badge) { alert('Vul je badge nummer in.'); return; }
+
+  var updateUrl = localStorage.getItem('wml_pa_kuip_update_url');
+  var payload = {
+    id:           pendingKuipAanpassing.id,
+    kuipNr:       pendingKuipAanpassing.kuipNr,
+    matNr:        pendingKuipAanpassing.matNr,
+    lijn:         pendingKuipAanpassing.lijn,
+    aantalZakken: nieuwZakken,
+    waterL:       nieuwWater,
+    reden:        reden,
+    gewijzigdDoor: naam,
+    badgeNr:      badge,
+    gewijzigdOp:  new Date().toLocaleString('nl-NL')
+  };
+
+  if (!updateUrl) {
+    alert('Kuip aanpassing UI-kant klaar.\n\nNog in te stellen: wml_pa_kuip_update_url (Flow 14 — Update kuip item in SharePoint)\n\nAanpassing:\n  Kuip: ' + payload.kuipNr + '\n  Zakken: ' + nieuwZakken + '  Water: ' + nieuwWater + 'L\n  Reden: ' + reden + '\n  Door: ' + naam);
+    closeKuipAanpassingModal();
+    return;
+  }
+
+  var btn = document.getElementById('kuip-aanp-opslaan');
+  if (btn) { btn.textContent = 'Opslaan...'; btn.disabled = true; }
+
+  fetch(updateUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+    .then(function() {
+      showToast('✓ Kuip ' + payload.kuipNr + ' aangepast');
+      closeKuipAanpassingModal();
+      laadKuipRegistraties(function(){ renderAll(); });
+    })
+    .catch(function(e) {
+      alert('Opslaan mislukt: ' + e.message);
+      if (btn) { btn.textContent = '✓ Opslaan'; btn.disabled = false; btn.style.opacity = '1'; }
+    });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PALLET SCANNER — scan pallet → naar PROD
+// ══════════════════════════════════════════════════════════════════
+
+function toggleScannerInput() {
+  var bar = document.getElementById('scanbar-slide');
+  var btn = document.getElementById('scanner-toggle');
+  var isOpen = bar.style.display !== 'none';
+  bar.style.display = isOpen ? 'none' : 'block';
+  if (btn) btn.classList.toggle('active', !isOpen);
+  if (!isOpen) {
+    // Sluit zoekbalk als open
+    var sb = document.getElementById('searchbar-slide');
+    if (sb) sb.style.display = 'none';
+    var st = document.getElementById('search-toggle');
+    if (st) st.classList.remove('active');
+    setTimeout(function(){ var el = document.getElementById('scan-input'); if (el) el.focus(); }, 80);
+  } else {
+    var el = document.getElementById('scan-input'); if (el) el.value = '';
+    var s = document.getElementById('scan-status'); if (s) s.textContent = '';
+  }
+}
+
+function sluitScannerInput() {
+  var bar = document.getElementById('scanbar-slide');
+  if (bar) bar.style.display = 'none';
+  var btn = document.getElementById('scanner-toggle');
+  if (btn) btn.classList.remove('active');
+  var el = document.getElementById('scan-input'); if (el) el.value = '';
+}
+
+function scanInputChanged() {
+  var el = document.getElementById('scan-input');
+  var status = document.getElementById('scan-status');
+  if (!el || !status) return;
+  var val = el.value.trim();
+  status.textContent = val.length > 0 ? 'Druk Enter om pallet ' + val + ' te zoeken...' : '';
+}
+
+function verwerkPalletScan(palletNr) {
+  palletNr = String(palletNr || '').replace(/\D/g, '').trim();
+  if (!palletNr) return;
+
+  var status = document.getElementById('scan-status');
+  if (status) { status.textContent = 'Zoeken naar pallet ' + palletNr + '...'; status.style.color = 'var(--muted)'; }
+
+  // Zoek pallet in alle groups (inProd + volgend)
+  var gevonden = null;
+  for (var i = 0; i < groups.length; i++) {
+    var g = groups[i];
+    var rijen = g.inProd.concat(g.volgend);
+    for (var j = 0; j < rijen.length; j++) {
+      if (String(rijen[j].pallet).trim() === palletNr) {
+        gevonden = { group: g, row: rijen[j] };
+        break;
+      }
+    }
+    if (gevonden) break;
+  }
+
+  sluitScannerInput();
+
+  if (gevonden) {
+    openPalletNaarProdModal(gevonden.group, gevonden.row);
+  } else {
+    // Niet gevonden → toon melding + open handmatige modal
+    showToast('⚠ Pallet ' + palletNr + ' niet gevonden — handmatig invoeren');
+    setTimeout(function() { openHandmatigVerwerkingModal(); }, 400);
+  }
+}
+
+function openPalletNaarProdModal(g, row) {
+  pendingPalletScan = {
+    palletNr:      row.pallet,
+    matNr:         g.matNr,
+    desc:          g.desc,
+    batch:         row.batch,
+    qty:           row.qty,
+    unit:          row.unit,
+    huidigeLocatie: row.loc
+  };
+
+  var info = document.getElementById('pallet-scan-info');
+  if (info) info.innerHTML =
+    '<strong>' + g.matNr + '</strong> &mdash; ' + g.desc + '<br>'
+    + '<span style="font-family:var(--mono)">Pallet ' + row.pallet + '</span>'
+    + ' &middot; Batch ' + (row.batch||'—')
+    + ' &middot; ' + (row.qty||'?') + ' ' + (row.unit||'')
+    + '<br><span style="color:var(--muted);font-size:11px">Huidige locatie: <strong>' + row.loc + '</strong></span>';
+
+  // Reden dropdown
+  var sel = document.getElementById('pallet-scan-reden');
+  if (sel) {
+    sel.innerHTML = '<option value="">— Kies reden —</option>'
+      + PALLET_NAAR_PROD_REDENEN.map(function(r){ return '<option value="' + r + '">' + r + '</option>'; }).join('');
+  }
+
+  // Reset badge
+  var bEl = document.getElementById('pallet-scan-badge');
+  var nEl = document.getElementById('pallet-scan-naam');
+  if (bEl) bEl.value = '';
+  if (nEl) { nEl.textContent = ''; nEl.style.color = 'var(--muted)'; }
+  var btn = document.getElementById('pallet-scan-opslaan');
+  if (btn) { btn.disabled = true; btn.style.opacity = '.4'; }
+
+  document.getElementById('pallet-scan-modal').style.display = 'flex';
+}
+
+function closePalletNaarProdModal() {
+  document.getElementById('pallet-scan-modal').style.display = 'none';
+  pendingPalletScan = null;
+}
+
+function palletScanBadgeLookup() {
+  var val = String((document.getElementById('pallet-scan-badge')||{}).value||'').replace(/\D/g,'').trim();
+  var nEl = document.getElementById('pallet-scan-naam');
+  var btn = document.getElementById('pallet-scan-opslaan');
+  if (!val) { if (nEl) { nEl.textContent = ''; } if (btn) { btn.disabled=true; btn.style.opacity='.4'; } return; }
+  var naam = medewerkers[val];
+  if (naam) {
+    if (nEl) { nEl.textContent = '✓ ' + naam; nEl.style.color = 'var(--green-mid)'; }
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    if (pendingPalletScan) { pendingPalletScan._badgeNaam = naam; pendingPalletScan._badgeNr = val; }
+    return;
+  }
+  var empUrl = localStorage.getItem('wml_pa_employee_url');
+  if (empUrl && val.length >= 3) {
+    if (nEl) { nEl.textContent = 'Zoeken...'; nEl.style.color = 'var(--muted)'; }
+    fetch(empUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ badge: val }) })
+      .then(function(r){ return r.json().catch(function(){ return {}; }); })
+      .then(function(d) {
+        var n = d.naam || d.name || d.Naam || '';
+        if (n) {
+          medewerkers[val] = n;
+          if (nEl) { nEl.textContent = '✓ ' + n; nEl.style.color = 'var(--green-mid)'; }
+          if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+          if (pendingPalletScan) { pendingPalletScan._badgeNaam = n; pendingPalletScan._badgeNr = val; }
+        } else {
+          if (nEl) { nEl.textContent = 'Badge niet gevonden'; nEl.style.color = 'var(--red)'; }
+          if (btn) { btn.disabled = true; btn.style.opacity = '.4'; }
+        }
+      }).catch(function(){
+        if (nEl) { nEl.textContent = 'Badge: ' + val; nEl.style.color='var(--muted)'; }
+        if (btn) { btn.disabled=false; btn.style.opacity='1'; }
+        if (pendingPalletScan) { pendingPalletScan._badgeNaam=val; pendingPalletScan._badgeNr=val; }
+      });
+  }
+}
+
+function savePalletNaarProd() {
+  if (!pendingPalletScan) return;
+  var reden = (document.getElementById('pallet-scan-reden')||{}).value || '';
+  var badge = pendingPalletScan._badgeNr || '';
+  var naam  = pendingPalletScan._badgeNaam || badge;
+  if (!reden) { alert('Kies een reden voor de verplaatsing naar PROD.'); return; }
+  if (!badge) { alert('Vul je badge nummer in.'); return; }
+
+  var prodUrl = localStorage.getItem('wml_pa_pallet_naar_prod_url');
+  var payload = {
+    palletNr:      pendingPalletScan.palletNr,
+    matNr:         pendingPalletScan.matNr,
+    omschrijving:  pendingPalletScan.desc,
+    batch:         pendingPalletScan.batch,
+    vanLocatie:    pendingPalletScan.huidigeLocatie,
+    naarLocatie:   'PROD01',
+    reden:         reden,
+    operator:      naam,
+    badgeNr:       badge,
+    tijdstip:      new Date().toLocaleString('nl-NL')
+  };
+
+  if (!prodUrl) {
+    alert('Pallet scanner klaar.\n\nNog in te stellen: wml_pa_pallet_naar_prod_url (Flow 15 — Pallet naar PROD)\n\nActie:\n  Pallet: ' + payload.palletNr + '\n  ' + payload.vanLocatie + ' → PROD01\n  Reden: ' + reden + '\n  Door: ' + naam);
+    closePalletNaarProdModal();
+    return;
+  }
+
+  var btn = document.getElementById('pallet-scan-opslaan');
+  if (btn) { btn.textContent = 'Verwerken...'; btn.disabled = true; }
+
+  fetch(prodUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+    .then(function() {
+      showToast('✓ Pallet ' + payload.palletNr + ' → PROD01');
+      closePalletNaarProdModal();
+      setTimeout(laadVoorraad, 1500); // refresh FEFO
+    })
+    .catch(function(e) {
+      alert('Verwerken mislukt: ' + e.message);
+      if (btn) { btn.textContent = '✓ Naar PROD'; btn.disabled = false; btn.style.opacity = '1'; }
+    });
+}
+
 function closeKuipModal() {
   document.getElementById('kuip-modal').style.display = 'none';
   pendingKuip = { matNr: null, batch: null, desc: null, lijn: null, receptRegel: null };
+}
+
+// Terug vanuit stap 3: ga naar stap 2 (lijn) tenzij lijn pre-gezet → dan naar stap 1
+function kuipTerugVanafStap3() {
+  if (pendingKuip.lijn) {
+    kuipGaNaarStap(1);
+  } else {
+    kuipGaNaarStap(2);
+  }
 }
 
 function saveKuipRegistratie() {
@@ -2763,87 +3466,104 @@ function renderKuipRegistratiesSection() {
   var container = document.getElementById('kuip-registraties-sectie');
   if (!container) return;
 
-  // Alleen tonen als formulier met kuipMatnrs actief is
-  // OF als er al kuip-data is voor het actieve formulier (fallback bij veldnaam mismatch)
+  // Zichtbaarheids-check
   var heeftKuipFormulier = activeFormFilter && activeFormFilter !== 'OVERIG' && (
     FORM_CATALOG.some(function(f){ return f.code === activeFormFilter && f.kuipMatnrs && f.kuipMatnrs.length > 0; }) ||
-    // Fallback: check of kuipRegistraties data heeft voor matnrs van actief formulier
     (function(){
-      var formMatnrs = [];
-      FORM_CATALOG.forEach(function(f){ if (f.code === activeFormFilter) formMatnrs = formMatnrs.concat(f.matnrs); });
-      return formMatnrs.some(function(m){ return kuipRegistraties[m] && kuipRegistraties[m].length > 0; });
+      var fm = [];
+      FORM_CATALOG.forEach(function(f){ if (f.code === activeFormFilter) fm = fm.concat(f.matnrs); });
+      return fm.some(function(m){ return kuipRegistraties[m] && kuipRegistraties[m].length > 0; });
     })()
   );
+  if (currentView !== 2 || !heeftKuipFormulier) { container.style.display = 'none'; return; }
 
-  if (currentView !== 2 || !heeftKuipFormulier) {
-    container.style.display = 'none'; return;
-  }
-
+  // Verzamel alle rijen voor actief formulier
+  var formMatnrs = [];
+  FORM_CATALOG.forEach(function(f){ if (f.code === activeFormFilter) formMatnrs = formMatnrs.concat(f.matnrs); });
   var alleRijen = [];
   Object.keys(kuipRegistraties).forEach(function(matNr) {
-    kuipRegistraties[matNr].forEach(function(r) {
-      alleRijen.push(Object.assign({ matNr: matNr }, r));
-    });
+    if (formMatnrs.length && formMatnrs.indexOf(matNr) === -1) return;
+    kuipRegistraties[matNr].forEach(function(r){ alleRijen.push(Object.assign({ matNr: matNr }, r)); });
   });
 
-  if (activeFormFilter && activeFormFilter !== 'OVERIG') {
-    var formMatnrs = [];
-    FORM_CATALOG.forEach(function(f) {
-      if (f.code === activeFormFilter) formMatnrs = formMatnrs.concat(f.matnrs);
-    });
-    alleRijen = alleRijen.filter(function(r){ return formMatnrs.indexOf(r.matNr) > -1; });
-  }
+  // Reset edit-lookup (per render)
+  _kuipEditLookup = {};
 
+  // Groepeer per lijn
+  var rijsPerLijn = {};
+  VERWERKING_LIJNEN.forEach(function(l){ rijsPerLijn[l] = []; });
+  alleRijen.forEach(function(r) {
+    var l = r.lijn || '';
+    if (!rijsPerLijn[l]) rijsPerLijn[l] = [];
+    rijsPerLijn[l].push(r);
+  });
+
+  // Datum
   var vandaag = new Date().toISOString().slice(0,10);
   var isVandaag = activKuipDatum === vandaag;
   var datumTekst = isVandaag ? 'Vandaag' : activKuipDatum;
+  var totaal = alleRijen.length;
+  var btnBase = 'border:1px solid #A7D7B5;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:var(--sans)';
 
-  var datumBalk = '<div style="display:flex;align-items:center;gap:8px;padding:10px 16px 0;flex-wrap:wrap">'
-    + '<button onclick="wisselKuipDatum(-1)" style="background:var(--cream);border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer">← Vorige dag</button>'
-    + '<input type="date" id="kuip-datum-picker" value="' + activKuipDatum + '" max="' + vandaag + '" '
-    + 'onchange="laadKuipRegistraties(function(){renderAll();},this.value)" '
-    + 'style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer">'
-    + (isVandaag ? '' : '<button onclick="laadKuipRegistraties(function(){renderAll();},\'' + vandaag + '\')" style="background:var(--green-pale);border:1px solid var(--green-lit);border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--green)">Vandaag →</button>')
-    + '</div>';
-
-  var th = 'padding:7px 10px;font-size:11px;font-weight:600;color:#166534;text-transform:uppercase;letter-spacing:.04em;background:#F0FDF4;border-bottom:2px solid #DCFCE7;white-space:nowrap;text-align:left';
-  var td = 'padding:6px 10px;font-size:12px;border-bottom:1px solid #F0FDF4;color:var(--ink)';
-  var tdM = td + ';font-family:var(--mono);font-size:11px';
-
-  var tabel = alleRijen.length === 0
-    ? '<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">Geen registraties voor ' + datumTekst + '</div>'
-    : '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">'
-      + '<thead><tr>'
-      + ['Artikel','Omschrijving','Batch','Product','REC-NR','Kuip-NR','Zakken','THT','SAP Code','Water L','Leverancier','Tijdstip']
-          .map(function(h){ return '<th style="'+th+'">'+h+'</th>'; }).join('')
-      + '</tr></thead><tbody>'
-      + alleRijen.map(function(r, i) {
-          var omschr = '';
-          for (var gi=0; gi<groups.length; gi++) { if (groups[gi].matNr===r.matNr){ omschr=groups[gi].desc; break; } }
-          return '<tr style="'+(i%2?'background:#FAFAFA':'')+'">'
-            + '<td style="'+tdM+'">'+r.matNr+'</td>'
-            + '<td style="'+td+';max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+omschr+'">'+(omschr.slice(0,28)||'—')+'</td>'
-            + '<td style="'+tdM+'">'+(r.batch||'—')+'</td>'
-            + '<td style="'+td+';font-weight:600">'+(r.product||'—')+'</td>'
-            + '<td style="'+tdM+'">'+(r.recNr||'—')+'</td>'
-            + '<td style="'+tdM+';font-weight:700;color:#166534">'+(r.kuipNr||'—')+'</td>'
-            + '<td style="'+td+'">'+(r.aantalZakken||'—')+'</td>'
-            + '<td style="'+tdM+'">'+(r.tht||'—')+'</td>'
-            + '<td style="'+tdM+'">'+(r.sapCode||'—')+'</td>'
-            + '<td style="'+td+'">'+(r.waterL ? r.waterL+'L' : '—')+'</td>'
-            + '<td style="'+td+'">'+(r.leverancier||'—')+'</td>'
-            + '<td style="'+td+';font-size:10px;color:var(--muted);white-space:nowrap">'+(r.tijdstip||'—')+'</td>'
-            + '</tr>';
-        }).join('')
-      + '</tbody></table></div>';
-
-  var html = '<div style="background:#fff;border:1.5px solid #86EFAC;border-radius:12px;overflow:hidden">'
-    + '<div style="background:#F0FDF4;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'
-    + '<span style="font-size:13px;font-weight:700;color:#166534">🪣 Kuip registraties — ' + datumTekst + ' (' + alleRijen.length + ')</span>'
-    + '<button onclick="laadKuipRegistraties(function(){renderAll();})" style="background:none;border:1px solid #86EFAC;border-radius:6px;padding:3px 10px;font-size:11px;color:#166534;cursor:pointer">↻ Ververs</button>'
+  var html = '<div class="kuip-sectie-wrap">'
+    + '<div class="kuip-sectie-header">'
+    +   '<div style="display:flex;align-items:center;gap:8px">'
+    +     '<span style="font-size:13px;font-weight:700;color:#166534">\uD83E\uDEA3 Kuip registraties \u2014 ' + datumTekst + '</span>'
+    +     '<span style="background:#166534;color:#fff;font-size:11px;font-weight:700;padding:1px 9px;border-radius:20px">' + totaal + '</span>'
+    +   '</div>'
+    +   '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+    +     '<button onclick="wisselKuipDatum(-1)" style="background:#fff;' + btnBase + '">← Vorige</button>'
+    +     '<input type="date" id="kuip-datum-picker" value="' + activKuipDatum + '" max="' + vandaag + '" '
+    +       'onchange="laadKuipRegistraties(function(){renderAll();},this.value)" '
+    +       'style="padding:5px 8px;border:1px solid #A7D7B5;border-radius:6px;font-size:12px;cursor:pointer">'
+    +     (isVandaag ? '' : '<button onclick="laadKuipRegistraties(function(){renderAll();},\'' + vandaag + '\')" style="background:var(--green-pale);color:#166534;' + btnBase + '">Vandaag →</button>')
+    +     '<button onclick="laadKuipRegistraties(function(){renderAll();})" style="background:#fff;' + btnBase + '">↻</button>'
+    +   '</div>'
     + '</div>'
-    + datumBalk
-    + tabel + '</div>';
+    + '<div class="kuip-lijn-grid">';
+
+  VERWERKING_LIJNEN.forEach(function(lijn) {
+    var rijen = rijsPerLijn[lijn] || [];
+    var count = rijen.length;
+    html += '<div class="kuip-lijn-kaart">'
+      + '<div class="kuip-lijn-kaart-header">'
+      +   '<span class="kuip-lijn-naam">' + lijn + '</span>'
+      +   '<span class="kuip-lijn-count">' + count + (count === 1 ? ' kuip' : ' kuipen') + '</span>'
+      + '</div>'
+      + '<div class="kuip-lijn-body">';
+
+    if (!rijen.length) {
+      html += '<div class="kuip-lijn-leeg">Nog geen registraties</div>';
+    } else {
+      rijen.forEach(function(r) {
+        var tijdLabel = '';
+        if (r.tijdstip) { var t = r.tijdstip.split(' '); tijdLabel = t.length > 1 ? t[1] : t[0]; }
+        var editKey = r.id || (lijn + '_' + r.kuipNr);
+        _kuipEditLookup[editKey] = { id: r.id, matNr: r.matNr, lijn: lijn,
+          aantalZakken: r.aantalZakken, waterL: r.waterL,
+          product: r.product, kuipNr: r.kuipNr };
+        html += '<div class="kuip-lijn-rij">'
+          + '<span class="kuip-nr">' + (r.kuipNr || '—') + '</span>'
+          + '<span class="kuip-product" title="' + (r.product||'') + '">' + (r.product || '—') + '</span>'
+          + '<div class="kuip-meta">'
+          +   '<span>' + (r.aantalZakken || '—') + ' zk</span>'
+          +   '<span>' + (r.waterL ? r.waterL + 'L' : '—') + '</span>'
+          +   (tijdLabel ? '<span class="kuip-tijd">' + tijdLabel + '</span>' : '')
+          + '</div>'
+          + '<button class="kuip-edit-btn" onclick="openKuipAanpassingModal(\'' + editKey + '\')" title="Aanpassen">✏</button>'
+          + '</div>';
+      });
+    }
+
+    html += '</div>'
+      + '<button class="kuip-lijn-add-btn" onclick="openKuipModal(null,\'' + lijn + '\')">'
+      +   '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+      +   ' Kuip toevoegen'
+      + '</button>'
+      + '</div>';
+  });
+
+  html += '</div></div>';
 
   container.innerHTML = html;
   container.style.display = 'block';
@@ -3433,6 +4153,7 @@ function laadFormVragen(callback) {
       kuipConfig = { Product:[], RecNr:[], AantalZakken:[], WaterL:[] };
       kuipVerplicht = {};
       var _afwijkingBuffer  = [];
+      var _kuipAanpassingBuffer = [];
       var _locatieBuffer    = {};
       var _lijnBuffer       = [];
       var _externBuffer     = [];
@@ -3443,10 +4164,14 @@ function laadFormVragen(callback) {
         var soortRaw = r.Soort && r.Soort.Value ? r.Soort.Value : (r.Soort || r.Type || '');
         var type     = String(soortRaw).trim().toLowerCase();
         var volgorde = parseInt(r.Volgorde || 99);
-        if (!code || !type) return;
+        if (!type) return; // type is altijd vereist
 
-        // ── LOCATIE PREFIX → AFDELING (Soort = locatie_prefix) ─────────────
-        // Title = locatieprefix (bv. 'B21'), Opties = afdelingnaam (bv. 'Deegmakerij')
+        // ── CONFIG-TYPES: geen FormCode vereist ──────────────────────────────
+        // Deze rijen zijn systeem-configuratie, niet formuliervragen.
+        // Ze werken ook als FormNaam leeg is in SharePoint.
+
+        // LOCATIE PREFIX → AFDELING (Soort = locatie_prefix)
+        // Title = locatieprefix (bv. 'B21'), Opties = afdelingnaam
         if (type === 'locatie_prefix') {
           var prefix = String(r.Title || '').trim();
           var afd    = String((r.Opties || '').split(';')[0] || '').trim();
@@ -3454,7 +4179,7 @@ function laadFormVragen(callback) {
           return;
         }
 
-        // ── VERWERKING / KUIP LIJNEN (Soort = verwerking_lijn) ──────────────
+        // VERWERKING / KUIP LIJNEN (Soort = verwerking_lijn)
         // Title = lijnnaam (bv. 'Lijn 1'), Volgorde = sorteervolgorde
         if (type === 'verwerking_lijn') {
           var lijn = String(r.Title || '').trim();
@@ -3462,7 +4187,7 @@ function laadFormVragen(callback) {
           return;
         }
 
-        // ── EXTERNE LOCATIES (Soort = extern_locatie) ────────────────────────
+        // EXTERNE LOCATIES (Soort = extern_locatie)
         // Title = locatiecode of prefix (bv. 'VRIEZERVL')
         if (type === 'extern_locatie') {
           var extLoc = String(r.Title || '').trim();
@@ -3470,8 +4195,8 @@ function laadFormVragen(callback) {
           return;
         }
 
-        // ── PLOEG CONFIGURATIE (Soort = ploeg_config) ───────────────────────
-        // Title = config-sleutel (bv. 'ochtend_start'), Opties = waarde (bv. '06:00')
+        // PLOEG CONFIGURATIE (Soort = ploeg_config)
+        // Title = config-sleutel (bv. 'ochtend_start'), Opties = waarde
         if (type === 'ploeg_config') {
           var pKey = String(r.Title || '').trim();
           var pVal = String((r.Opties || '').split(';')[0] || '').trim();
@@ -3479,8 +4204,8 @@ function laadFormVragen(callback) {
           return;
         }
 
-        // ── MEDEWERKERS (Soort = medewerker) ─────────────────────────────────
-        // Title = badgenummer (bv. '1042'), Opties = volledige naam (bv. 'Rob Conijn')
+        // MEDEWERKERS (Soort = medewerker)
+        // Title = badgenummer, Opties = volledige naam
         if (type === 'medewerker') {
           var badge = String(r.Title || '').trim();
           var naam  = String((r.Opties || '').split(';')[0] || '').trim();
@@ -3488,8 +4213,8 @@ function laadFormVragen(callback) {
           return;
         }
 
-        // kuip_afwijking: afwijkingsredenen voor zakken/water (Soort = kuip_afwijking)
-        // Title-kolom = tekst van de reden, Volgorde = sorteervolgorde
+        // KUIP AFWIJKINGSREDENEN (Soort = kuip_afwijking)
+        // Title = tekst van de reden, Volgorde = sorteervolgorde
         if (type === 'kuip_afwijking') {
           var redenTekst = String(r.Title || r.Vraag || '').trim();
           if (redenTekst) {
@@ -3499,7 +4224,15 @@ function laadFormVragen(callback) {
           return;
         }
 
-        // kuip_config: opties via "Opties" kolom, gesplitst op ";"
+        // KUIP AANPASSINGSREDENEN (Soort = kuip_aanpassing)
+        // Title = tekst van de reden, Volgorde = sorteervolgorde
+        if (type === 'kuip_aanpassing') {
+          var aanpTekst = String(r.Title || r.Vraag || '').trim();
+          if (aanpTekst) _kuipAanpassingBuffer.push({ volgorde: volgorde, tekst: aanpTekst });
+          return;
+        }
+
+        // KUIP CONFIG: opties via "Opties" kolom, gesplitst op ";"
         if (type === 'kuip_config') {
           var veld   = String(r.Title || '').trim();
           var opties = String(r.Opties || '').split(';').map(function(o){ return o.trim(); }).filter(Boolean);
@@ -3507,6 +4240,9 @@ function laadFormVragen(callback) {
           kuipVerplicht[veld] = (r.Verplicht !== false && r.Verplicht !== 'Nee');
           return;
         }
+
+        // ── FORMULIER-VRAGEN: FormCode verplicht ─────────────────────────────
+        if (!code) return;
 
         if (!formVragen[code]) formVragen[code] = { opstart:[], ploegwissel:[], eindedag:[] };
         if (!formVragen[code][type]) formVragen[code][type] = [];
@@ -3523,6 +4259,10 @@ function laadFormVragen(callback) {
       if (_afwijkingBuffer.length) {
         _afwijkingBuffer.sort(function(a, b){ return a.volgorde - b.volgorde; });
         KUIP_AFWIJKING_REDENEN = _afwijkingBuffer.map(function(r){ return r.tekst; });
+      }
+      if (_kuipAanpassingBuffer.length) {
+        _kuipAanpassingBuffer.sort(function(a, b){ return a.volgorde - b.volgorde; });
+        KUIP_AANPASSING_REDENEN = _kuipAanpassingBuffer.map(function(r){ return r.tekst; });
       }
       if (Object.keys(_locatieBuffer).length) {
         // Overschrijf hardcoded binToAfdeling volledig vanuit SP
@@ -4263,7 +5003,7 @@ laadRecepten();
       <div id="kuip-recept-grid"
         style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:340px;overflow-y:auto;margin-bottom:16px;padding-right:2px">
       </div>
-      <button onclick="kuipGaNaarStap(2)" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;cursor:pointer;color:var(--muted)">← Terug naar lijn</button>
+      <button onclick="kuipTerugVanafStap3()" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;cursor:pointer;color:var(--muted)">← Terug naar lijn</button>
     </div>
     <div id="kuip-stap-4" style="display:none">
       <div id="kuip-stap3-info" style="font-size:11px;color:var(--muted);margin-bottom:8px;padding:7px 10px;background:var(--cream);border-radius:7px"></div>
@@ -4294,5 +5034,107 @@ laadRecepten();
     </div>
   </div>
 </div>
+
+<!-- KUIP AANPASSING MODAL -->
+<div id="kuip-aanp-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:102;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:16px;padding:22px;width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,.25)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+          <span style="background:#D1FAE5;color:#065F46;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px">KUIP</span>
+          <div style="font-size:15px;font-weight:600;color:var(--ink)">✏ Kuip aanpassen</div>
+        </div>
+        <div id="kuip-aanp-info" style="font-size:11px;color:var(--muted)"></div>
+      </div>
+      <button onclick="closeKuipAanpassingModal()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px;line-height:1">✕</button>
+    </div>
+
+    <!-- Zakken + Water -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Zakken</label>
+        <input type="number" id="kuip-aanp-zakken" min="0" step="1"
+          style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:9px;font-size:16px;font-family:var(--mono);box-sizing:border-box"
+          onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Water (L)</label>
+        <input type="number" id="kuip-aanp-water" min="0" step="0.1"
+          style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:9px;font-size:16px;font-family:var(--mono);box-sizing:border-box"
+          onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+    </div>
+
+    <!-- Reden -->
+    <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Reden aanpassing</label>
+    <select id="kuip-aanp-reden"
+      style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:9px;font-size:14px;background:var(--cream);margin-bottom:14px;box-sizing:border-box">
+      <option value="">— Kies reden —</option>
+    </select>
+
+    <!-- Badge -->
+    <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Badge nummer</label>
+    <input type="text" id="kuip-aanp-badge" inputmode="numeric" autocomplete="off"
+      placeholder="Scan of typ badge nr..."
+      style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:9px;font-size:15px;font-family:var(--mono);margin-bottom:6px;box-sizing:border-box"
+      oninput="kuipAanpBadgeLookup()"
+      onkeydown="if(event.key==='Enter') document.getElementById('kuip-aanp-opslaan').click();"
+      onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+    <div id="kuip-aanp-naam" style="font-size:12px;min-height:18px;margin-bottom:16px;padding-left:4px"></div>
+
+    <div style="display:flex;gap:8px">
+      <button onclick="closeKuipAanpassingModal()"
+        style="flex:1;padding:11px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;cursor:pointer;color:var(--muted)">Annuleren</button>
+      <button onclick="saveKuipAanpassing()" id="kuip-aanp-opslaan" disabled
+        style="flex:2;padding:11px;border:none;border-radius:9px;background:var(--green);color:#fff;font-size:13px;font-weight:600;cursor:pointer;opacity:.4;transition:opacity .2s">✓ Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- PALLET SCANNER MODAL — pallet gevonden → naar PROD -->
+<div id="pallet-scan-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:102;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:16px;padding:22px;width:100%;max-width:380px;box-shadow:0 24px 64px rgba(0,0,0,.25)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:600;color:var(--ink)">📦 Pallet naar PROD</div>
+      <button onclick="closePalletNaarProdModal()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px;line-height:1">✕</button>
+    </div>
+
+    <!-- Pallet info -->
+    <div id="pallet-scan-info"
+      style="background:var(--cream);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;line-height:1.6;border:1px solid var(--border)">
+    </div>
+
+    <!-- Bestemming -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;background:#DBEAFE;border-radius:9px;padding:10px 14px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      <span style="font-size:12px;font-weight:600;color:#1D4ED8">Verplaatsen naar PROD01</span>
+    </div>
+
+    <!-- Reden -->
+    <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Reden</label>
+    <select id="pallet-scan-reden"
+      style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:9px;font-size:14px;background:var(--cream);margin-bottom:14px;box-sizing:border-box">
+      <option value="">— Kies reden —</option>
+    </select>
+
+    <!-- Badge -->
+    <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Badge nummer</label>
+    <input type="text" id="pallet-scan-badge" inputmode="numeric" autocomplete="off"
+      placeholder="Scan of typ badge nr..."
+      style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:9px;font-size:15px;font-family:var(--mono);margin-bottom:6px;box-sizing:border-box"
+      oninput="palletScanBadgeLookup()"
+      onkeydown="if(event.key==='Enter') document.getElementById('pallet-scan-opslaan').click();"
+      onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+    <div id="pallet-scan-naam" style="font-size:12px;min-height:18px;margin-bottom:16px;padding-left:4px"></div>
+
+    <div style="display:flex;gap:8px">
+      <button onclick="closePalletNaarProdModal()"
+        style="flex:1;padding:11px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;cursor:pointer;color:var(--muted)">Annuleren</button>
+      <button onclick="savePalletNaarProd()" id="pallet-scan-opslaan" disabled
+        style="flex:2;padding:11px;border:none;border-radius:9px;background:#1D4ED8;color:#fff;font-size:13px;font-weight:600;cursor:pointer;opacity:.4;transition:opacity .2s">✓ Naar PROD</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
