@@ -236,9 +236,10 @@ button,input{font-family:var(--sans);font-size:14px}
    ═══════════════════════════════════════════════════════════════════ */
 .kuip-sectie-wrap{background:#fff;border:1.5px solid #86EFAC;border-radius:14px;overflow:hidden}
 .kuip-sectie-header{background:#F0FDF4;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid #DCFCE7}
-.kuip-lijn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;padding:12px}
+.kuip-lijn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;padding:12px}
 .kuip-lijn-kaart{background:#fff;border:1px solid #86EFAC;border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
-.kuip-lijn-kaart-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#F0FDF4;border-bottom:1px solid #DCFCE7}
+.kuip-lijn-kaart-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#F0FDF4;border-bottom:1px solid #DCFCE7;cursor:pointer;transition:background .15s}
+.kuip-lijn-kaart-header:hover{background:#DCFCE7}
 .kuip-lijn-naam{font-size:13px;font-weight:700;color:#166534}
 .kuip-lijn-count{font-size:10px;background:#166534;color:#fff;padding:1px 8px;border-radius:20px;font-weight:600}
 .kuip-lijn-body{flex:1;padding:2px 0}
@@ -2502,13 +2503,28 @@ function kuipDoorgaan() {
   // Vul de vorige registratie gegevens terug in
   var vorigeReg = laadKuipData(null);
   if (!vorigeReg.length) { kuipGaNaarStap(1); return; }
-  var laatste = vorigeReg[0];
 
-  // Pre-select artikel
+  // Meest recente registratie op basis van tijdstip
+  var gesorteerd = vorigeReg.slice().sort(function(a, b) {
+    return String(b.tijdstip||'').localeCompare(String(a.tijdstip||''));
+  });
+  var laatste = gesorteerd[0];
+
+  // Pre-select artikel + lijn
   pendingKuip.matNr = laatste.matNr || '';
   pendingKuip.batch = laatste.batch || '';
   pendingKuip.desc  = laatste.omschrijving || '';
   pendingKuip.lijn  = laatste.lijn || '';
+
+  // Herstel product + recNr zodat stap 4 ze pre-invult
+  if (laatste.product) {
+    pendingKuip.receptRegel = {
+      titel:       laatste.product,
+      recNr:       laatste.recNr       || '',
+      aantalZakken:laatste.aantalZakken|| '',
+      waterL:      laatste.waterL      || ''
+    };
+  }
 
   // Pre-select lijn visueel
   if (laatste.lijn) kuipKiesLijn(laatste.lijn);
@@ -2692,29 +2708,35 @@ function kuipKiesReceptIdx(btn) {
 }
 
 // ── KUIP-NR HELPERS ─────────────────────────────────────────
-// Kuip-NR 1-20 per lijn, dan terug naar 1
+// Kuip-NR doorlopend per lijn over alle SAP-artikelen heen
 function getVolgendKuipNr(matNr, lijn) {
-  // Strip "Lijn " prefix (hoofdletter-onafhankelijk), gebruik de rest als ID
-  // "Lijn 1" → "1", "Lijn B" → "B", "Lijn AB" → "AB", "3" → "3"
   var lijnId = String(lijn || '').replace(/^lijn\s*/i, '').trim().replace(/\s+/g, '') || '?';
   var prefix = 'L' + lijnId + 'K';
 
-  // Tel bestaande kuips vanuit SharePoint
-  var vanSharePoint = (kuipRegistraties[matNr] || []).filter(function(r) {
-    return r.kuipNr && r.kuipNr.indexOf(prefix) === 0;
-  }).length;
+  // Zoek hoogste bestaande kuipnummer voor deze lijn over ALLE matNrs
+  var maxSharePoint = 0;
+  Object.keys(kuipRegistraties).forEach(function(mn) {
+    kuipRegistraties[mn].forEach(function(r) {
+      if (r.kuipNr && r.kuipNr.indexOf(prefix) === 0) {
+        var n = parseInt(r.kuipNr.substring(prefix.length), 10);
+        if (!isNaN(n) && n > maxSharePoint) maxSharePoint = n;
+      }
+    });
+  });
 
-  // Tel ook de al ingevulde rijen in de huidige modal
-  var inModal = 0;
+  // Zoek ook hoogste nummer al in de open modal
+  var maxModal = 0;
   var idx = 0;
   while (document.getElementById('kuip-rij-' + idx)) {
     var veld = document.getElementById('kuip-kuipnr-' + idx);
-    if (veld && veld.value && veld.value.indexOf(prefix) === 0) inModal++;
+    if (veld && veld.value && veld.value.indexOf(prefix) === 0) {
+      var n2 = parseInt(veld.value.substring(prefix.length), 10);
+      if (!isNaN(n2) && n2 > maxModal) maxModal = n2;
+    }
     idx++;
   }
 
-  // Volgende nummer = SharePoint + modal + 1
-  return prefix + (vanSharePoint + inModal + 1);
+  return prefix + (Math.max(maxSharePoint, maxModal) + 1);
 }
 
 // ── PRODUCT GEKOZEN — auto-fill zakken + water ──────────────
@@ -3498,6 +3520,17 @@ function renderKuipRegistratiesSection() {
     rijsPerLijn[l].push(r);
   });
 
+  // Sorteer elke lijn op kuipNr (numeriek oplopend: LCK1, LCK2, LCK3…)
+  VERWERKING_LIJNEN.forEach(function(lijn) {
+    if (rijsPerLijn[lijn]) {
+      rijsPerLijn[lijn].sort(function(a, b) {
+        var na = parseInt((a.kuipNr || '').replace(/\D+/g, ''), 10) || 0;
+        var nb = parseInt((b.kuipNr || '').replace(/\D+/g, ''), 10) || 0;
+        return na - nb;
+      });
+    }
+  });
+
   // Datum
   var vandaag = new Date().toISOString().slice(0,10);
   var isVandaag = activKuipDatum === vandaag;
@@ -3525,10 +3558,11 @@ function renderKuipRegistratiesSection() {
   VERWERKING_LIJNEN.forEach(function(lijn) {
     var rijen = rijsPerLijn[lijn] || [];
     var count = rijen.length;
+    var lijnEsc = lijn.replace(/'/g, "\\'");
     html += '<div class="kuip-lijn-kaart">'
-      + '<div class="kuip-lijn-kaart-header">'
+      + '<div class="kuip-lijn-kaart-header" onclick="openKuipLijnDetail(\'' + lijnEsc + '\')" title="Klik voor volledig overzicht ' + lijn + '">'
       +   '<span class="kuip-lijn-naam">' + lijn + '</span>'
-      +   '<span class="kuip-lijn-count">' + count + (count === 1 ? ' kuip' : ' kuipen') + '</span>'
+      +   '<span class="kuip-lijn-count">' + count + (count === 1 ? ' kuip' : ' kuipen') + ' &nbsp;&#8599;</span>'
       + '</div>'
       + '<div class="kuip-lijn-body">';
 
@@ -3576,6 +3610,83 @@ function wisselKuipDatum(delta) {
   var max = new Date().toISOString().slice(0,10);
   if (nieuw > max) nieuw = max;
   laadKuipRegistraties(function(){ renderAll(); }, nieuw);
+}
+
+// ── KUIP LIJN DETAIL POPUP ───────────────────────────────────
+function openKuipLijnDetail(lijn) {
+  var modal = document.getElementById('kuip-lijn-detail-modal');
+  if (!modal) return;
+
+  // Verzamel alle rijen voor deze lijn, gesorteerd op kuipNr
+  var rijen = [];
+  Object.keys(kuipRegistraties).forEach(function(mn) {
+    kuipRegistraties[mn].forEach(function(r) {
+      if ((r.lijn || '') === lijn) rijen.push(Object.assign({ matNr: mn }, r));
+    });
+  });
+  rijen.sort(function(a, b) {
+    var na = parseInt((a.kuipNr || '').replace(/\D+/g, ''), 10) || 0;
+    var nb = parseInt((b.kuipNr || '').replace(/\D+/g, ''), 10) || 0;
+    return na - nb;
+  });
+
+  // Titel
+  var titel = document.getElementById('kuip-detail-titel');
+  if (titel) titel.textContent = lijn + ' — Kuip overzicht (' + rijen.length + ')';
+
+  // Tabel
+  var thS = 'padding:8px 10px;text-align:left;font-weight:700;color:var(--muted);font-size:11px;border-bottom:2px solid var(--border);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em';
+  var tdS = 'padding:7px 10px;font-size:12px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle';
+  var monoS = 'font-family:var(--mono);font-size:11px';
+
+  var html = '<table style="border-collapse:collapse;width:100%;min-width:900px">'
+    + '<thead><tr style="background:var(--cream)">'
+    + '<th style="' + thS + '">Artikel</th>'
+    + '<th style="' + thS + '">Omschrijving</th>'
+    + '<th style="' + thS + '">Batch</th>'
+    + '<th style="' + thS + '">Product</th>'
+    + '<th style="' + thS + '">Rec-Nr</th>'
+    + '<th style="' + thS + '">Kuip-Nr</th>'
+    + '<th style="' + thS + '">Zakken</th>'
+    + '<th style="' + thS + '">THT</th>'
+    + '<th style="' + thS + '">SAP Code</th>'
+    + '<th style="' + thS + '">Water L</th>'
+    + '<th style="' + thS + '">Leverancier</th>'
+    + '<th style="' + thS + '">Tijdstip</th>'
+    + '</tr></thead><tbody>';
+
+  if (!rijen.length) {
+    html += '<tr><td colspan="12" style="' + tdS + ';text-align:center;color:var(--muted);font-style:italic">Geen registraties gevonden</td></tr>';
+  } else {
+    rijen.forEach(function(r) {
+      var tijdLabel = r.tijdstip ? r.tijdstip.replace('T',' ').substring(0,16) : '—';
+      html += '<tr>'
+        + '<td style="' + tdS + '"><span style="' + monoS + ';font-weight:700">' + (r.matNr||'—') + '</span></td>'
+        + '<td style="' + tdS + ';max-width:200px;overflow:hidden;text-overflow:ellipsis">' + (r.omschrijving||'—') + '</td>'
+        + '<td style="' + tdS + '"><span style="' + monoS + '">' + (r.batch||'—') + '</span></td>'
+        + '<td style="' + tdS + ';font-weight:600">' + (r.product||'—') + '</td>'
+        + '<td style="' + tdS + '"><span style="' + monoS + '">' + (r.recNr||'—') + '</span></td>'
+        + '<td style="' + tdS + '"><span style="' + monoS + ';color:#166534;font-weight:700">' + (r.kuipNr||'—') + '</span></td>'
+        + '<td style="' + tdS + ';text-align:right">' + (r.aantalZakken||'—') + '</td>'
+        + '<td style="' + tdS + '"><span style="' + monoS + '">' + (r.tht||'—') + '</span></td>'
+        + '<td style="' + tdS + '"><span style="' + monoS + '">' + (r.sapCode||'—') + '</span></td>'
+        + '<td style="' + tdS + ';text-align:right">' + (r.waterL ? r.waterL+'L' : '—') + '</td>'
+        + '<td style="' + tdS + '">' + (r.leverancier||'—') + '</td>'
+        + '<td style="' + tdS + '"><span style="' + monoS + ';font-size:10px;color:var(--muted)">' + tijdLabel + '</span></td>'
+        + '</tr>';
+    });
+  }
+  html += '</tbody></table>';
+
+  var tbody = document.getElementById('kuip-detail-tabel');
+  if (tbody) tbody.innerHTML = html;
+
+  modal.style.display = 'flex';
+}
+
+function closeKuipLijnDetail() {
+  var modal = document.getElementById('kuip-lijn-detail-modal');
+  if (modal) modal.style.display = 'none';
 }
 
 // ── MEDEWERKERS ────────────────────────────────────────────
@@ -5132,6 +5243,26 @@ laadRecepten();
         style="flex:1;padding:11px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;cursor:pointer;color:var(--muted)">Annuleren</button>
       <button onclick="savePalletNaarProd()" id="pallet-scan-opslaan" disabled
         style="flex:2;padding:11px;border:none;border-radius:9px;background:#1D4ED8;color:#fff;font-size:13px;font-weight:600;cursor:pointer;opacity:.4;transition:opacity .2s">✓ Naar PROD</button>
+    </div>
+  </div>
+</div>
+
+<!-- KUIP LIJN DETAIL MODAL -->
+<div id="kuip-lijn-detail-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:1100px;box-shadow:0 24px 64px rgba(0,0,0,.3);margin:auto;margin-top:20px;overflow:hidden">
+    <!-- Header -->
+    <div style="background:#F0FDF4;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1.5px solid #86EFAC">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="background:#166534;color:#fff;font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 10px;border-radius:5px">TRA-F-05</span>
+        <div id="kuip-detail-titel" style="font-size:15px;font-weight:700;color:#166534">Kuip overzicht</div>
+      </div>
+      <button onclick="closeKuipLijnDetail()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:22px;line-height:1;padding:2px 6px;border-radius:6px;transition:background .15s" onmouseover="this.style.background='#DCFCE7'" onmouseout="this.style.background='none'">✕</button>
+    </div>
+    <!-- Scrollbare tabel -->
+    <div id="kuip-detail-tabel" style="overflow-x:auto;max-height:75vh;overflow-y:auto;padding:0"></div>
+    <!-- Footer -->
+    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">
+      <button onclick="closeKuipLijnDetail()" style="padding:9px 20px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;cursor:pointer;color:var(--muted);font-family:var(--sans)">Sluiten</button>
     </div>
   </div>
 </div>
