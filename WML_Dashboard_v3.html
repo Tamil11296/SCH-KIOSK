@@ -2397,11 +2397,20 @@ function laadRecepten(callback) {
             recNr:        String(r.RecNr || r.recNr || '').trim(),
             aantalZakken: String(r.AantalZakken || r.aantalZakken || '').trim(),
             waterL:       String(r.WaterL || r.waterL || '').trim(),
-            pmsSap:       String(r.PMS_SAP || r.pmsSap || '').trim()
+            pmsSap:       String(r.PMS_SAP || r.pmsSap || '').trim(),
+            soort:        String((r.Soort && r.Soort.Value) ? r.Soort.Value : (r.Soort || '')).trim()
           };
         }).filter(function(r){ return r.titel; });
         // Vul product-dropdown opties vanuit recepten
         kuipConfig.Product = receptenData.map(function(r){ return r.titel; });
+        // Leid KUIP_SOORT_OPTIES af uit unieke soort-waarden in de receptenlijst
+        var _soortSet = [];
+        receptenData.forEach(function(r) {
+          if (r.soort && _soortSet.indexOf(r.soort) === -1) _soortSet.push(r.soort);
+        });
+        // "Handmatig" altijd als laatste optie — vereist badge + opmerking bij opslaan
+        if (_soortSet.indexOf('Handmatig') === -1) _soortSet.push('Handmatig');
+        if (_soortSet.length) KUIP_SOORT_OPTIES = _soortSet;
         receptenGeladen = true;
       }
       if (callback) callback();
@@ -2437,6 +2446,9 @@ var KUIP_AFWIJKING_REDENEN = [
   'Eerder geregistreerd onjuist',
   'Anders'
 ];
+
+// Soort-opties voor kuipregistratie — automatisch gevuld vanuit TRA-F-05 Recepten (unieke Soort-waarden)
+var KUIP_SOORT_OPTIES = [];
 
 var pendingKuip = { matNr: null, batch: null, desc: null, lijn: null, receptRegel: null };
 var pendingKuipAanpassing = null;
@@ -2516,13 +2528,14 @@ function kuipDoorgaan() {
   pendingKuip.desc  = laatste.omschrijving || '';
   pendingKuip.lijn  = laatste.lijn || '';
 
-  // Herstel product + recNr zodat stap 4 ze pre-invult
+  // Herstel product + recNr + soort zodat stap 4 ze pre-invult
   if (laatste.product) {
     pendingKuip.receptRegel = {
       titel:       laatste.product,
       recNr:       laatste.recNr       || '',
       aantalZakken:laatste.aantalZakken|| '',
-      waterL:      laatste.waterL      || ''
+      waterL:      laatste.waterL      || '',
+      soort:       laatste.soort       || ''
     };
   }
 
@@ -2541,7 +2554,7 @@ function kuipGaNaarStap(stap) {
   // Als lijn al pre-gezet → skip stap 2 bij forward navigatie
   if (stap === 2 && pendingKuip.lijn) stap = 3;
 
-  [0,1,2,3,4].forEach(function(n){
+  [0,1,2,3,35,4].forEach(function(n){
     var el = document.getElementById('kuip-stap-' + n);
     if (el) el.style.display = n === stap ? 'block' : 'none';
   });
@@ -2550,23 +2563,31 @@ function kuipGaNaarStap(stap) {
   var inner = document.getElementById('kuip-modal-inner');
   if (inner) inner.style.maxWidth = stap === 4 ? '780px' : '420px';
 
-  var titels = { 0:'Kuip registratie', 1:'Artikel kiezen', 2:'Lijn kiezen', 3:'Product kiezen', 4:'Formulier invullen' };
+  var titels = { 0:'Kuip registratie', 1:'Artikel kiezen', 2:'Lijn kiezen',
+                 3:'Product kiezen', 35:'Soort kiezen', 4:'Formulier invullen' };
   var titelEl = document.getElementById('kuip-modal-titel');
   if (titelEl) titelEl.textContent = titels[stap] || 'Kuip registratie';
 
-  // Stap indicator (stap 1-4)
+  // Wizard indicator: stap 35 is sub-stap van 3, toon 3 als actief
+  var indicatorStap = stap === 35 ? 3 : stap;
   var ind = document.getElementById('kuip-stap-indicator');
   if (ind) {
     if (stap === 0) { ind.innerHTML = ''; return; }
     ind.innerHTML = [1,2,3,4].map(function(n) {
-      var actief = n === stap, klaar = n < stap;
+      var actief = n === indicatorStap, klaar = n < indicatorStap;
       return '<span style="display:flex;align-items:center;gap:4px">'
         + '<span style="width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;'
         + (actief?'background:#166534;color:#fff':klaar?'background:#D1FAE5;color:#166534':'background:var(--border);color:var(--muted)') + '">'
         + (klaar?'\u2713':n) + '</span>'
-        + (n<4?'<span style="width:16px;height:2px;background:'+(n<stap?'#D1FAE5':'var(--border)')+'"></span>':'')
+        + (n<4?'<span style="width:16px;height:2px;background:'+(n<indicatorStap?'#D1FAE5':'var(--border)')+'"></span>':'')
         + '</span>';
     }).join('');
+  }
+
+  // Stap 35: soort kiezen — render opties vanuit receptenData op basis van gekozen titel
+  if (stap === 35) {
+    renderSoortGrid();
+    return;
   }
 
   // Stap 3: product picker — render recepten als kaarten
@@ -2578,7 +2599,7 @@ function kuipGaNaarStap(stap) {
     return;
   }
 
-  // Stap 4: bouw formulierrijen (was stap 3)
+  // Stap 4: bouw formulierrijen
   if (stap === 4) {
     var g = null;
     for (var i=0; i<groups.length; i++) if(groups[i].matNr===pendingKuip.matNr){g=groups[i];break;}
@@ -2610,6 +2631,9 @@ function kuipGaNaarStap(stap) {
           if (zakkenEl) { zakkenEl.value = rec.aantalZakken; zakkenEl.setAttribute('data-auto', rec.aantalZakken); }
           if (waterEl)  { waterEl.value  = rec.waterL;       waterEl.setAttribute('data-auto',  rec.waterL); }
           if (recnrEl && recnrEl.tagName.toLowerCase() !== 'select') { recnrEl.value = rec.recNr; }
+          // Auto-fill soort vanuit recept
+          var soortEl = document.getElementById('kuip-soort-0');
+          if (soortEl && rec.soort) { soortEl.value = rec.soort; }
         }, 50);
       }
     }
@@ -2671,17 +2695,39 @@ function renderReceptGrid(filter) {
     return;
   }
 
-  // Gebruik index in receptenData als ID — vermijdt string-escaping in onclick
-  grid.innerHTML = items.map(function(r) {
+  // Dedupliceer: toon één kaart per unieke titel
+  // Als meerdere varianten met niet-lege soort → toon badge
+  var getoondTitels = {};
+  var uniek = [];
+  items.forEach(function(r) {
+    if (!getoondTitels[r.titel]) {
+      getoondTitels[r.titel] = true;
+      uniek.push(r);
+    }
+  });
+
+  grid.innerHTML = uniek.map(function(r) {
     var idx = receptenData.indexOf(r);
+    // Zoek alle soort-varianten voor deze titel
+    var varianten = receptenData.filter(function(v) {
+      return v.titel === r.titel && v.soort;
+    });
+    var heeftVarianten = varianten.length > 1;
+
     return '<button data-ridx="' + idx + '" onclick="kuipKiesReceptIdx(this)" '
       + 'style="padding:10px 12px;border:2px solid var(--border);border-radius:10px;background:#fff;'
       + 'font-size:12px;cursor:pointer;text-align:left;transition:all .15s;color:var(--ink);width:100%">'
-      + '<div style="font-size:12px;font-weight:600;line-height:1.3;margin-bottom:4px">' + r.titel + '</div>'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px">'
+      +   '<span style="font-size:12px;font-weight:600;line-height:1.3">' + r.titel + '</span>'
+      +   (heeftVarianten
+            ? '<span style="flex-shrink:0;background:#FEF3C7;color:#92400E;font-size:9px;font-weight:700;'
+              + 'padding:2px 6px;border-radius:4px;white-space:nowrap">' + varianten.length + ' soorten</span>'
+            : (r.soort ? '<span style="flex-shrink:0;background:#D1FAE5;color:#166534;font-size:9px;font-weight:700;'
+              + 'padding:2px 6px;border-radius:4px;white-space:nowrap">' + r.soort + '</span>' : ''))
+      + '</div>'
       + '<div style="font-size:10px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap">'
       + '<span>Rec <strong style="color:var(--ink);font-family:var(--mono)">' + r.recNr + '</strong></span>'
-      + '<span>' + r.aantalZakken + '\u00a0zakken</span>'
-      + '<span>' + r.waterL + '\u00a0L</span>'
+      + (heeftVarianten ? '' : '<span>' + r.aantalZakken + '\u00a0zakken</span><span>' + r.waterL + '\u00a0L</span>')
       + '</div>'
       + '</button>';
   }).join('');
@@ -2691,7 +2737,6 @@ function kuipKiesReceptIdx(btn) {
   var idx = btn ? parseInt(btn.getAttribute('data-ridx'), 10) : -1;
   var rec = (idx >= 0) ? receptenData[idx] : null;
   if (!rec) return;
-  pendingKuip.receptRegel = rec;
 
   // Highlight gekozen kaart, reset alle anderen
   var allCards = document.querySelectorAll('#kuip-recept-grid button');
@@ -2703,8 +2748,75 @@ function kuipKiesReceptIdx(btn) {
     allCards[j].style.fontWeight  = isActive ? '700'     : '500';
   }
 
-  // Korte pauze zodat highlight zichtbaar is, dan naar formulier
-  setTimeout(function(){ kuipGaNaarStap(4); }, 280);
+  // Zoek alle soort-varianten voor dit product
+  var varianten = receptenData.filter(function(v) {
+    return v.titel === rec.titel && v.soort;
+  });
+
+  if (varianten.length > 1) {
+    // Meerdere soort-varianten → sla titel op en ga naar stap 35
+    pendingKuip.receptRegel = rec; // tijdelijk: titel is beschikbaar
+    setTimeout(function(){ kuipGaNaarStap(35); }, 280);
+  } else if (varianten.length === 1) {
+    // Precies één soort → auto-selecteer die variant
+    pendingKuip.receptRegel = varianten[0];
+    setTimeout(function(){ kuipGaNaarStap(4); }, 280);
+  } else {
+    // Geen soort-info → gebruik het gekozen recept direct
+    pendingKuip.receptRegel = rec;
+    setTimeout(function(){ kuipGaNaarStap(4); }, 280);
+  }
+}
+
+// ── SOORT PICKER — STAP 35 ──────────────────────────────────
+function renderSoortGrid() {
+  var titel = pendingKuip.receptRegel ? pendingKuip.receptRegel.titel : '';
+  var varianten = receptenData.filter(function(r) {
+    return r.titel === titel && r.soort;
+  });
+
+  // Productnaam bovenaan stap 35
+  var productLabel = document.getElementById('kuip-soort-product-naam');
+  if (productLabel) productLabel.textContent = titel;
+
+  var container = document.getElementById('kuip-soort-opties-grid');
+  if (!container) return;
+
+  if (!varianten.length) {
+    // Geen soort-varianten gevonden — direct door naar stap 4
+    kuipGaNaarStap(4);
+    return;
+  }
+
+  container.innerHTML = varianten.map(function(r) {
+    var ridx = receptenData.indexOf(r);
+    return '<button onclick="kuipKiesSoortVariant(' + ridx + ')" '
+      + 'style="width:100%;padding:16px 18px;border:2px solid var(--border);border-radius:12px;background:#fff;'
+      + 'cursor:pointer;text-align:left;transition:all .15s;color:var(--ink)">'
+      + '<div style="font-size:14px;font-weight:700;color:#166534;margin-bottom:6px">' + r.soort + '</div>'
+      + '<div style="font-size:11px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap">'
+      +   '<span>\uD83C\uDF56 ' + r.aantalZakken + ' zakken</span>'
+      +   '<span>\uD83D\uDCA7 ' + r.waterL + ' L</span>'
+      +   (r.recNr ? '<span>Rec <strong style="font-family:var(--mono);color:var(--ink)">' + r.recNr + '</strong></span>' : '')
+      + '</div>'
+      + '</button>';
+  }).join('');
+}
+
+function kuipKiesSoortVariant(receptIdx) {
+  var rec = receptenData[receptIdx];
+  if (!rec) return;
+  pendingKuip.receptRegel = rec;
+
+  // Highlight gekozen kaart
+  var btns = document.querySelectorAll('#kuip-soort-opties-grid button');
+  btns.forEach(function(b, i) {
+    var isActive = parseInt(b.getAttribute('onclick').match(/\d+/)[0], 10) === receptIdx;
+    b.style.background  = isActive ? '#D1FAE5' : '#fff';
+    b.style.borderColor = isActive ? '#166534' : 'var(--border)';
+  });
+
+  setTimeout(function(){ kuipGaNaarStap(4); }, 250);
 }
 
 // ── KUIP-NR HELPERS ─────────────────────────────────────────
@@ -2776,6 +2888,68 @@ function kuipProductGekozen(idx) {
   if (wr) wr.value = '';
 }
 
+// ── SOORT GEWIJZIGD — herlaad zakken/water vanuit recept ──────
+function kuipSoortGewijzigd(idx) {
+  var productEl = document.getElementById('kuip-product-' + idx);
+  var soortEl   = document.getElementById('kuip-soort-'   + idx);
+  var zakkenEl  = document.getElementById('kuip-zakken-'  + idx);
+  var waterEl   = document.getElementById('kuip-water-'   + idx);
+  var recnrEl   = document.getElementById('kuip-recnr-'   + idx);
+
+  var product = productEl ? productEl.value : '';
+  var soort   = soortEl   ? soortEl.value   : '';
+
+  // Verberg eventueel zichtbare afwijking-rijen
+  ['kuip-afwijking-row-', 'kuip-zakken-reden-wrap-', 'kuip-water-reden-wrap-'].forEach(function(pfx) {
+    var el = document.getElementById(pfx + idx);
+    if (el) el.style.display = 'none';
+  });
+
+  if (soort === 'Handmatig') {
+    // Handmatig: leeg alle auto-waarden → operator vult zelf in
+    if (zakkenEl) { zakkenEl.value = ''; zakkenEl.setAttribute('data-auto', ''); zakkenEl.removeAttribute('readonly'); }
+    if (waterEl)  { waterEl.value  = ''; waterEl.setAttribute('data-auto', '');  waterEl.removeAttribute('readonly'); }
+    // Markeer rij visueel als handmatig
+    var rij = document.getElementById('kuip-rij-' + idx);
+    if (rij) rij.style.background = '#FFFBEB';
+    return;
+  }
+
+  // Reset handmatig-markering
+  var rij = document.getElementById('kuip-rij-' + idx);
+  if (rij) rij.style.background = '';
+
+  if (!soort) {
+    // Geen soort gekozen → wis auto-tracking
+    if (zakkenEl) zakkenEl.setAttribute('data-auto', '');
+    if (waterEl)  waterEl.setAttribute('data-auto', '');
+    return;
+  }
+
+  // Zoek recept op product + soort (exacte match)
+  var rec = null;
+  for (var i = 0; i < receptenData.length; i++) {
+    if (receptenData[i].titel === product && receptenData[i].soort === soort) {
+      rec = receptenData[i]; break;
+    }
+  }
+  // Fallback: zoek op alleen product als geen soort-match
+  if (!rec) {
+    for (var j = 0; j < receptenData.length; j++) {
+      if (receptenData[j].titel === product) { rec = receptenData[j]; break; }
+    }
+  }
+
+  if (rec) {
+    if (zakkenEl) { zakkenEl.value = rec.aantalZakken; zakkenEl.setAttribute('data-auto', rec.aantalZakken); }
+    if (waterEl)  { waterEl.value  = rec.waterL;       waterEl.setAttribute('data-auto',  rec.waterL); }
+    if (recnrEl)  { recnrEl.value  = rec.recNr; }
+    // Hercheck afwijkingen na update
+    kuipWaardeGewijzigd('zakken', idx);
+    kuipWaardeGewijzigd('water',  idx);
+  }
+}
+
 // ── AFWIJKING DETECTIE ───────────────────────────────────────
 function isKuipVeldAfwijkend(veld, idx) {
   var el = document.getElementById('kuip-' + veld + '-' + idx);
@@ -2816,6 +2990,7 @@ function kuipMaakRij(idx, product, preBatch, preTHT, kopieerVan) {
 
   // Kopieer waarden van vorige rij indien meegegeven
   var kopieerProduct = kopieerVan ? (kopieerVan.product     || '') : (product || '');
+  var kopieerSoort   = kopieerVan ? (kopieerVan.soort       || '') : (pendingKuip.receptRegel ? (pendingKuip.receptRegel.soort || '') : '');
   var kopieerRecNr   = kopieerVan ? (kopieerVan.recNr       || '') : '';
   var kopieerZakken  = kopieerVan ? (kopieerVan.zakken      || '') : '';
   var kopieerWater   = kopieerVan ? (kopieerVan.water       || '') : '';
@@ -2843,6 +3018,10 @@ function kuipMaakRij(idx, product, preBatch, preTHT, kopieerVan) {
     // Product — read-only, gevuld vanuit stap 3 (pendingKuip.receptRegel)
     +'<td><input type="text" id="kuip-product-'+idx+'" value="'+(kopieerProduct||'')+'" readonly '
     +'style="'+kuipInputStijl+'background:#F0FDF4;color:#166534;font-weight:600;border-color:#BBF7D0;min-width:90px" /></td>'
+    // Soort — dropdown vanuit KUIP_SOORT_OPTIES, auto-gevuld vanuit recept
+    +'<td>'+(KUIP_SOORT_OPTIES.length
+        ? selEl('kuip-soort-'+idx, KUIP_SOORT_OPTIES, 'Soort', kopieerSoort, ' onchange="kuipSoortGewijzigd('+idx+')"')
+        : inpEl('kuip-soort-'+idx, kopieerSoort, 'Soort', false, ' onchange="kuipSoortGewijzigd('+idx+')"'))+'</td>'
     +'<td>'+inpEl('kuip-recnr-'+idx, kopieerRecNr, 'REC-NR', false)+'</td>'
     +'<td>'+inpEl('kuip-kuipnr-'+idx, autoKuipNr, 'Kuip-NR', false,
         ' data-auto="'+autoKuipNr+'" oninput="kuipNrGewijzigd('+idx+')"')+'</td>'
@@ -2859,7 +3038,7 @@ function kuipMaakRij(idx, product, preBatch, preTHT, kopieerVan) {
     +'</tr>'
     // ── Kuip-NR afwijking rij ──────────────────────────────────
     +'<tr id="kuip-remark-row-'+idx+'" style="display:none">'
-    +'<td colspan="9" style="padding:2px 4px 6px">'
+    +'<td colspan="10" style="padding:2px 4px 6px">'
     +'<div style="display:flex;align-items:center;gap:6px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:7px;padding:6px 10px">'
     +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#92400E" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
     +'<span style="font-size:11px;color:#92400E;font-weight:500">Afwijkend kuip-NR — reden:</span>'
@@ -2867,7 +3046,7 @@ function kuipMaakRij(idx, product, preBatch, preTHT, kopieerVan) {
     +'</div></td></tr>'
     // ── Zakken / Water afwijking rij ───────────────────────────
     +'<tr id="kuip-afwijking-row-'+idx+'" style="display:none">'
-    +'<td colspan="9" style="padding:2px 4px 8px">'
+    +'<td colspan="10" style="padding:2px 4px 8px">'
     +'<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:8px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start">'
     +'<div style="display:flex;align-items:center;gap:6px;flex-basis:100%;margin-bottom:2px">'
     +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
@@ -2909,6 +3088,7 @@ function kuipVoegRijToe() {
     var lastIdx = bestaandeRijen[bestaandeRijen.length-1].id.replace('kuip-rij-','');
     var kopieer = {
       product:     (document.getElementById('kuip-product-'+lastIdx)||{}).value||'',
+      soort:       (document.getElementById('kuip-soort-'+lastIdx)||{}).value||'',
       recNr:       (document.getElementById('kuip-recnr-'+lastIdx)||{}).value||'',
       zakken:      (document.getElementById('kuip-zakken-'+lastIdx)||{}).value||'',
       water:       (document.getElementById('kuip-water-'+lastIdx)||{}).value||'',
@@ -2919,7 +3099,7 @@ function kuipVoegRijToe() {
     var bestaandeKeuze = document.getElementById(keuzeId);
     if (bestaandeKeuze) { bestaandeKeuze.remove(); kuipRijTeller--; return; }
     var keuzeHtml = '<tr id="'+keuzeId+'" style="background:#F0FDF4">'
-      +'<td colspan="9" style="padding:8px 6px">'
+      +'<td colspan="10" style="padding:8px 6px">'
       +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
       +'<span style="font-size:11px;color:#166534;font-weight:500">Rij toevoegen:</span>'
       +'<button onclick="kuipBevestigRijKeuze(true,'+kuipRijTeller+',\''+batch+'\',\''+tht+'\')" style="background:#D1FAE5;color:#166534;border:1.5px solid #6EE7B7;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer">↩ Kopieer vorige rij</button>'
@@ -3320,6 +3500,7 @@ function saveKuipRegistratie() {
     return {
       _idx:        idx,
       product:     (document.getElementById('kuip-product-'+idx)||{}).value||'',
+      soort:       (document.getElementById('kuip-soort-'+idx)||{}).value||'',
       recNr:       (document.getElementById('kuip-recnr-'+idx)||{}).value||'',
       kuipNr:      kuipNr,
       aantalZak:   zakken,
@@ -3374,37 +3555,47 @@ function saveKuipRegistratie() {
     return;
   }
 
-  var entry = {
-    ts:    new Date().toLocaleString('nl-NL'),
-    matNr: matNr,
-    desc:  pendingKuip.desc || '',
-    batch: pendingKuip.batch || '—',
-    lijn:  pendingKuip.lijn  || '—',
-    rijen: registraties
-  };
+  // Controleer op Handmatig soort → vereist badge + opmerking bevestiging
+  var handmatigRijen = registraties.filter(function(r){ return r.soort === 'Handmatig'; });
+  if (handmatigRijen.length) {
+    // Sla context op en open bevestigingsmodal
+    pendingHandmatigSave = { registraties: registraties, matNr: matNr };
+    openKuipHandmatigModal(handmatigRijen);
+    return;
+  }
 
+  voerKuipSaveUit(registraties, matNr);
+}
+
+var pendingHandmatigSave = null;
+
+function voerKuipSaveUit(registraties, matNr, handmatigBadge, handmatigOpmerking) {
   // POST elke rij apart naar Flow 10 (SharePoint)
   var saveUrl = localStorage.getItem('wml_pa_kuip_save_url');
   var vandaagStr = new Date().toISOString().slice(0, 10);
   registraties.forEach(function(r) {
+    var isHandmatig = r.soort === 'Handmatig';
     var payload = {
-      MatNr:       String(matNr),
-      Omschrijving:pendingKuip.desc || '',
-      Batch:       pendingKuip.batch || '',
-      Lijn:        pendingKuip.lijn || '',
-      Product:     r.product || '',
-      RecNr:       r.recNr || '',
-      KuipNr:      r.kuipNr || '',
-      AantalZakken:String(r.aantalZak || r.aantalZakken || ''),
-      THT:         r.tht || '',
-      SAPCode:     r.sapCode || '',
-      WaterL:      String(r.water || r.waterL || ''),
-      Leverancier: r.leverancier || '',
-      ZakkenReden: r.zakkenReden || '',
-      WaterReden:  r.waterReden  || '',
-      Tijdstip:    new Date().toLocaleString('nl-NL'),
-      FormCode:    'TRA-F-05',
-      Datum:       vandaagStr
+      MatNr:              String(matNr),
+      Omschrijving:       pendingKuip.desc || '',
+      Batch:              pendingKuip.batch || '',
+      Lijn:               pendingKuip.lijn || '',
+      Product:            r.product || '',
+      Soort:              r.soort || '',
+      RecNr:              r.recNr || '',
+      KuipNr:             r.kuipNr || '',
+      AantalZakken:       String(r.aantalZak || r.aantalZakken || ''),
+      THT:                r.tht || '',
+      SAPCode:            r.sapCode || '',
+      WaterL:             String(r.water || r.waterL || ''),
+      Leverancier:        r.leverancier || '',
+      ZakkenReden:        r.zakkenReden || '',
+      WaterReden:         r.waterReden  || '',
+      HandmatigBadge:     isHandmatig ? (handmatigBadge || '') : '',
+      HandmatigOpmerking: isHandmatig ? (handmatigOpmerking || '') : '',
+      Tijdstip:           new Date().toLocaleString('nl-NL'),
+      FormCode:           'TRA-F-05',
+      Datum:              vandaagStr
     };
     if (saveUrl) {
       fetch(saveUrl, {
@@ -3417,6 +3608,68 @@ function saveKuipRegistratie() {
   closeKuipModal();
   // Herlaad registraties vanuit SharePoint na korte vertraging
   setTimeout(function(){ laadKuipRegistraties(function(){ renderAll(); }); }, 1500);
+}
+
+// ── KUIP HANDMATIG BEVESTIGING ───────────────────────────────
+function openKuipHandmatigModal(handmatigRijen) {
+  var modal = document.getElementById('kuip-handmatig-modal');
+  if (!modal) return;
+
+  // Toon welke kuipnummers handmatig zijn
+  var info = document.getElementById('kuip-hm-info');
+  if (info) {
+    info.innerHTML = handmatigRijen.map(function(r) {
+      return '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#FEF3C7;'
+        + 'border:1px solid #FCD34D;border-radius:7px;margin-bottom:6px">'
+        + '<span style="font-family:var(--mono);font-weight:700;color:#92400E">' + (r.kuipNr||'?') + '</span>'
+        + '<span style="font-size:11px;color:#92400E">' + (r.product||'') + ' — Handmatig</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  // Reset velden
+  var badgeEl = document.getElementById('kuip-hm-badge');
+  var opmEl   = document.getElementById('kuip-hm-opmerking');
+  var btnEl   = document.getElementById('kuip-hm-bevestig-btn');
+  if (badgeEl)  badgeEl.value = '';
+  if (opmEl)    opmEl.value   = '';
+  if (btnEl)    { btnEl.disabled = true; btnEl.style.opacity = '.4'; }
+
+  modal.style.display = 'flex';
+}
+
+function kuipHandmatigCheckVelden() {
+  var badge = (document.getElementById('kuip-hm-badge')||{}).value || '';
+  var opm   = (document.getElementById('kuip-hm-opmerking')||{}).value || '';
+  var btn   = document.getElementById('kuip-hm-bevestig-btn');
+  if (btn) {
+    var ok = badge.trim().length >= 3 && opm.trim().length >= 3;
+    btn.disabled = !ok;
+    btn.style.opacity = ok ? '1' : '.4';
+  }
+}
+
+function kuipHandmatigBevestig() {
+  var badge = ((document.getElementById('kuip-hm-badge')||{}).value||'').trim();
+  var opm   = ((document.getElementById('kuip-hm-opmerking')||{}).value||'').trim();
+  if (!badge || !opm) return;
+
+  closeKuipHandmatigModal();
+
+  if (pendingHandmatigSave) {
+    voerKuipSaveUit(
+      pendingHandmatigSave.registraties,
+      pendingHandmatigSave.matNr,
+      badge,
+      opm
+    );
+    pendingHandmatigSave = null;
+  }
+}
+
+function closeKuipHandmatigModal() {
+  var modal = document.getElementById('kuip-handmatig-modal');
+  if (modal) modal.style.display = 'none';
 }
 
 // ── KUIP DATA OPHALEN (vervangt laadKuipData localStorage) ──
@@ -3449,6 +3702,7 @@ function laadKuipRegistraties(callback, datum) {
         matNr:       matNr,
         id:          r.ID || '',
         product:     r.Product || '',
+        soort:       (r.Soort && r.Soort.Value) ? r.Soort.Value : (r.Soort || ''),
         recNr:       r.RecNr || '',
         kuipNr:      r.KuipNr || '',
         aantalZakken:r.AantalZakken || '',
@@ -3645,6 +3899,7 @@ function openKuipLijnDetail(lijn) {
     + '<th style="' + thS + '">Omschrijving</th>'
     + '<th style="' + thS + '">Batch</th>'
     + '<th style="' + thS + '">Product</th>'
+    + '<th style="' + thS + '">Soort</th>'
     + '<th style="' + thS + '">Rec-Nr</th>'
     + '<th style="' + thS + '">Kuip-Nr</th>'
     + '<th style="' + thS + '">Zakken</th>'
@@ -3656,7 +3911,7 @@ function openKuipLijnDetail(lijn) {
     + '</tr></thead><tbody>';
 
   if (!rijen.length) {
-    html += '<tr><td colspan="12" style="' + tdS + ';text-align:center;color:var(--muted);font-style:italic">Geen registraties gevonden</td></tr>';
+    html += '<tr><td colspan="13" style="' + tdS + ';text-align:center;color:var(--muted);font-style:italic">Geen registraties gevonden</td></tr>';
   } else {
     rijen.forEach(function(r) {
       var tijdLabel = r.tijdstip ? r.tijdstip.replace('T',' ').substring(0,16) : '—';
@@ -3665,6 +3920,9 @@ function openKuipLijnDetail(lijn) {
         + '<td style="' + tdS + ';max-width:200px;overflow:hidden;text-overflow:ellipsis">' + (r.omschrijving||'—') + '</td>'
         + '<td style="' + tdS + '"><span style="' + monoS + '">' + (r.batch||'—') + '</span></td>'
         + '<td style="' + tdS + ';font-weight:600">' + (r.product||'—') + '</td>'
+        + '<td style="' + tdS + '">'
+        +   (r.soort ? '<span style="background:#D1FAE5;color:#065F46;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">' + r.soort + '</span>' : '<span style="color:var(--muted)">—</span>')
+        + '</td>'
         + '<td style="' + tdS + '"><span style="' + monoS + '">' + (r.recNr||'—') + '</span></td>'
         + '<td style="' + tdS + '"><span style="' + monoS + ';color:#166534;font-weight:700">' + (r.kuipNr||'—') + '</span></td>'
         + '<td style="' + tdS + ';text-align:right">' + (r.aantalZakken||'—') + '</td>'
@@ -5116,12 +5374,20 @@ laadRecepten();
       </div>
       <button onclick="kuipTerugVanafStap3()" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;cursor:pointer;color:var(--muted)">← Terug naar lijn</button>
     </div>
+    <!-- STAP 35: SOORT KIEZEN (sub-stap van stap 3, alleen bij meerdere soort-varianten) -->
+    <div id="kuip-stap-35" style="display:none">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Kies de soort voor:</div>
+      <div id="kuip-soort-product-naam" style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:16px;padding:8px 12px;background:var(--cream);border-radius:8px"></div>
+      <div id="kuip-soort-opties-grid" style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px"></div>
+      <button onclick="kuipGaNaarStap(3)" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;cursor:pointer;color:var(--muted)">← Ander product kiezen</button>
+    </div>
     <div id="kuip-stap-4" style="display:none">
       <div id="kuip-stap3-info" style="font-size:11px;color:var(--muted);margin-bottom:8px;padding:7px 10px;background:var(--cream);border-radius:7px"></div>
       <div style="overflow-x:auto;margin-bottom:8px;-webkit-overflow-scrolling:touch">
         <table style="border-collapse:collapse;font-size:11px;min-width:600px;width:100%">
           <thead><tr style="background:var(--cream)">
             <th style="padding:6px 5px;text-align:left;font-weight:600;color:var(--muted);font-size:10px;border-bottom:2px solid var(--border);min-width:100px">Product</th>
+            <th style="padding:6px 5px;text-align:left;font-weight:600;color:var(--muted);font-size:10px;border-bottom:2px solid var(--border);min-width:80px">Soort</th>
             <th style="padding:6px 5px;text-align:left;font-weight:600;color:var(--muted);font-size:10px;border-bottom:2px solid var(--border);min-width:75px">REC-NR</th>
             <th style="padding:6px 5px;text-align:left;font-weight:600;color:var(--muted);font-size:10px;border-bottom:2px solid var(--border);min-width:65px">Kuip-NR</th>
             <th style="padding:6px 5px;text-align:left;font-weight:600;color:var(--muted);font-size:10px;border-bottom:2px solid var(--border);min-width:65px">Zakken</th>
@@ -5243,6 +5509,50 @@ laadRecepten();
         style="flex:1;padding:11px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;cursor:pointer;color:var(--muted)">Annuleren</button>
       <button onclick="savePalletNaarProd()" id="pallet-scan-opslaan" disabled
         style="flex:2;padding:11px;border:none;border-radius:9px;background:#1D4ED8;color:#fff;font-size:13px;font-weight:600;cursor:pointer;opacity:.4;transition:opacity .2s">✓ Naar PROD</button>
+    </div>
+  </div>
+</div>
+
+<!-- KUIP HANDMATIG BEVESTIGING MODAL -->
+<div id="kuip-handmatig-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:16px;padding:22px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.3)">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <span style="background:#FEF3C7;color:#92400E;font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 9px;border-radius:5px">HANDMATIG</span>
+      <div style="font-size:15px;font-weight:700;color:var(--ink)">Bevestiging vereist</div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">De volgende kuipen zijn handmatig ingevuld:</div>
+    <div id="kuip-hm-info" style="margin-bottom:16px"></div>
+
+    <!-- Badge -->
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">
+        Badgenummer operator ✱
+      </label>
+      <input type="number" id="kuip-hm-badge" placeholder="bv. 1042"
+        oninput="kuipHandmatigCheckVelden()"
+        style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:9px;font-size:15px;font-family:var(--mono);box-sizing:border-box"
+        onfocus="this.style.borderColor='#D97706'" onblur="this.style.borderColor='var(--border)'">
+    </div>
+
+    <!-- Opmerking -->
+    <div style="margin-bottom:18px">
+      <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">
+        Reden / opmerking ✱
+      </label>
+      <textarea id="kuip-hm-opmerking" rows="3" placeholder="Bijv: Recept nog niet in systeem, batch bijzonder klein, grondstof gewijzigd…"
+        oninput="kuipHandmatigCheckVelden()"
+        style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:9px;font-size:12px;resize:vertical;box-sizing:border-box;font-family:var(--sans)"
+        onfocus="this.style.borderColor='#D97706'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    </div>
+
+    <!-- Knoppen -->
+    <div style="display:flex;gap:8px">
+      <button onclick="closeKuipHandmatigModal()" style="flex:1;padding:11px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;cursor:pointer;color:var(--muted)">Annuleren</button>
+      <button id="kuip-hm-bevestig-btn" onclick="kuipHandmatigBevestig()" disabled
+        style="flex:2;padding:11px;border:none;border-radius:9px;background:#D97706;color:#fff;font-size:13px;font-weight:700;cursor:pointer;opacity:.4">
+        ✓ Aftekenen &amp; opslaan
+      </button>
     </div>
   </div>
 </div>
