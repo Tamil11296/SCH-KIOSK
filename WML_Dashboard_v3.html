@@ -853,7 +853,7 @@ setInterval(function() { laadVoorraad(); }, 60 * 60 * 1000);
 // ═══════════════════════════════════════════════════════════
 var completed = JSON.parse(localStorage.getItem('wml_completed') || '{}');
 var logEntries = JSON.parse(localStorage.getItem('wml_log') || '[]');
-var expandedCards = {}, currentView = 1;
+var expandedCards = {}, expandedVolgend = {}, currentView = 1;
 var verwijderdeItems = []; // VERWIJDERD items uit SharePoint, voor het Afwijkingen-scherm
 
 function saveCompleted() {
@@ -1879,21 +1879,17 @@ function renderFKCard(g) {
 // ── VIEW 2 ─────────────────────────────────────────────────
 function renderBoard(vis) {
   var grid = document.getElementById('grid'), empty = document.getElementById('boardempty');
-  var metProd = vis.filter(function(g){
-    if (g.inProd.length > 0) return true;
-    // Toon ook kuipregistratie-materialen zonder PROD01-pallet (wacht op wissel)
-    var matNrStr = String(g.matNr).replace(/\./g, '').trim();
-    return FORM_CATALOG.some(function(f){
-      return f.kuipMatnrs && f.kuipMatnrs.indexOf(matNrStr) > -1;
-    });
-  });
-  var gefilterd = metProd;
+  var metProd = vis.filter(function(g){ return g.inProd.length > 0; });
+  var gefilterd;
   if (activeFormFilter === 'OVERIG') {
     gefilterd = metProd.filter(function(g){ return getGroupForms(g).length === 0; });
   } else if (activeFormFilter) {
-    gefilterd = metProd.filter(function(g){
+    // Met actief formulierfilter: toon ook producten die nog niet in PROD staan
+    gefilterd = vis.filter(function(g){
       return getGroupForms(g).some(function(f){ return f.code === activeFormFilter; });
     });
+  } else {
+    gefilterd = metProd;
   }
   if (!gefilterd.length) { grid.innerHTML = ''; empty.style.display = 'block'; }
   else { empty.style.display = 'none'; grid.innerHTML = gefilterd.map(renderBadgeCard).join(''); }
@@ -1911,8 +1907,11 @@ function renderBadgeCard(g) {
   var expanded = expandedCards[g.matNr];
   var showRows = g.inProd.length > 0 ? (expanded ? g.inProd : [g.inProd[0]]) : [];
   // Gebruik eerste BESCHIKBARE (niet-externe) pallet als FEFO-voorstel
+  var expandedVol   = expandedVolgend[g.matNr];
   var next          = g._volgendBeschikbaar ? g._volgendBeschikbaar[0] : g.volgend[0];
   var externPallets = g._volgendExtern || [];
+  // Alles na het eerste beschikbare pallet + alle extern pallets = verborgen achter knop
+  var extraVolgend  = (g._volgendBeschikbaar ? g._volgendBeschikbaar.slice(1) : []).concat(externPallets);
   var donePill = allDone ? '<div class="done-tag"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Afgerond</div>' : '';
   var fefoPill = g._fefoGecorrigeerd ? '<span class="fefo-corrected-tag" title="Volgorde gecorrigeerd op THT">↕ FEFO fix</span>' : '';
 
@@ -1922,22 +1921,20 @@ function renderBadgeCard(g) {
     return '<span class="form-badge" style="background:' + f.achtergrond + ';color:' + f.kleur + '">' + f.code + '</span>';
   }).join('');
 
-  var prodPanels = showRows.map(function(row) {
-    var k = g.matNr+'-'+row.pallet, isDone = !!completed[k];
-    return '<div class="bc-panel '+(isDone?'done-panel':'prod-panel')+'">'
-      +'<div class="check-area">'
-      +'<button class="check-btn" onclick="completeRow(\''+g.matNr+'\',\''+row.pallet+'\')">'+(isDone?icoCheck():icoCircle())+'</button>'
-      +'<div style="flex:1;min-width:0">'
-      +'<div class="pf">'+icoHash+'<span class="pf-val'+(isDone?' striked':'')+'">'+row.batch+'</span></div>'
-      +'<div class="pf">'+icoPin+'<span class="pf-sub">'+row.loc+'</span></div>'
-      +'<div class="pf">'+icoWgt+'<span class="pf-sub">'+row.qty.toLocaleString('nl-NL')+' '+row.unit+'</span></div>'
-      +'<div class="pf-date">'+row.date+'</div>'
-      +'</div></div></div>';
-  }).join('');
-  // Geen pallet in PROD: toon placeholder zodat de kaart er intentioneel uitziet
-  if (g.inProd.length === 0) {
-    prodPanels = '<div class="bc-panel empty-panel"><span>Nog geen pallet in PROD</span></div>';
-  }
+  var prodPanels = showRows.length > 0
+    ? showRows.map(function(row) {
+        var k = g.matNr+'-'+row.pallet, isDone = !!completed[k];
+        return '<div class="bc-panel '+(isDone?'done-panel':'prod-panel')+'">'
+          +'<div class="check-area">'
+          +'<button class="check-btn" onclick="completeRow(\''+g.matNr+'\',\''+row.pallet+'\')">'+(isDone?icoCheck():icoCircle())+'</button>'
+          +'<div style="flex:1;min-width:0">'
+          +'<div class="pf">'+icoHash+'<span class="pf-val'+(isDone?' striked':'')+'">'+row.batch+'</span></div>'
+          +'<div class="pf">'+icoPin+'<span class="pf-sub">'+row.loc+'</span></div>'
+          +'<div class="pf">'+icoWgt+'<span class="pf-sub">'+row.qty.toLocaleString('nl-NL')+' '+row.unit+'</span></div>'
+          +'<div class="pf-date">'+row.date+'</div>'
+          +'</div></div></div>';
+      }).join('')
+    : '<div class="bc-panel empty-panel"><span>Nog geen pallet in PROD</span></div>';
 
   var nextPanel = next
     ? '<div class="bc-panel next-panel">'
@@ -1948,25 +1945,43 @@ function renderBadgeCard(g) {
       +'<div class="pf-date">'+next.date+'</div></div>'
     : '<div class="bc-panel empty-panel"><span>Geen voorraad beschikbaar</span></div>';
 
-  // Extern pallets tonen — gestyled als 'niet bereikbaar'
-  var externPanel = externPallets.length === 0 ? '' : externPallets.map(function(r) {
-    return '<div class="bc-panel" style="opacity:.6;background:#F9FAFB;border:1.5px dashed #D1D5DB;position:relative;overflow:hidden">'
-      +'<div style="position:absolute;top:0;left:0;right:0;padding:2px 6px;background:#F3F4F6;border-bottom:1px dashed #D1D5DB;display:flex;align-items:center;gap:4px">'
-      +'<span style="font-size:9px;font-weight:700;color:#6B7280;letter-spacing:.04em">⛔ EXTERN — NIET BEREIKBAAR</span>'
-      +'<span style="margin-left:auto;font-size:9px;color:#9CA3AF;font-family:var(--mono)">'+r.loc+'</span>'
-      +'</div>'
-      +'<div style="padding-top:20px">'
-      +'<div class="pf">'+icoHash+'<span class="pf-val" style="color:#9CA3AF;text-decoration:line-through">'+r.batch+'</span></div>'
-      +'<div class="pf">'+icoWgt+'<span class="pf-sub">'+r.qty.toLocaleString('nl-NL')+' '+r.unit+'</span></div>'
-      +'<div class="pf-date" style="color:#9CA3AF">'+r.date+'</div>'
-      +'</div></div>';
-  }).join('');
+  // Extra volgend pallets — alleen tonen als uitgebreid (beschikbaar[1+] + extern)
+  var extraVolgendPanels = '';
+  if (expandedVol && extraVolgend.length > 0) {
+    extraVolgendPanels = extraVolgend.map(function(r) {
+      if (r.extern) {
+        return '<div class="bc-panel" style="opacity:.6;background:#F9FAFB;border:1.5px dashed #D1D5DB;position:relative;overflow:hidden">'
+          +'<div style="position:absolute;top:0;left:0;right:0;padding:2px 6px;background:#F3F4F6;border-bottom:1px dashed #D1D5DB;display:flex;align-items:center;gap:4px">'
+          +'<span style="font-size:9px;font-weight:700;color:#6B7280;letter-spacing:.04em">⛔ EXTERN — NIET BEREIKBAAR</span>'
+          +'<span style="margin-left:auto;font-size:9px;color:#9CA3AF;font-family:var(--mono)">'+r.loc+'</span>'
+          +'</div>'
+          +'<div style="padding-top:20px">'
+          +'<div class="pf">'+icoHash+'<span class="pf-val" style="color:#9CA3AF;text-decoration:line-through">'+r.batch+'</span></div>'
+          +'<div class="pf">'+icoWgt+'<span class="pf-sub">'+r.qty.toLocaleString('nl-NL')+' '+r.unit+'</span></div>'
+          +'<div class="pf-date" style="color:#9CA3AF">'+r.date+'</div>'
+          +'</div></div>';
+      } else {
+        return '<div class="bc-panel next-panel">'
+          +'<div class="pf">'+icoHash+'<span class="pf-val">'+r.batch+'</span></div>'
+          +'<div class="pf">'+icoPin+'<span class="pf-sub">'+r.loc+'</span></div>'
+          +'<div class="pf">'+icoWgt+'<span class="pf-sub">'+r.qty.toLocaleString('nl-NL')+' '+r.unit+'</span></div>'
+          +'<div class="pf-date">'+r.date+'</div></div>';
+      }
+    }).join('');
+  }
 
   var expandBtn = g.inProd.length > 1
     ? '<button class="bc-expand" onclick="toggleExpand(\''+g.matNr+'\')">'
       +(expanded
           ?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg> Minder tonen'
           :'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg> '+(g.inProd.length-1)+' meer pallet'+(g.inProd.length>2?'s':'')+' in PROD')
+      +'</button>' : '';
+
+  var expandVolgendBtn = extraVolgend.length > 0
+    ? '<button class="bc-expand" onclick="toggleExpandVolgend(\''+g.matNr+'\')">'
+      +(expandedVol
+          ?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg> Minder tonen'
+          :'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg> '+extraVolgend.length+' meer pallet'+(extraVolgend.length>1?'s':'')+' (FEFO)')
       +'</button>' : '';
 
   // F-07 "Start verwerking" knop
@@ -2008,7 +2023,7 @@ function renderBadgeCard(g) {
   }
 
   // Kuip registratie knop — actief status bepalen
-  var matNrStr = String(g.matNr).replace(/\./g, '').trim();
+  var matNrStr = String(g.matNr);
   var heeftKuipKnop = forms.some(function(f){
     return f.kuipMatnrs && f.kuipMatnrs.indexOf(matNrStr) > -1;
   });
@@ -2020,7 +2035,13 @@ function renderBadgeCard(g) {
 
   var kuipBtn = '';
   if (heeftKuipKnop) {
-    if (kuipActief) {
+    if (g.inProd.length === 0) {
+      // Geen pallet in PROD — knop uitgevinkt
+      kuipBtn = '<div style="padding:2px 10px 8px">'
+        + '<div style="display:flex;align-items:center;gap:6px;width:100%;background:#F9FAFB;color:#D1D5DB;border:1.5px solid #E5E7EB;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:500;cursor:not-allowed;font-family:var(--sans)">'
+        + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+        + ' Kuip registratie — nog geen pallet in PROD</div></div>';
+    } else if (kuipActief) {
       // Actief — normale groene knop
       kuipBtn = '<div style="padding:2px 10px 8px">'
         + '<button onclick="openKuipModal(\'' + g.matNr + '\')" style="display:flex;align-items:center;gap:6px;width:100%;background:#d8e3f0;color:#166534;border:1.5px solid #86b2ef;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)">'
@@ -2048,8 +2069,9 @@ function renderBadgeCard(g) {
     +'<div class="bc-name">'+g.desc+'</div>'
     +'</div>'+donePill+'</div>'
     +'<div class="bc-labels"><div class="bc-label"><span class="dot dot-prod"></span> In PROD</div><div class="bc-label"><span class="dot dot-next"></span> Volgend (FEFO)</div></div>'
-    +'<div class="bc-panels">'+prodPanels+nextPanel+externPanel+'</div>'
+    +'<div class="bc-panels">'+prodPanels+nextPanel+extraVolgendPanels+'</div>'
     +expandBtn
+    +expandVolgendBtn
     +kuipBtn
     +(verwerkingBtn ? '<div style="padding:4px 10px 8px">'+verwerkingBtn+'</div>' : '')
     +'</div>';
@@ -2371,6 +2393,7 @@ function confirmVerwerking() {
 }
 
 function toggleExpand(matNr) { expandedCards[matNr] = !expandedCards[matNr]; renderAll(); }
+function toggleExpandVolgend(matNr) { expandedVolgend[matNr] = !expandedVolgend[matNr]; renderAll(); }
 
 // ══════════════════════════════════════════════════════════════════
 // CONFIGURATIE — KUIP REGISTRATIE PRODUCTEN (TRA-F-05)
