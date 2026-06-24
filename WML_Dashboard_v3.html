@@ -1879,7 +1879,14 @@ function renderFKCard(g) {
 // ── VIEW 2 ─────────────────────────────────────────────────
 function renderBoard(vis) {
   var grid = document.getElementById('grid'), empty = document.getElementById('boardempty');
-  var metProd = vis.filter(function(g){ return g.inProd.length > 0; });
+  var metProd = vis.filter(function(g){
+    if (g.inProd.length > 0) return true;
+    // Toon ook kuipregistratie-materialen zonder PROD01-pallet (wacht op wissel)
+    var matNrStr = String(g.matNr).replace(/\./g, '').trim();
+    return FORM_CATALOG.some(function(f){
+      return f.kuipMatnrs && f.kuipMatnrs.indexOf(matNrStr) > -1;
+    });
+  });
   var gefilterd = metProd;
   if (activeFormFilter === 'OVERIG') {
     gefilterd = metProd.filter(function(g){ return getGroupForms(g).length === 0; });
@@ -1900,9 +1907,9 @@ function renderIngevuldeFormulieren() {
 }
 
 function renderBadgeCard(g) {
-  var allDone = g.inProd.every(function(r){ return completed[g.matNr+'-'+r.pallet]; });
+  var allDone = g.inProd.length > 0 && g.inProd.every(function(r){ return completed[g.matNr+'-'+r.pallet]; });
   var expanded = expandedCards[g.matNr];
-  var showRows = expanded ? g.inProd : [g.inProd[0]];
+  var showRows = g.inProd.length > 0 ? (expanded ? g.inProd : [g.inProd[0]]) : [];
   // Gebruik eerste BESCHIKBARE (niet-externe) pallet als FEFO-voorstel
   var next          = g._volgendBeschikbaar ? g._volgendBeschikbaar[0] : g.volgend[0];
   var externPallets = g._volgendExtern || [];
@@ -1927,6 +1934,10 @@ function renderBadgeCard(g) {
       +'<div class="pf-date">'+row.date+'</div>'
       +'</div></div></div>';
   }).join('');
+  // Geen pallet in PROD: toon placeholder zodat de kaart er intentioneel uitziet
+  if (g.inProd.length === 0) {
+    prodPanels = '<div class="bc-panel empty-panel"><span>Nog geen pallet in PROD</span></div>';
+  }
 
   var nextPanel = next
     ? '<div class="bc-panel next-panel">'
@@ -1997,7 +2008,7 @@ function renderBadgeCard(g) {
   }
 
   // Kuip registratie knop — actief status bepalen
-  var matNrStr = String(g.matNr);
+  var matNrStr = String(g.matNr).replace(/\./g, '').trim();
   var heeftKuipKnop = forms.some(function(f){
     return f.kuipMatnrs && f.kuipMatnrs.indexOf(matNrStr) > -1;
   });
